@@ -42,6 +42,8 @@ __screenshots__/
 # Testing
 playwright-report/
 test-results/
+test-results-pwa/
+debug.log
 
 # System files
 .DS_Store

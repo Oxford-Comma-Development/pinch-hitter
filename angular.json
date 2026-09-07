@@ -7,7 +7,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "angular-pwa-starter": {
+    "baseball-coach-helper": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -46,8 +46,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "16kB",
+                  "maximumError": "20kB"
                 }
               ],
               "outputHashing": "all",
@@ -65,10 +65,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "angular-pwa-starter:build:production"
+              "buildTarget": "baseball-coach-helper:build:production"
             },
             "development": {
-              "buildTarget": "angular-pwa-starter:build:development"
+              "buildTarget": "baseball-coach-helper:build:development"
             }
           },
           "defaultConfiguration": "development"

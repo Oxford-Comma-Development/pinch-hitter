@@ -1,6 +1,6 @@
 {
-  "name": "angular-pwa-starter",
-  "version": "0.0.0",
+  "name": "baseball-coach-helper",
+  "version": "1.0.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -11,7 +11,8 @@
     "lint": "ng lint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "e2e:pwa": "playwright test --config playwright.pwa.config.ts"
   },
   "private": true,
   "packageManager": "npm@11.19.0",

@@ -1,20 +1,29 @@
 import { Routes } from '@angular/router';
-import { HomeComponent } from './home/home.component';
-import { StatusComponent } from './status/status.component';
-
 export const routes: Routes = [
   {
     path: '',
-    component: HomeComponent,
-    title: 'Home • Angular PWA Starter',
+    loadComponent: () => import('./home/home.component').then((m) => m.HomeComponent),
+    title: 'Baseball Coach Helper',
   },
   {
-    path: 'status',
-    component: StatusComponent,
-    title: 'Status & Diagnostics • Angular PWA Starter',
+    path: 'roster',
+    loadComponent: () => import('./roster/roster.component').then((m) => m.RosterComponent),
+    title: 'Roster · Coach Helper',
   },
   {
-    path: '**',
-    redirectTo: '',
+    path: 'practice',
+    loadComponent: () => import('./practice/practice.component').then((m) => m.PracticeComponent),
+    title: 'Batting Practice · Coach Helper',
   },
+  {
+    path: 'reports',
+    loadComponent: () => import('./reports/reports.component').then((m) => m.ReportsComponent),
+    title: 'Reports · Coach Helper',
+  },
+  {
+    path: 'settings',
+    loadComponent: () => import('./settings/settings.component').then((m) => m.SettingsComponent),
+    title: 'Settings · Coach Helper',
+  },
+  { path: '**', redirectTo: '' },
 ];

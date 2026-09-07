@@ -1,12 +1,12 @@
 {
-  "name": "Angular PWA Starter",
-  "short_name": "Angular PWA",
-  "description": "A clean, production-ready Angular PWA starter for GitHub Pages.",
+  "name": "Baseball Coach Helper",
+  "short_name": "Coach Helper",
+  "description": "Your personal baseball notebook and batting-practice spray chart. Capture contacts, coach your players, and own your data.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#090d16",
-  "theme_color": "#0f172a",
+  "background_color": "#f6f5ee",
+  "theme_color": "#172f2b",
   "orientation": "any",
   "icons": [
     {
@@ -57,5 +57,7 @@
       "type": "image/png",
       "purpose": "maskable any"
     }
-  ]
+  ],
+  "id": "./",
+  "categories": ["sports", "productivity"]
 }

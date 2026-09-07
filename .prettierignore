@@ -1,4 +1,7 @@
 /dist
 /.angular
 /node_modules
+/test-results-pwa
+/test-results
+/playwright-report
 package-lock.json

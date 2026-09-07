@@ -1,0 +1,546 @@
+@if (!store.ready()) {
+  <p class="loading">Opening your practice notebook…</p>
+} @else if (!store.activeTeam()) {
+  <section class="card setup-empty">
+    <span class="eyebrow">Your first practice</span>
+    <h1>A team. A field. Let’s go.</h1>
+    <p>Create your team and add a few hitters to get started.</p>
+    <a class="button primary" routerLink="/">Set up your team</a>
+  </section>
+} @else if (!store.activeSession()) {
+  <section class="practice-setup">
+    <div class="setup-heading">
+      <span class="eyebrow">{{ store.activeTeam()?.name }} / Batting practice</span>
+      <h1>Meet you at the field.</h1>
+      <p>Your roster is ready. Pick the lineup and start recording.</p>
+    </div>
+    @if (!store.roster().length) {
+      <div class="card setup-empty">
+        <h2>Who’s hitting?</h2>
+        <p>Add your players once. Their usual order will be ready for every practice.</p>
+        <a class="button primary" routerLink="/roster">Add players</a>
+      </div>
+    } @else {
+      <form (ngSubmit)="start()" class="setup-grid">
+        <section class="card lineup-card">
+          <div class="section-heading">
+            <div>
+              <span class="eyebrow">The lineup</span>
+              <h2>{{ selectedIds().length }} hitters ready</h2>
+            </div>
+            <button type="button" class="text-button" (click)="selectAll()">Select all</button>
+          </div>
+          <p class="muted small">
+            Uncheck anyone sitting out. Use the arrows to set today’s order.
+          </p>
+          <div class="starting-lineup">
+            @for (player of startingPlayers(); track player.id; let i = $index) {
+              <div class="lineup-row">
+                <label class="player-check"
+                  ><input type="checkbox" checked (change)="toggleParticipant(player.id)" /><span
+                    class="jersey-small"
+                    >{{ jersey(player) }}</span
+                  ><span
+                    >{{ player.name
+                    }}<small>{{
+                      i === 0 ? 'First up' : i === 1 ? 'On deck' : 'Hitter ' + (i + 1)
+                    }}</small></span
+                  ></label
+                >
+                <div class="move-buttons">
+                  <button
+                    type="button"
+                    class="icon-button"
+                    [disabled]="i === 0"
+                    (click)="moveStart(player.id, -1)"
+                    [attr.aria-label]="'Move ' + player.name + ' earlier'"
+                  >
+                    ↑</button
+                  ><button
+                    type="button"
+                    class="icon-button"
+                    [disabled]="i === selectedIds().length - 1"
+                    (click)="moveStart(player.id, 1)"
+                    [attr.aria-label]="'Move ' + player.name + ' later'"
+                  >
+                    ↓
+                  </button>
+                </div>
+              </div>
+            }
+            @for (player of store.roster(); track player.id) {
+              @if (!selectedIds().includes(player.id)) {
+                <div class="lineup-row sitting-out">
+                  <label class="player-check"
+                    ><input type="checkbox" (change)="toggleParticipant(player.id)" /><span
+                      class="jersey-small"
+                      >{{ jersey(player) }}</span
+                    ><span>{{ player.name }}<small>Sitting out</small></span></label
+                  >
+                </div>
+              }
+            }
+          </div>
+        </section>
+        <section class="card setup-details">
+          <span class="eyebrow">Keep it simple</span>
+          <h2>Practice your way.</h2>
+          <label for="start-rotation">Hitter rotation</label
+          ><select id="start-rotation" name="rotation" [(ngModel)]="rotation">
+            <option value="manual">Manual advance</option>
+            <option value="1">After 1 recorded contact</option>
+            <option value="3">After 3 recorded contacts</option>
+            <option value="5">After 5 recorded contacts</option>
+            <option value="custom">Custom contact count</option>
+          </select>
+          @if (rotation === 'custom') {
+            <label for="custom-count">Recorded contacts per hitter</label
+            ><input
+              id="custom-count"
+              name="customCount"
+              type="number"
+              min="1"
+              max="100"
+              required
+              [(ngModel)]="customCount"
+            />
+          }
+          <p class="small muted">
+            With manual advance, the same hitter stays up until you tap Next batter.
+          </p>
+          <details>
+            <summary>Practice details <span class="muted">optional</span></summary>
+            <label for="practice-title">Title</label
+            ><input
+              id="practice-title"
+              name="title"
+              [(ngModel)]="title"
+              placeholder="Afternoon batting practice"
+              maxlength="120"
+            /><label for="practice-location">Location</label
+            ><input
+              id="practice-location"
+              name="location"
+              [(ngModel)]="location"
+              placeholder="Home field"
+              maxlength="160"
+            /><label for="practice-notes">Session notes</label
+            ><textarea
+              id="practice-notes"
+              name="notes"
+              [(ngModel)]="sessionNote"
+              rows="3"
+              placeholder="What are we working on?"
+              maxlength="5000"
+            ></textarea>
+          </details>
+          @if (failure()) {
+            <p class="error" role="alert">{{ failure() }}</p>
+          }
+          <button
+            class="button primary start-button"
+            type="submit"
+            [disabled]="busy() || !selectedIds().length"
+          >
+            {{ busy() ? 'Starting…' : 'Start practice' }} <span aria-hidden="true">→</span>
+          </button>
+          <p class="small muted ownership">
+            Every contact saves on this device. Ready without a connection.
+          </p>
+        </section>
+      </form>
+    }
+  </section>
+} @else {
+  @let session = store.activeSession()!;
+  <section class="practice-workspace" aria-label="Active batting practice">
+    <header class="practice-toolbar">
+      <span class="practice-live"
+        ><span aria-hidden="true"></span> LIVE PRACTICE
+        <b>{{ sessionEvents().length }} contacts</b></span
+      >
+      <div>
+        <button
+          class="icon-button"
+          (click)="openSheet('note')"
+          aria-label="Add coaching note"
+          title="Add note"
+        >
+          ✎</button
+        ><button
+          class="icon-button"
+          (click)="openSheet('options')"
+          aria-label="Practice options"
+          title="Practice options"
+        >
+          ⚙</button
+        ><button class="finish-link" (click)="openSheet('finish')">Finish</button>
+      </div>
+    </header>
+    <div class="current-hitter">
+      <span class="hitter-number">{{ jersey(current()) }}</span>
+      <div class="hitter-identity">
+        <span class="eyebrow"
+          >At bat
+          <span class="turn-count"
+            >· {{ session.turnContacts
+            }}{{ session.rotationCount ? ' / ' + session.rotationCount : '' }} this turn</span
+          ></span
+        >
+        <h1>{{ current()?.name || 'Lineup is empty' }}</h1>
+        <span class="hitter-meta"
+          >{{
+            current()?.bats === 'S'
+              ? 'Switch hitter'
+              : current()?.bats === 'L'
+                ? 'Bats left'
+                : 'Bats right'
+          }}
+          · {{ session.rotationCount ? 'Auto advance' : 'Manual advance' }}</span
+        >
+      </div>
+      <div class="pitcher-toggle" role="group" aria-label="Pitcher handedness">
+        <button
+          [class.selected]="session.pitcherHand === 'R'"
+          [attr.aria-pressed]="session.pitcherHand === 'R'"
+          [disabled]="busy()"
+          (click)="setPitcher('R')"
+        >
+          RHP</button
+        ><button
+          [class.selected]="session.pitcherHand === 'L'"
+          [attr.aria-pressed]="session.pitcherHand === 'L'"
+          [disabled]="busy()"
+          (click)="setPitcher('L')"
+        >
+          LHP
+        </button>
+      </div>
+    </div>
+    <div class="queue-strip">
+      <button class="queue-manage" (click)="openSheet('queue')" aria-label="Manage batting queue">
+        <span class="eyebrow">Up next</span><span>Lineup ↗</span>
+      </button>
+      <div class="upcoming-list" aria-label="Upcoming hitters">
+        @for (player of orderedQueue().slice(1, 6); track player.id; let i = $index) {
+          <div
+            class="queue-chip"
+            [class.dragging]="draggedId() === player.id"
+            [attr.data-queue-id]="player.id"
+          >
+            <button
+              class="drag-handle"
+              (pointerdown)="startDrag($event, player.id)"
+              (click)="queueHandleClick()"
+              [attr.aria-label]="'Reorder ' + player.name + '; drag or open lineup'"
+            >
+              ⠿</button
+            ><span
+              ><small>{{ i === 0 ? 'ON DECK' : '#' + (i + 2) }}</small
+              >{{ player.name.split(' ')[0] }}</span
+            >
+          </div>
+        } @empty {
+          <span class="small muted">{{
+            current() ? 'One hitter in rotation' : 'Add a hitter to keep going'
+          }}</span>
+        }
+      </div>
+      <button
+        class="voice-button icon-button"
+        (click)="listen()"
+        [attr.aria-label]="listening() ? 'Stop listening' : 'Find hitter by voice or name'"
+      >
+        <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true">
+          <rect
+            x="9"
+            y="3"
+            width="6"
+            height="11"
+            rx="3"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+          />
+          <path
+            d="M6 10v2a6 6 0 0012 0v-2M12 18v3M9 21h6"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+          />
+        </svg>
+      </button>
+    </div>
+    <div class="field-area">
+      <div class="field-instruction">
+        <span>Tap where the ball lands</span
+        ><span>{{ hitterEvents().length }} for this hitter</span>
+      </div>
+      <app-field
+        [events]="hitterEvents()"
+        [selectedId]="latest()?.id || ''"
+        [interactive]="!!current() && !busy()"
+        (location)="capture($event)"
+        [label]="'Record a contact for ' + (current()?.name || 'current hitter')"
+      />
+      @if (current()?.bats === 'S') {
+        <div class="batter-side" role="group" aria-label="Switch hitter batting side">
+          <span>Batting side</span
+          ><button
+            [class.selected]="batterSide() === 'L'"
+            [attr.aria-pressed]="batterSide() === 'L'"
+            (click)="setSide('L')"
+          >
+            Left</button
+          ><button
+            [class.selected]="batterSide() === 'R'"
+            [attr.aria-pressed]="batterSide() === 'R'"
+            (click)="setSide('R')"
+          >
+            Right
+          </button>
+        </div>
+      }
+    </div>
+    <section class="classification" aria-label="Classify last recorded contact">
+      <div class="capture-status" role="status" aria-live="polite">
+        @if (failure()) {
+          <span class="error">{{ failure() }}</span>
+        } @else if (latest(); as event) {
+          <span><b>✓ Contact saved</b> · {{ playerName(event.playerId) }}</span
+          ><span class="optional-label">Details optional</span>
+        } @else {
+          <span>Location is all you need.</span><span class="optional-label">Details optional</span>
+        }
+      </div>
+      <div class="classify-row" role="group" aria-label="Last contact type">
+        @for (type of contactTypes; track type) {
+          <button
+            [disabled]="!latest() || busy()"
+            [class.selected]="latest()?.contactType === type"
+            [attr.aria-pressed]="latest()?.contactType === type"
+            (click)="classify('contactType', type)"
+          >
+            {{ contactLabels[type] }}
+          </button>
+        }
+      </div>
+      <div class="classify-row results" role="group" aria-label="Last contact result">
+        @for (result of results; track result) {
+          <button
+            [disabled]="!latest() || busy()"
+            [class.selected]="latest()?.result === result"
+            [attr.aria-pressed]="latest()?.result === result"
+            (click)="classify('result', result)"
+          >
+            {{ resultLabels[result] }}
+          </button>
+        }
+      </div>
+    </section>
+    <footer class="practice-actions">
+      <button class="undo-button" [disabled]="!session.undoStack.length || busy()" (click)="undo()">
+        <span aria-hidden="true">↶</span> Undo last</button
+      ><button
+        class="defer-button"
+        [disabled]="session.queue.length < 2 || busy()"
+        (click)="defer()"
+        aria-label="Defer current hitter"
+      >
+        Skip</button
+      ><button class="primary next-button" [disabled]="!current() || busy()" (click)="next()">
+        Next batter <span aria-hidden="true">→</span>
+      </button>
+    </footer>
+  </section>
+  <span class="sr-only" role="status" aria-live="polite">{{ message() }}</span>
+}
+
+<dialog #sheet class="practice-sheet" (close)="onSheetClosed()" aria-labelledby="sheet-title">
+  <header class="sheet-header">
+    <h2 id="sheet-title">
+      {{
+        sheetMode() === 'queue'
+          ? 'Today’s batting order'
+          : sheetMode() === 'players'
+            ? 'Who’s hitting?'
+            : sheetMode() === 'note'
+              ? 'A note from coach'
+              : sheetMode() === 'finish'
+                ? 'Wrap up practice?'
+                : 'Practice options'
+      }}
+    </h2>
+    <button class="icon-button" (click)="closeSheet()" aria-label="Close dialog">×</button>
+  </header>
+  @if (sheetMode() === 'queue') {
+    <p class="small muted">Reorder upcoming hitters, let someone hit now, or give them a break.</p>
+    <div class="full-queue">
+      @for (player of orderedQueue(); track player.id; let i = $index) {
+        <div class="full-queue-row">
+          <span class="jersey-small">{{ jersey(player) }}</span>
+          <div class="queue-player">
+            <strong>{{ player.name }}</strong
+            ><small>{{ i === 0 ? 'Hitting now' : i === 1 ? 'On deck' : 'Up ' + (i + 1) }}</small>
+          </div>
+          <div class="move-buttons">
+            <button
+              class="icon-button"
+              [disabled]="i < 2 || busy()"
+              (click)="moveQueue(player.id, -1)"
+              [attr.aria-label]="'Move ' + player.name + ' earlier'"
+            >
+              ↑</button
+            ><button
+              class="icon-button"
+              [disabled]="i === 0 || i === orderedQueue().length - 1 || busy()"
+              (click)="moveQueue(player.id, 1)"
+              [attr.aria-label]="'Move ' + player.name + ' later'"
+            >
+              ↓
+            </button>
+          </div>
+          <div class="queue-row-actions">
+            @if (i > 0) {
+              <button class="small-button" [disabled]="busy()" (click)="select(player.id)">
+                Hit now</button
+              ><button class="small-button" [disabled]="busy()" (click)="defer(player.id)">
+                Defer
+              </button>
+            }
+            <button
+              class="small-button"
+              [disabled]="busy()"
+              (click)="remove(player.id)"
+              [attr.aria-label]="'Sit out ' + player.name"
+            >
+              Sit out
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+    @if (removedPlayers().length) {
+      <h3 class="return-heading">Ready to join</h3>
+      @for (player of removedPlayers(); track player.id) {
+        <div class="return-player">
+          <span>{{ jersey(player) }} {{ player.name }}</span
+          ><button class="small-button" [disabled]="busy()" (click)="returnPlayer(player.id)">
+            Return to line
+          </button>
+        </div>
+      }
+    }
+    <button class="button primary full-width" (click)="closeSheet()">Back to the field</button>
+  }
+  @if (sheetMode() === 'players') {
+    <p class="small voice-status" role="status">
+      {{ message() || 'Select any roster player to make them current.' }}
+    </p>
+    <div class="player-search">
+      <label class="sr-only" for="find-hitter">Find hitter by name or number</label
+      ><input
+        id="find-hitter"
+        type="search"
+        placeholder="Name or jersey number"
+        [ngModel]="query()"
+        (ngModelChange)="query.set($event)"
+      /><button
+        class="icon-button"
+        (click)="listen()"
+        [attr.aria-label]="listening() ? 'Stop listening' : 'Try voice selection'"
+      >
+        {{ listening() ? '■' : 'Mic' }}
+      </button>
+    </div>
+    @for (player of availablePlayers(); track player.id) {
+      <button class="player-choice" [disabled]="busy()" (click)="select(player.id)">
+        <span class="jersey-small">{{ jersey(player) }}</span
+        ><span>{{ player.name }}</span
+        ><span aria-hidden="true">→</span>
+      </button>
+    } @empty {
+      <p>No matching hitters. Try a name or jersey number.</p>
+    }
+    @if (voiceMatches()) {
+      <button class="text-button" (click)="voiceMatches.set(null)">Show the whole roster</button>
+    }
+    <p class="small muted">Voice may need a connection. Selecting a hitter always works offline.</p>
+  }
+  @if (sheetMode() === 'note') {
+    <form (ngSubmit)="saveNote()">
+      <label for="note-scope">Attach note to</label
+      ><select id="note-scope" name="noteScope" [(ngModel)]="noteScope">
+        @if (current()) {
+          <option value="player">{{ current()?.name }}</option>
+        }
+        <option value="session">This practice</option>
+        @if (latest()) {
+          <option value="event">Last contact · {{ playerName(latest()!.playerId) }}</option>
+        }</select
+      ><label for="quick-note">Coaching note</label
+      ><textarea
+        id="quick-note"
+        name="note"
+        rows="5"
+        maxlength="5000"
+        [(ngModel)]="noteText"
+        placeholder="What did you notice?"
+        required
+      ></textarea
+      ><button
+        class="button primary full-width"
+        type="submit"
+        [disabled]="!noteText.trim() || busy()"
+      >
+        Save note
+      </button>
+    </form>
+  }
+  @if (sheetMode() === 'options') {
+    <form (ngSubmit)="saveOptions()">
+      <label for="live-rotation">Hitter rotation</label
+      ><select id="live-rotation" name="rotation" [(ngModel)]="rotation">
+        <option value="manual">Manual advance</option>
+        <option value="1">After 1 recorded contact</option>
+        <option value="3">After 3 recorded contacts</option>
+        <option value="5">After 5 recorded contacts</option>
+        <option value="custom">Custom contact count</option>
+      </select>
+      @if (rotation === 'custom') {
+        <label for="live-count">Recorded contacts per hitter</label
+        ><input
+          id="live-count"
+          name="count"
+          type="number"
+          min="1"
+          max="100"
+          required
+          [(ngModel)]="customCount"
+        />
+      }
+      <p class="small muted">
+        Automatic rotation counts recorded contacts, not pitches or swings. Changes apply on the
+        next capture.
+      </p>
+      <button class="button primary full-width" type="submit" [disabled]="busy()">
+        Save practice options
+      </button>
+    </form>
+    <a routerLink="/" class="button secondary full-width" (click)="closeSheet()"
+      >Leave practice running</a
+    >
+  }
+  @if (sheetMode() === 'finish') {
+    <p>
+      <strong>{{ sessionEvents().length }} recorded contacts</strong> are saved in your notebook.
+      Review the chart and notes, or resume this practice later from Reports.
+    </p>
+    <button class="button primary full-width" [disabled]="busy()" (click)="finish()">
+      Finish & review practice</button
+    ><button class="button secondary full-width" (click)="closeSheet()">Keep practicing</button>
+  }
+  @if (failure()) {
+    <p class="error" role="alert">{{ failure() }}</p>
+  }
+</dialog>

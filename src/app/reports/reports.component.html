@@ -1,0 +1,939 @@
+<div class="reports-page">
+  <header class="report-heading">
+    <div>
+      <p class="eyebrow">THE COACH'S NOTEBOOK</p>
+      <h1>See the whole field.</h1>
+      <p class="muted">Every contact tells part of the story. Find the patterns together.</p>
+    </div>
+    <div class="report-actions no-print">
+      <button class="button secondary" (click)="exportCsv()" [disabled]="!observations().length">
+        Download CSV
+      </button>
+      <button
+        class="button secondary"
+        (click)="exportCsv(true)"
+        [disabled]="!observations().length"
+      >
+        Share
+      </button>
+      <button class="button secondary" (click)="print()" [disabled]="!observations().length">
+        Print / PDF
+      </button>
+    </div>
+  </header>
+
+  @if (!store.activeTeam()) {
+    <section class="card empty-state">
+      <span class="empty-mark" aria-hidden="true">◇</span>
+      <h2>Your notebook starts with a team.</h2>
+      <p>
+        Create your team and record a few contacts. Your spray charts and coaching reports will
+        appear here.
+      </p>
+      <a class="button primary" routerLink="/">Set up your team</a>
+    </section>
+  } @else {
+    <section class="card filter-panel no-print" aria-label="Report filters">
+      <div class="filter-topline">
+        <label class="player-select"
+          >Report for
+          <select
+            [ngModel]="filters().playerId"
+            (ngModelChange)="selectPlayer($event)"
+            aria-label="Report player"
+          >
+            <option value="">Entire team</option>
+            @for (player of players(); track player.id) {
+              <option [value]="player.id">
+                {{ player.jerseyNumber ? '#' + player.jerseyNumber + ' · ' : '' }}{{ player.name
+                }}{{ !player.active ? ' (archived)' : '' }}
+              </option>
+            }
+          </select>
+        </label>
+        <div class="period-presets" aria-label="Date presets">
+          <button
+            [class.selected]="filters().preset === 'season'"
+            [attr.aria-pressed]="filters().preset === 'season'"
+            (click)="applyPreset('season')"
+          >
+            Season
+          </button>
+          <button
+            [class.selected]="filters().preset === 'latest'"
+            [attr.aria-pressed]="filters().preset === 'latest'"
+            (click)="applyPreset('latest')"
+            [disabled]="!sessions().length"
+          >
+            Latest practice
+          </button>
+          <button
+            [class.selected]="filters().preset === '1'"
+            [attr.aria-pressed]="filters().preset === '1'"
+            (click)="applyPreset('1')"
+          >
+            Today
+          </button>
+          <button
+            [class.selected]="filters().preset === '7'"
+            [attr.aria-pressed]="filters().preset === '7'"
+            (click)="applyPreset('7')"
+          >
+            7 days
+          </button>
+          <button
+            [class.selected]="filters().preset === '30'"
+            [attr.aria-pressed]="filters().preset === '30'"
+            (click)="applyPreset('30')"
+          >
+            30 days
+          </button>
+          <button
+            [class.selected]="filters().preset === 'all'"
+            [attr.aria-pressed]="filters().preset === 'all'"
+            (click)="applyPreset('all')"
+          >
+            All
+          </button>
+          <button
+            [class.selected]="filters().preset === 'custom'"
+            [attr.aria-pressed]="filters().preset === 'custom'"
+            (click)="applyPreset('custom')"
+          >
+            Custom
+          </button>
+        </div>
+      </div>
+      <details class="advanced-filters" [open]="filters().preset === 'custom'">
+        <summary>
+          Refine report <span class="muted">Dates, practices &amp; classifications</span>
+        </summary>
+        <div class="filter-grid">
+          <label
+            >From date<input
+              type="date"
+              [ngModel]="filters().from"
+              (ngModelChange)="setFilter('from', $event); setFilter('preset', 'custom')"
+          /></label>
+          <label
+            >Through date<input
+              type="date"
+              [ngModel]="filters().through"
+              (ngModelChange)="setFilter('through', $event); setFilter('preset', 'custom')"
+          /></label>
+          <label
+            >Pitcher hand
+            <select
+              [ngModel]="filters().pitcherHand"
+              aria-label="Pitcher hand"
+              (ngModelChange)="setFilter('pitcherHand', $event)"
+            >
+              <option value="">Any pitcher</option>
+              <option value="R">RHP</option>
+              <option value="L">LHP</option>
+              <option value="unknown">Unknown hand</option>
+            </select>
+          </label>
+          <label
+            >Contact type
+            <select
+              [ngModel]="filters().contactType"
+              aria-label="Contact type"
+              (ngModelChange)="setFilter('contactType', $event)"
+            >
+              <option value="">All contacts</option>
+              <option value="unknown">Unclassified only</option>
+              @for (type of contactTypes; track type) {
+                <option [value]="type">{{ contactLabels[type] }}</option>
+              }
+            </select>
+          </label>
+          <label
+            >Result
+            <select
+              aria-label="Result"
+              [ngModel]="filters().result"
+              (ngModelChange)="setFilter('result', $event)"
+            >
+              <option value="">All results</option>
+              <option value="unknown">Unclassified only</option>
+              @for (result of results; track result) {
+                <option [value]="result">{{ resultLabels[result] }}</option>
+              }
+            </select>
+          </label>
+        </div>
+        <fieldset class="session-filter">
+          <legend>
+            Practices
+            <span class="muted">Select several to compare. None selected includes all.</span>
+          </legend>
+          <div class="session-options">
+            @for (session of sessions(); track session.id) {
+              <label
+                ><input
+                  type="checkbox"
+                  [checked]="filters().sessionIds.includes(session.id)"
+                  (change)="toggleSession(session.id)"
+                />
+                <span
+                  >{{ session.title || 'Batting practice'
+                  }}<small
+                    >{{ session.startedAt | date: 'MMM d, y'
+                    }}{{ !session.endedAt ? ' · In progress' : '' }}</small
+                  ></span
+                >
+              </label>
+            } @empty {
+              <p class="muted">Your practices will appear here after you start a session.</p>
+            }
+          </div>
+        </fieldset>
+      </details>
+      <div class="filter-context">
+        <p>{{ context() }}</p>
+        <button class="text-button" (click)="resetFilters()">Reset filters</button>
+      </div>
+      @if (filters().from && filters().through && filters().from > filters().through) {
+        <p class="error" role="alert">The through date must be on or after the from date.</p>
+      }
+    </section>
+
+    <p class="feedback no-print" role="status">{{ message() }}</p>
+    @if (error() && !editDraft) {
+      <p class="error no-print" role="alert">{{ error() }}</p>
+    }
+
+    <section class="report-identity">
+      @if (player(); as player) {
+        <div class="jersey" aria-label="Jersey number">{{ player.jerseyNumber || '—' }}</div>
+      }
+      <div>
+        <p class="eyebrow">
+          {{ player() ? 'PLAYER REPORT' : session() ? 'PRACTICE REPORT' : 'TEAM REPORT' }}
+        </p>
+        <h2>{{ title() }}</h2>
+        @if (player(); as player) {
+          <p class="muted">
+            Bats {{ player.bats === 'S' ? 'switch' : player.bats === 'L' ? 'left' : 'right' }} ·
+            Throws {{ player.throws === 'S' ? 'both' : player.throws === 'L' ? 'left' : 'right'
+            }}{{ player.positions.length ? ' · ' + player.positions.join(', ') : ''
+            }}{{ player.grade ? ' · ' + player.grade : '' }}
+          </p>
+          @if (player.notes) {
+            <p class="identity-note">{{ player.notes }}</p>
+          }
+        } @else {
+          <p class="muted">
+            {{ store.activeTeam()?.name }} · {{ store.activeTeam()?.season || 'Your season' }}
+          </p>
+        }
+        <p class="print-context">{{ context() }}</p>
+      </div>
+    </section>
+
+    @if (session(); as session) {
+      <section class="card session-detail">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">PRACTICE DETAILS</p>
+            <h3>{{ session.title || 'Batting practice' }}</h3>
+          </div>
+          <span class="status-pill">{{ session.endedAt ? 'Completed' : 'In progress' }}</span>
+        </div>
+        <div class="session-facts">
+          <span>{{ session.startedAt | date: 'EEE, MMM d, y · h:mm a' }}</span
+          ><span>{{ duration(session) }}{{ !session.endedAt ? ' elapsed' : '' }}</span
+          ><span>{{ session.participantIds.length }} participants</span>
+          @if (session.location) {
+            <span>{{ session.location }}</span>
+          }
+        </div>
+        @if (session.notes) {
+          <p class="session-notes">{{ session.notes }}</p>
+        }
+        @if (!editingSession) {
+          <div class="inline-actions no-print">
+            <button class="text-button" (click)="editSession(session)">
+              Edit practice details
+            </button>
+            <button
+              class="text-button"
+              (click)="resumeSession()"
+              [disabled]="
+                busy() || (!!store.activeSession() && store.activeSession()?.id !== session.id)
+              "
+            >
+              {{ session.endedAt ? 'Resume this practice' : 'Return to practice' }} →
+            </button>
+          </div>
+          @if (store.activeSession() && store.activeSession()?.id !== session.id) {
+            <p class="muted small no-print">
+              Finish the current practice before resuming this one.
+            </p>
+          }
+        } @else {
+          <form class="session-edit no-print" (ngSubmit)="saveSession()">
+            <div class="filter-grid">
+              <label
+                >Practice title<input
+                  name="sessionTitle"
+                  [(ngModel)]="sessionTitle"
+                  maxlength="120" /></label
+              ><label
+                >Location<input
+                  name="sessionLocation"
+                  [(ngModel)]="sessionLocation"
+                  maxlength="160"
+              /></label>
+            </div>
+            <label
+              >Practice notes<textarea
+                name="sessionNotes"
+                [(ngModel)]="sessionNotes"
+                rows="3"
+              ></textarea>
+            </label>
+            <div class="inline-actions">
+              <button type="button" class="button secondary" (click)="editingSession = false">
+                Cancel</button
+              ><button type="submit" class="button primary" [disabled]="busy()">
+                Save practice
+              </button>
+            </div>
+          </form>
+        }
+      </section>
+    }
+
+    <section class="summary-strip" aria-label="Observation summary">
+      <div>
+        <strong>{{ summary().total }}</strong
+        ><span>Recorded locations</span>
+      </div>
+      <div>
+        <strong
+          >{{ summary().classifiedContacts }}<small>/ {{ summary().total }}</small></strong
+        ><span>Contact types recorded</span>
+      </div>
+      <div>
+        <strong
+          >{{ summary().classifiedResults }}<small>/ {{ summary().total }}</small></strong
+        ><span>Results recorded</span>
+      </div>
+      <div>
+        <strong>{{ summary().sessions }}</strong
+        ><span>{{ summary().sessions === 1 ? 'Practice' : 'Practices' }} in view</span>
+      </div>
+    </section>
+
+    @if (!observations().length) {
+      <section class="card empty-state">
+        <span class="empty-mark" aria-hidden="true">◇</span>
+        <h3>
+          {{
+            scopeEvents().length ? 'No contacts match this view.' : 'A fresh page in the notebook.'
+          }}
+        </h3>
+        <p>
+          {{
+            scopeEvents().length
+              ? 'Try a wider date range, another practice, or fewer filters.'
+              : 'Record a few batted balls at practice to build a spray chart. A field tap is all it takes.'
+          }}
+        </p>
+        @if (scopeEvents().length) {
+          <button class="button primary" (click)="resetFilters()">Show all observations</button>
+        } @else {
+          <a class="button primary" routerLink="/">Head to practice</a>
+        }
+      </section>
+    } @else {
+      <div class="report-layout">
+        <section class="card chart-panel" aria-label="Contact locations">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">WHERE THE BALL WENT</p>
+              <h3>
+                {{
+                  view() === 'heat'
+                    ? 'Contact density'
+                    : view() === 'history'
+                      ? 'Observation history'
+                      : 'Spray chart'
+                }}
+              </h3>
+            </div>
+            <span class="count-pill">{{ summary().total }} contacts</span>
+          </div>
+          <div class="chart-toolbar no-print">
+            <div class="view-switch" aria-label="Report view">
+              <button
+                [class.selected]="view() === 'spray'"
+                [attr.aria-pressed]="view() === 'spray'"
+                (click)="view.set('spray')"
+              >
+                Spray
+              </button>
+              <button
+                [class.selected]="view() === 'heat'"
+                [attr.aria-pressed]="view() === 'heat'"
+                (click)="view.set('heat')"
+              >
+                Heat
+              </button>
+              <button
+                [class.selected]="view() === 'history'"
+                [attr.aria-pressed]="view() === 'history'"
+                (click)="view.set('history')"
+              >
+                History
+              </button>
+            </div>
+            @if (view() !== 'history') {
+              <label class="color-select"
+                >Color by<select [ngModel]="colorBy()" (ngModelChange)="colorBy.set($event)">
+                  <option value="contactType">Contact type</option>
+                  <option value="result">Result</option>
+                </select></label
+              >
+            }
+          </div>
+          <div class="report-field" [class.history-hidden]="view() === 'history'">
+            <app-field
+              [events]="observations()"
+              [selectedId]="selectedId()"
+              [heat]="view() === 'heat'"
+              [colorBy]="colorBy()"
+              (selectEvent)="selectObservation($event)"
+              label="Spray chart of the filtered observations. Select a recorded contact to inspect or edit it."
+            />
+            <p class="chart-caption">
+              {{
+                view() === 'heat'
+                  ? 'Darker areas show more recorded contacts. Select History to inspect individual observations.'
+                  : 'Every mark is a recorded contact. Tap a mark to see its details.'
+              }}
+            </p>
+            <div class="chart-legend" aria-label="Chart legend">
+              @if (colorBy() === 'contactType') {
+                @for (item of contactDistribution(); track item.type) {
+                  <span
+                    ><i [class]="'legend-dot ' + item.type" aria-hidden="true"></i>{{ item.label }}
+                    <b>{{ item.count }}</b></span
+                  >
+                }
+              } @else {
+                @for (item of resultDistribution(); track item.type) {
+                  <span
+                    ><i [class]="'legend-dot ' + item.type" aria-hidden="true"></i>{{ item.label }}
+                    <b>{{ item.count }}</b></span
+                  >
+                }
+              }
+              <span
+                ><i class="legend-dot unclassified" aria-hidden="true"></i>Unclassified
+                <b>{{
+                  summary().total -
+                    (colorBy() === 'contactType'
+                      ? summary().classifiedContacts
+                      : summary().classifiedResults)
+                }}</b></span
+              >
+            </div>
+          </div>
+
+          @if (selectedEvent(); as event) {
+            <article
+              id="selected-observation"
+              class="selected-observation no-print"
+              aria-label="Selected observation"
+            >
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">CONTACT #{{ event.sequence }}</p>
+                  <h4>{{ eventName(event) }}</h4>
+                </div>
+                <button
+                  class="text-button"
+                  (click)="selectedId.set('')"
+                  aria-label="Close selected observation"
+                >
+                  Close
+                </button>
+              </div>
+              <p>
+                {{ event.timestamp | date: 'MMM d, y · h:mm:ss a' }} ·
+                {{ event.pitcherHand ? event.pitcherHand + 'HP' : 'Pitcher unknown' }} · Bats
+                {{ event.batterSide || 'unknown' }}
+              </p>
+              <p>
+                <strong>{{
+                  event.contactType ? contactLabels[event.contactType] : 'Contact unclassified'
+                }}</strong>
+                · {{ event.result ? resultLabels[event.result] : 'Result unclassified' }}
+              </p>
+              <p class="muted small">
+                {{ sessionName(event.sessionId) }} · Turn {{ event.turnSequence }}, contact
+                {{ event.contactSequence }}
+              </p>
+              @if (event.notes) {
+                <p class="saved-note">{{ event.notes }}</p>
+              }
+              @for (note of selectedNotes(); track note.id) {
+                <p class="saved-note">
+                  <small class="muted">{{ note.timestamp | date: 'MMM d · h:mm a' }}</small
+                  ><br />{{ note.text }}
+                </p>
+              }
+              @if (view() === 'history') {
+                <button class="button secondary" (click)="view.set('spray')">
+                  Show on spray chart
+                </button>
+              }
+              <button class="button primary" (click)="openEditor(event)">Edit observation</button>
+            </article>
+          }
+
+          @if (view() === 'history') {
+            <div class="history-list no-print" aria-label="Observation history">
+              <p class="muted small">Newest first. Choose a contact to review it.</p>
+              @for (event of visibleHistory(); track event.id) {
+                <button
+                  class="history-event"
+                  [class.active]="selectedId() === event.id"
+                  (click)="selectObservation(event.id)"
+                  [attr.aria-label]="
+                    'Select contact ' + event.sequence + ' for ' + eventName(event)
+                  "
+                >
+                  <span class="event-sequence">{{ event.sequence }}</span>
+                  <span class="event-main"
+                    ><strong>{{ eventName(event) }}</strong
+                    ><small
+                      >{{ event.timestamp | date: 'MMM d · h:mm a' }} ·
+                      {{ event.pitcherHand ? event.pitcherHand + 'HP' : 'Hand unknown' }}</small
+                    ></span
+                  >
+                  <span class="event-classification"
+                    ><span>{{
+                      event.contactType ? contactLabels[event.contactType] : 'Location only'
+                    }}</span
+                    ><small>{{
+                      event.result ? resultLabels[event.result] : 'No result recorded'
+                    }}</small></span
+                  >
+                  <span aria-hidden="true">↗</span>
+                </button>
+              }
+              @if (historyLimit() < history().length) {
+                <button
+                  class="button secondary load-more"
+                  (click)="historyLimit.set(historyLimit() + 40)"
+                >
+                  Show 40 more · {{ history().length - historyLimit() }} remaining
+                </button>
+              }
+            </div>
+          }
+        </section>
+
+        <aside class="insights" aria-label="Coaching insights">
+          <section class="card distribution-card">
+            <p class="eyebrow">QUALITY OF CONTACT</p>
+            <h3>Contact types</h3>
+            <p class="muted small">
+              {{ summary().classifiedContacts }} classified of {{ summary().total }} locations
+            </p>
+            <div class="distribution">
+              @for (item of contactDistribution(); track item.type) {
+                <div class="distribution-row">
+                  <span>{{ item.label }}</span
+                  ><strong
+                    >{{ item.count }}
+                    <small>{{ percent(item.count, summary().classifiedContacts) }}</small></strong
+                  >
+                  <span class="bar-track" aria-hidden="true"
+                    ><span
+                      [class]="'bar-fill ' + item.type"
+                      [style.width.%]="
+                        summary().classifiedContacts
+                          ? (item.count / summary().classifiedContacts) * 100
+                          : 0
+                      "
+                    ></span
+                  ></span>
+                </div>
+              }
+            </div>
+            <p class="classification-note">
+              {{ summary().total - summary().classifiedContacts }} without a contact type.
+              Percentages use classified contacts only.
+            </p>
+          </section>
+          <section class="card distribution-card">
+            <p class="eyebrow">RECORDED OUTCOMES</p>
+            <h3>Results</h3>
+            <p class="muted small">
+              {{ summary().classifiedResults }} classified of {{ summary().total }} locations
+            </p>
+            <div class="distribution">
+              @for (item of resultDistribution(); track item.type) {
+                <div class="distribution-row">
+                  <span>{{ item.label }}</span
+                  ><strong
+                    >{{ item.count }}
+                    <small>{{ percent(item.count, summary().classifiedResults) }}</small></strong
+                  >
+                  <span class="bar-track" aria-hidden="true"
+                    ><span
+                      [class]="'bar-fill ' + item.type"
+                      [style.width.%]="
+                        summary().classifiedResults
+                          ? (item.count / summary().classifiedResults) * 100
+                          : 0
+                      "
+                    ></span
+                  ></span>
+                </div>
+              }
+            </div>
+            <p class="classification-note">
+              {{ summary().total - summary().classifiedResults }} without a result. Practice
+              outcomes are coach observations.
+            </p>
+          </section>
+        </aside>
+      </div>
+
+      <div class="secondary-grid">
+        <section class="card direction-card">
+          <p class="eyebrow">USING THE WHOLE FIELD</p>
+          <h3>Directional tendencies</h3>
+          <div class="direction-stats">
+            <div>
+              <strong>{{ percent(summary().directions.pull, directionalTotal()) }}</strong
+              ><span>Pull</span><small>{{ summary().directions.pull }} contacts</small>
+            </div>
+            <div>
+              <strong>{{ percent(summary().directions.center, directionalTotal()) }}</strong
+              ><span>Center</span><small>{{ summary().directions.center }} contacts</small>
+            </div>
+            <div>
+              <strong>{{ percent(summary().directions.opposite, directionalTotal()) }}</strong
+              ><span>Opposite</span><small>{{ summary().directions.opposite }} contacts</small>
+            </div>
+          </div>
+          <p class="muted small">
+            Based on {{ directionalTotal() }} contacts with a known batting side and direction.
+            Center is within 15° of center field. {{ summary().directions.unknown }} excluded
+            because direction or batting side is unknown.
+          </p>
+        </section>
+        <section class="card">
+          <p class="eyebrow">PITCHER MATCHUPS</p>
+          <h3>By pitcher hand</h3>
+          <div class="hand-stats">
+            <button
+              (click)="setFilter('pitcherHand', filters().pitcherHand === 'R' ? '' : 'R')"
+              [class.active]="filters().pitcherHand === 'R'"
+              [attr.aria-pressed]="filters().pitcherHand === 'R'"
+            >
+              <span>vs. RHP</span><strong>{{ summary().pitcherHands.R }}</strong
+              ><small>{{ percent(summary().pitcherHands.R, summary().total) }} of locations</small>
+            </button>
+            <button
+              (click)="setFilter('pitcherHand', filters().pitcherHand === 'L' ? '' : 'L')"
+              [class.active]="filters().pitcherHand === 'L'"
+              [attr.aria-pressed]="filters().pitcherHand === 'L'"
+            >
+              <span>vs. LHP</span><strong>{{ summary().pitcherHands.L }}</strong
+              ><small>{{ percent(summary().pitcherHands.L, summary().total) }} of locations</small>
+            </button>
+          </div>
+          <p class="muted small">
+            {{ summary().pitcherHands.unknown }} with unknown pitcher hand.
+            <span class="no-print">Tap a matchup to filter the full report.</span>
+          </p>
+        </section>
+        <section class="card comparison-card">
+          <p class="eyebrow">WATCHING THE PROGRESS</p>
+          <h3>Recent vs. season</h3>
+          <p class="muted small">
+            {{ player() ? player()?.name : 'The team' }} · All practices and classifications
+          </p>
+          <table>
+            <caption class="visually-hidden">
+              Last 14 days compared with the full team season
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Recorded</th>
+                <th scope="col">14 days</th>
+                <th scope="col">Season</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Locations</th>
+                <td>{{ comparison().recent.total }}</td>
+                <td>{{ comparison().season.total }}</td>
+              </tr>
+              <tr>
+                <th scope="row">Line drives</th>
+                <td>
+                  {{
+                    percent(
+                      comparison().recent.contacts['line-drive'] || 0,
+                      comparison().recent.classifiedContacts
+                    )
+                  }}
+                </td>
+                <td>
+                  {{
+                    percent(
+                      comparison().season.contacts['line-drive'] || 0,
+                      comparison().season.classifiedContacts
+                    )
+                  }}
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Classified contacts</th>
+                <td>{{ comparison().recent.classifiedContacts }}</td>
+                <td>{{ comparison().season.classifiedContacts }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="classification-note">
+            Line-drive share uses classified contacts. Recent: {{ comparison().dates.from }} through
+            {{ comparison().dates.through }}. Season includes recent activity.
+          </p>
+        </section>
+      </div>
+
+      <div class="activity-grid">
+        <section class="card activity-card">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">TIME AT THE PLATE</p>
+              <h3>{{ player() ? 'Practice activity' : 'Contacts by hitter' }}</h3>
+            </div>
+          </div>
+          @if (player()) {
+            @for (item of sessionActivity(); track item.session.id) {
+              <a
+                class="activity-row"
+                routerLink="/reports"
+                [queryParams]="{ player: player()?.id, session: item.session.id }"
+                ><span
+                  ><strong>{{ item.session.title || 'Batting practice' }}</strong
+                  ><small>{{ item.session.startedAt | date: 'MMM d, y' }}</small></span
+                ><b>{{ item.count }} <small>contacts</small></b
+                ><span aria-hidden="true">↗</span></a
+              >
+            }
+          } @else {
+            @for (item of playerActivity(); track item.player.id) {
+              <a
+                class="activity-row"
+                routerLink="/reports"
+                [queryParams]="{ player: item.player.id, session: session()?.id }"
+                ><span
+                  ><strong>{{ item.player.name }}</strong
+                  ><small>{{
+                    item.player.jerseyNumber ? '#' + item.player.jerseyNumber : 'Player report'
+                  }}</small></span
+                ><b>{{ item.count }} <small>contacts</small></b
+                ><span aria-hidden="true">↗</span></a
+              >
+            }
+          }
+        </section>
+        <section class="card notebook-card">
+          <p class="eyebrow">TAKE IT TO THE NEXT PRACTICE</p>
+          <h3>Coaching notes</h3>
+          <div class="notes-list">
+            @for (note of reportNotes(); track note.id) {
+              <article>
+                <time>{{ note.timestamp | date: 'MMM d, y · h:mm a' }}</time>
+                <p>{{ note.text }}</p>
+              </article>
+            } @empty {
+              <p class="muted">
+                A cue, a small adjustment, something to try next time. Keep it here.
+              </p>
+            }
+          </div>
+          <form class="note-form no-print" (ngSubmit)="addNote()">
+            <label
+              >{{
+                player() ? 'Note for ' + player()?.name : session() ? 'Practice note' : 'Team note'
+              }}<textarea
+                name="coachingNote"
+                [(ngModel)]="noteText"
+                rows="3"
+                placeholder="What did you notice?"
+                maxlength="10000"
+              ></textarea></label
+            ><button class="button secondary" [disabled]="!noteText.trim() || busy()">
+              Save note
+            </button>
+          </form>
+        </section>
+      </div>
+    }
+    <p class="report-footer">Baseball Coach Helper · A coach's notebook, owned by you.</p>
+  }
+</div>
+
+<dialog
+  #editor
+  class="event-editor no-print"
+  (cancel)="cancelEditor()"
+  aria-labelledby="edit-heading"
+>
+  @if (editDraft; as draft) {
+    <form (ngSubmit)="saveEvent()">
+      <header class="editor-header">
+        <div>
+          <p class="eyebrow">CONTACT #{{ draft.sequence }} · {{ eventName(draft) }}</p>
+          <h2 id="edit-heading">Edit observation</h2>
+        </div>
+        <button
+          type="button"
+          class="close-button"
+          (click)="cancelEditor()"
+          aria-label="Close without saving"
+        >
+          ×
+        </button>
+      </header>
+      <p class="muted">Make your correction, then save when you're ready.</p>
+      <div class="editor-columns">
+        <div>
+          <p class="field-edit-label">Tap the field to correct the location</p>
+          <app-field
+            [events]="[draft]"
+            [selectedId]="draft.id"
+            [interactive]="true"
+            (location)="relocate($event)"
+            label="Correct the recorded ball location. Changes are saved only when you choose Save changes."
+          />
+          <p class="muted small">
+            Location: {{ draft.fieldX | number: '1.3-3' }}, {{ draft.fieldY | number: '1.3-3' }}
+          </p>
+        </div>
+        <div class="editor-inputs">
+          <label
+            >Date and time<input
+              type="datetime-local"
+              name="eventTime"
+              [(ngModel)]="editTime"
+              step="1"
+              required
+          /></label>
+          <div class="filter-grid">
+            <label
+              >Pitcher hand<select name="pitcherHand" [(ngModel)]="draft.pitcherHand">
+                <option [ngValue]="null">Unknown</option>
+                <option value="R">RHP</option>
+                <option value="L">LHP</option>
+              </select></label
+            >
+            <label
+              >Batter side<select name="batterSide" [(ngModel)]="draft.batterSide">
+                <option [ngValue]="null">Unknown</option>
+                <option value="R">Right</option>
+                <option value="L">Left</option>
+              </select></label
+            >
+          </div>
+          <label
+            >Contact type<select
+              aria-label="Contact type"
+              name="contactType"
+              [(ngModel)]="draft.contactType"
+            >
+              <option [ngValue]="null">Unclassified</option>
+              @for (type of contactTypes; track type) {
+                <option [value]="type">{{ contactLabels[type] }}</option>
+              }
+            </select></label
+          >
+          <label
+            >Result<select aria-label="Result" name="result" [(ngModel)]="draft.result">
+              <option [ngValue]="null">Unclassified</option>
+              @for (result of results; track result) {
+                <option [value]="result">{{ resultLabels[result] }}</option>
+              }
+            </select></label
+          >
+          <label
+            >Observation notes<textarea
+              name="eventNotes"
+              [(ngModel)]="draft.notes"
+              rows="3"
+              maxlength="10000"
+            ></textarea>
+          </label>
+          @for (note of editAssociatedNotes; track note.id) {
+            <label
+              >Timestamped note · {{ note.timestamp | date: 'MMM d, h:mm a' }}
+              <textarea
+                [name]="'linked-note-' + note.id"
+                [(ngModel)]="note.text"
+                rows="3"
+                maxlength="10000"
+                required
+              ></textarea>
+            </label>
+          }
+        </div>
+      </div>
+      @if (error()) {
+        <p class="error" role="alert">{{ error() }}</p>
+      }
+      @if (deletePending) {
+        <div class="delete-confirm" role="alert">
+          <strong>Delete this recorded contact?</strong>
+          <p>This removes the observation and its event notes. It cannot be undone here.</p>
+          <div class="inline-actions">
+            <button type="button" class="button secondary" (click)="deletePending = false">
+              Keep observation</button
+            ><button
+              type="button"
+              class="button danger"
+              (click)="deleteEvent()"
+              [disabled]="busy()"
+            >
+              Delete permanently
+            </button>
+          </div>
+        </div>
+      }
+      <footer class="editor-footer">
+        <button
+          type="button"
+          class="text-button danger-text"
+          (click)="deletePending = true"
+          [disabled]="busy()"
+        >
+          Delete
+        </button>
+        <div class="inline-actions">
+          <button
+            type="button"
+            class="button secondary"
+            (click)="cancelEditor()"
+            [disabled]="busy()"
+          >
+            Cancel</button
+          ><button type="submit" class="button primary" [disabled]="busy()">
+            {{ busy() ? 'Saving…' : 'Save changes' }}
+          </button>
+        </div>
+      </footer>
+    </form>
+  }
+</dialog>
