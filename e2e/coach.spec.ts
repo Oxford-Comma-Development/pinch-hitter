@@ -6,7 +6,7 @@ test('first practice, manual rounds, queue changes and interruption recovery', a
   page.on('pageerror', (e) => errors.push(e.message));
   await setupTeam(page);
   await assertNoOverflow(page);
-  await page.getByRole('link', { name: 'Baseball Coach Helper home' }).click();
+  await page.getByRole('link', { name: 'Pinch Hitter home' }).click();
   await expect(page.getByRole('heading', { name: 'Westfield Wildcats' })).toBeVisible();
   await startPractice(page);
   await expect(page.locator('.queue-chip').first()).toContainText('Tyler');
@@ -126,7 +126,7 @@ test('player review, filter, correction, file exports and clean-device restore',
   const backup = await backupDownload;
   const jsonText = await readFile((await backup.path())!, 'utf8');
   const parsed = JSON.parse(jsonText);
-  expect(parsed.application).toBe('Baseball Coach Helper');
+  expect(parsed.application).toBe('Pinch Hitter');
   expect(parsed.events).toHaveLength(2);
   expect(parsed.schemaVersion).toBe(1);
   const restored = await browser.newContext({ viewport: testInfo.project.use.viewport });

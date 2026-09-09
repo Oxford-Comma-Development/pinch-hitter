@@ -267,18 +267,18 @@ export function parseBackup(text: string): ImportPreview {
   try {
     parsed = JSON.parse(text);
   } catch {
-    throw new Error('This is not a valid JSON file. Choose a Coach Helper JSON backup.');
+    throw new Error('This is not a valid JSON file. Choose a Pinch Hitter JSON backup.');
   }
   const root = object(parsed, 'Backup');
   if (root['schemaVersion'] !== 1)
     throw new Error(
       `Unsupported backup schema version ${String(root['schemaVersion'])}. This app supports version 1; no data was changed.`,
     );
-  if (root['application'] !== 'Baseball Coach Helper')
-    throw new Error('This file is not a Baseball Coach Helper backup.');
+  if (root['application'] !== 'Pinch Hitter' && root['application'] !== 'Baseball Coach Helper')
+    throw new Error('This file is not a Pinch Hitter backup.');
   const data: BackupData = {
     schemaVersion: 1,
-    application: 'Baseball Coach Helper',
+    application: 'Pinch Hitter',
     applicationVersion: string(root['applicationVersion'], 'Application version', true),
     exportedAt: date(root['exportedAt'], 'Export timestamp'),
     teams: rows(root['teams'], 'Teams', parseTeam),

@@ -31,7 +31,7 @@ export async function capture(page: Page, x = 0.45, y = 0.36) {
 export async function readData(page: Page) {
   return page.evaluate(async () => {
     const db = await new Promise<IDBDatabase>((resolve, reject) => {
-      const request = indexedDB.open('baseball-coach-helper');
+      const request = indexedDB.open('pinch-hitter');
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
     });

@@ -1,4 +1,4 @@
-# Baseball Coach Helper data format
+# Pinch Hitter data format
 
 Coach data lives in IndexedDB on the device. No account or hosted database is involved. A JSON backup contains the complete portable domain model; CSV is a flat analysis export. Keep JSON backups for transfer between devices or recovery after a browser clears site data.
 
@@ -18,7 +18,7 @@ JSON import currently accepts schema version 1. Unsupported versions, including 
 
 ## IndexedDB schema
 
-Database name: `baseball-coach-helper`. Every object store has key path `id`.
+Database name: `pinch-hitter` (with automatic one-time migration from legacy `baseball-coach-helper`). Every object store has key path `id`.
 
 | Store      | Records                                                         | Indexes                                                                        |
 | ---------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------ |
@@ -81,7 +81,7 @@ Export produces UTF-8 JSON with this top-level structure:
 ```json
 {
   "schemaVersion": 1,
-  "application": "Baseball Coach Helper",
+  "application": "Pinch Hitter",
   "applicationVersion": "1.0.0",
   "exportedAt": "2026-05-04T18:30:00.000Z",
   "teams": [],

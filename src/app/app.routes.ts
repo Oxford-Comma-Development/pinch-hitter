@@ -3,27 +3,27 @@ export const routes: Routes = [
   {
     path: '',
     loadComponent: () => import('./home/home.component').then((m) => m.HomeComponent),
-    title: 'Baseball Coach Helper',
+    title: 'Pinch Hitter',
   },
   {
     path: 'roster',
     loadComponent: () => import('./roster/roster.component').then((m) => m.RosterComponent),
-    title: 'Roster · Coach Helper',
+    title: 'Roster · Pinch Hitter',
   },
   {
     path: 'practice',
     loadComponent: () => import('./practice/practice.component').then((m) => m.PracticeComponent),
-    title: 'Batting Practice · Coach Helper',
+    title: 'Batting Practice · Pinch Hitter',
   },
   {
     path: 'reports',
     loadComponent: () => import('./reports/reports.component').then((m) => m.ReportsComponent),
-    title: 'Reports · Coach Helper',
+    title: 'Reports · Pinch Hitter',
   },
   {
     path: 'settings',
     loadComponent: () => import('./settings/settings.component').then((m) => m.SettingsComponent),
-    title: 'Settings · Coach Helper',
+    title: 'Settings · Pinch Hitter',
   },
   { path: '**', redirectTo: '' },
 ];

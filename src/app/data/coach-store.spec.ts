@@ -299,6 +299,16 @@ describe('portable backups and CSV', () => {
     await store.recordContact(0.2, 0.3);
     const data = store.exportBackup();
     const saved = commits.length;
+    expect(data.application).toBe('Pinch Hitter');
+    const legacyParsed = parseBackup(
+      JSON.stringify({ ...data, application: 'Baseball Coach Helper' }),
+    );
+    expect(legacyParsed.data.application).toBe('Pinch Hitter');
+    const pinchHitterParsed = parseBackup(JSON.stringify(data));
+    expect(pinchHitterParsed.data.application).toBe('Pinch Hitter');
+    expect(() => parseBackup(JSON.stringify({ ...data, application: 'Other App' }))).toThrow(
+      'not a Pinch Hitter backup',
+    );
     expect(() => parseBackup(JSON.stringify({ ...data, schemaVersion: 99 }))).toThrow('version');
     expect(() =>
       parseBackup(JSON.stringify({ ...data, events: [{ ...data.events[0], fieldX: 2 }] })),

@@ -20,7 +20,7 @@ test('production service worker opens and resumes a useful notebook offline', as
     const url = document.querySelector<HTMLLinkElement>('link[rel=manifest]')!.href;
     return fetch(url).then((r) => r.json());
   });
-  expect(manifest.name).toBe('Baseball Coach Helper');
+  expect(manifest.name).toBe('Pinch Hitter');
   await context.setOffline(true);
   await page.reload();
   await expect(page.locator('.current-hitter h1')).toHaveText('Marcus Williams');

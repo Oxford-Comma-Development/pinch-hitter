@@ -22,7 +22,7 @@ test('roster edits, archive/reactivate, team switching and invalid import preser
   await page.getByRole('button', { name: 'Move Tyler Davis up', exact: true }).click();
   await expect(page.locator('.player-row').first()).toContainText('Tyler Davis');
   await page.screenshot({ path: testInfo.outputPath('roster.png'), fullPage: true });
-  await page.getByRole('link', { name: 'Baseball Coach Helper home' }).click();
+  await page.getByRole('link', { name: 'Pinch Hitter home' }).click();
   await page.screenshot({ path: testInfo.outputPath('home.png'), fullPage: true });
   await assertNoOverflow(page);
   await page.getByRole('link', { name: 'Settings', exact: true }).click();
@@ -40,9 +40,7 @@ test('roster edits, archive/reactivate, team switching and invalid import preser
   await page.getByLabel('JSON backup', { exact: true }).setInputFiles({
     name: 'future.json',
     mimeType: 'application/json',
-    buffer: Buffer.from(
-      JSON.stringify({ schemaVersion: 999, application: 'Baseball Coach Helper' }),
-    ),
+    buffer: Buffer.from(JSON.stringify({ schemaVersion: 999, application: 'Pinch Hitter' })),
   });
   await expect(page.locator('.error[role=alert]')).toBeVisible();
   expect((await readData(page))['players']).toHaveLength(5);

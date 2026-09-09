@@ -126,8 +126,8 @@ import { downloadFile, shareFile } from '../shared/files';
           <p class="eyebrow">BRING YOUR DATA HOME</p>
           <h2>Import a backup</h2>
           <p class="muted">
-            Choose a Baseball Coach Helper JSON file. Review its contents before merging it into
-            this notebook.
+            Choose a Pinch Hitter JSON file. Review its contents before merging it into this
+            notebook.
           </p>
           <label
             >JSON backup<input
@@ -169,7 +169,7 @@ import { downloadFile, shareFile } from '../shared/files';
             recognition may require a connection.
           </p>
           @if (installPrompt()) {
-            <button class="primary" (click)="install()">Install Coach Helper</button>
+            <button class="primary" (click)="install()">Install Pinch Hitter</button>
           } @else {
             <p class="small">
               To install: use your browser’s <strong>Install app</strong> menu, or on iPhone use
@@ -184,8 +184,8 @@ import { downloadFile, shareFile } from '../shared/files';
             }}
           </p>
           <p class="small muted">
-            Baseball Coach Helper · Version 1.0.0<br />No account. No analytics. No coach data sent
-            to a server.
+            Pinch Hitter · Version 1.0.0<br />No account. No analytics. No coach data sent to a
+            server.
           </p>
         </section>
         <section class="card danger-card">
@@ -392,7 +392,7 @@ export class SettingsComponent {
     this.message.set('JSON backup downloaded. Save it somewhere you can find on another device.');
   }
   backupName() {
-    return 'baseball-coach-helper-' + new Date().toISOString().slice(0, 10) + '.json';
+    return 'pinch-hitter-' + new Date().toISOString().slice(0, 10) + '.json';
   }
   async shareBackup() {
     const backup = await this.store.exportFreshBackup();
@@ -445,7 +445,7 @@ export class SettingsComponent {
     if (
       this.deleteText !== 'DELETE' ||
       !window.confirm(
-        'Delete all Baseball Coach Helper data on this device? This cannot be undone without a backup.',
+        'Delete all Pinch Hitter data on this device? This cannot be undone without a backup.',
       )
     )
       return;

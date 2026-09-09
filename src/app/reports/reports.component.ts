@@ -490,7 +490,7 @@ export class ReportsComponent {
     const file = new File([content], name, { type: 'text/csv;charset=utf-8' });
     try {
       if (share && navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: `${this.title()} · Baseball Coach Helper` });
+        await navigator.share({ files: [file], title: `${this.title()} · Pinch Hitter` });
         this.message.set('Report shared.');
         return;
       }

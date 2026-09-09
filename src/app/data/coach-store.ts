@@ -129,7 +129,7 @@ export class CoachStore {
         };
         // Web Locks serialize read/modify/write across tabs. The tiny revision record avoids reloading a season on each tap.
         return typeof navigator !== 'undefined' && navigator.locks
-          ? await navigator.locks.request('baseball-coach-helper-write', run)
+          ? await navigator.locks.request('pinch-hitter-write', run)
           : await run();
       } finally {
         this.saving.set(false);
@@ -664,7 +664,7 @@ export class CoachStore {
   exportBackup(): BackupData {
     return structuredClone({
       schemaVersion: 1,
-      application: 'Baseball Coach Helper',
+      application: 'Pinch Hitter',
       applicationVersion: APP_VERSION,
       exportedAt: now(),
       teams: this.teams(),

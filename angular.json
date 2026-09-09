@@ -7,7 +7,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "baseball-coach-helper": {
+    "pinch-hitter": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -65,10 +65,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "baseball-coach-helper:build:production"
+              "buildTarget": "pinch-hitter:build:production"
             },
             "development": {
-              "buildTarget": "baseball-coach-helper:build:development"
+              "buildTarget": "pinch-hitter:build:development"
             }
           },
           "defaultConfiguration": "development"

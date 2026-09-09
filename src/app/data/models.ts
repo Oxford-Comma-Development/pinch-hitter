@@ -112,7 +112,7 @@ export interface AppSettings {
 }
 export interface BackupData {
   schemaVersion: 1;
-  application: 'Baseball Coach Helper';
+  application: 'Pinch Hitter' | 'Baseball Coach Helper';
   applicationVersion: string;
   exportedAt: string;
   teams: Team[];

@@ -1,4 +1,4 @@
-# Baseball Coach Helper: implementation principles
+# Pinch Hitter: implementation principles
 
 Read the workspace `GEMINI.md` when present. Prefer native platform features and existing dependencies; avoid abstraction layers that do not serve an actual product need.
 

@@ -15,13 +15,14 @@ export interface DatabaseChange {
   put?: DatabaseRecords[TableName][];
   delete?: string[];
 }
-export const DATABASE_NAME = 'baseball-coach-helper';
+export const DATABASE_NAME = 'pinch-hitter';
+export const LEGACY_DATABASE_NAME = 'baseball-coach-helper';
 export const DATABASE_VERSION = 2;
 const TABLES: TableName[] = ['teams', 'players', 'sessions', 'events', 'notes', 'settings'];
 
 export class ConcurrentWriteError extends Error {
   constructor() {
-    super('Another Coach Helper window changed this practice. Try the action again.');
+    super('Another Pinch Hitter window changed this practice. Try the action again.');
   }
 }
 
@@ -35,10 +36,17 @@ export class CoachRepository {
     if (this.database) return;
     if (!globalThis.indexedDB)
       throw new Error(
-        'This browser cannot open local storage. Open Coach Helper in a browser with IndexedDB enabled.',
+        'This browser cannot open local storage. Open Pinch Hitter in a browser with IndexedDB enabled.',
       );
-    this.database = await new Promise<IDBDatabase>((resolve, reject) => {
-      const request = indexedDB.open(this.databaseName, DATABASE_VERSION);
+    this.database = await this.openDb(this.databaseName);
+    if (this.databaseName === DATABASE_NAME) {
+      await this.migrateLegacyDatabaseIfPresent();
+    }
+  }
+
+  private openDb(name: string): Promise<IDBDatabase> {
+    return new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open(name, DATABASE_VERSION);
       request.onupgradeneeded = (event) => {
         const database = request.result;
         // Future migrations are appended by oldVersion; never recreate a populated store.
@@ -69,7 +77,147 @@ export class CoachRepository {
       request.onerror = () =>
         reject(request.error ?? new Error('Local storage could not be opened.'));
       request.onblocked = () =>
-        reject(new Error('Close other Coach Helper tabs and try again to update local storage.'));
+        reject(new Error('Close other Pinch Hitter tabs and try again to update local storage.'));
+    });
+  }
+
+  private async migrateLegacyDatabaseIfPresent(): Promise<void> {
+    if (!this.database) return;
+    const alreadyEvaluated = await new Promise<boolean>((resolve) => {
+      try {
+        const tx = this.database!.transaction('metadata', 'readonly');
+        const req = tx.objectStore('metadata').get('migratedFrom');
+        req.onsuccess = () => resolve(!!req.result);
+        req.onerror = () => resolve(false);
+      } catch {
+        resolve(false);
+      }
+    });
+    if (alreadyEvaluated) return;
+
+    const hasCurrentData = await new Promise<boolean>((resolve) => {
+      try {
+        const tx = this.database!.transaction(TABLES, 'readonly');
+        let count = 0;
+        for (const table of TABLES) {
+          const req = tx.objectStore(table).count();
+          req.onsuccess = () => {
+            count += req.result;
+          };
+        }
+        tx.oncomplete = () => resolve(count > 0);
+        tx.onerror = () => resolve(false);
+      } catch {
+        resolve(false);
+      }
+    });
+
+    if (hasCurrentData) {
+      await new Promise<void>((resolve) => {
+        try {
+          const tx = this.database!.transaction('metadata', 'readwrite');
+          tx.objectStore('metadata').put({ id: 'migratedFrom', value: 'none-existing-data' });
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => resolve();
+        } catch {
+          resolve();
+        }
+      });
+      return;
+    }
+
+    const legacySnapshot = await this.readLegacyDatabase();
+    if (legacySnapshot) {
+      await new Promise<void>((resolve, reject) => {
+        const tx = this.database!.transaction([...TABLES, 'metadata'], 'readwrite');
+        for (const table of TABLES) {
+          const store = tx.objectStore(table);
+          for (const item of legacySnapshot[table] || []) {
+            store.put(item);
+          }
+        }
+        tx.objectStore('metadata').put({
+          id: 'migratedFrom',
+          value: LEGACY_DATABASE_NAME,
+          migratedAt: new Date().toISOString(),
+        });
+        tx.objectStore('metadata').put({ id: 'revision', value: crypto.randomUUID() });
+        tx.oncomplete = () => resolve();
+        tx.onerror = tx.onabort = () => reject(tx.error);
+      });
+    } else {
+      await new Promise<void>((resolve) => {
+        try {
+          const tx = this.database!.transaction('metadata', 'readwrite');
+          tx.objectStore('metadata').put({ id: 'migratedFrom', value: 'none-legacy-not-found' });
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => resolve();
+        } catch {
+          resolve();
+        }
+      });
+    }
+  }
+
+  private readLegacyDatabase(): Promise<DatabaseSnapshot | null> {
+    return new Promise((resolve) => {
+      let existed = true;
+      const req = indexedDB.open(LEGACY_DATABASE_NAME);
+      req.onupgradeneeded = (e) => {
+        if (e.oldVersion === 0) {
+          existed = false;
+          req.transaction?.abort();
+        }
+      };
+      req.onsuccess = () => {
+        if (!existed) {
+          req.result.close();
+          try {
+            indexedDB.deleteDatabase(LEGACY_DATABASE_NAME);
+          } catch (err) {
+            void err;
+          }
+          resolve(null);
+          return;
+        }
+        const db = req.result;
+        try {
+          const storeNames = Array.from(db.objectStoreNames);
+          const hasStores = TABLES.some((t) => storeNames.includes(t));
+          if (!hasStores) {
+            db.close();
+            resolve(null);
+            return;
+          }
+          const availableTables = TABLES.filter((t) => storeNames.includes(t));
+          const tx = db.transaction(availableTables, 'readonly');
+          const snapshot = {} as DatabaseSnapshot;
+          for (const t of TABLES) {
+            snapshot[t] = [];
+          }
+          let count = 0;
+          for (const table of availableTables) {
+            const r = tx.objectStore(table).getAll();
+            r.onsuccess = () => {
+              (snapshot[table] as DatabaseRecords[TableName][]) = r.result;
+              count += r.result.length;
+            };
+          }
+          tx.oncomplete = () => {
+            db.close();
+            resolve(count > 0 ? snapshot : null);
+          };
+          tx.onerror = tx.onabort = () => {
+            db.close();
+            resolve(null);
+          };
+        } catch {
+          db.close();
+          resolve(null);
+        }
+      };
+      req.onerror = () => resolve(null);
+      req.onblocked = () => resolve(null);
     });
   }
 

@@ -1,9 +1,9 @@
 <a class="skip-link" href="#main-content">Skip to content</a>
 <div class="app-shell" [class.in-practice]="inPractice()">
   <header class="app-header">
-    <a routerLink="/" class="brand" aria-label="Baseball Coach Helper home"
+    <a routerLink="/" class="brand" aria-label="Pinch Hitter home"
       ><img src="icons/mark.svg" alt="" width="40" height="40" /><span
-        >BASEBALL<span class="brand-sub">COACH HELPER</span></span
+        >PINCH<span class="brand-sub">HITTER</span></span
       ></a
     ><span class="connection"
       ><span class="status-dot"></span
@@ -27,7 +27,7 @@
     @if (store.ready()) {
       <router-outlet />
     } @else {
-      <div class="loading">Opening your baseball notebook…</div>
+      <div class="loading">Opening Pinch Hitter…</div>
     }
   </main>
   <nav class="main-nav" aria-label="Main navigation">

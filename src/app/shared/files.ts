@@ -10,7 +10,7 @@ export async function shareFile(content: string, name: string, type: string): Pr
   const file = new File([content], name, { type });
   if (navigator.canShare?.({ files: [file] })) {
     try {
-      await navigator.share({ files: [file], title: 'Baseball Coach Helper' });
+      await navigator.share({ files: [file], title: 'Pinch Hitter' });
       return 'File shared.';
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError')
