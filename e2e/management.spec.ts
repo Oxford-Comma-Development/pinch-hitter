@@ -51,3 +51,20 @@ test('roster edits, archive/reactivate, team switching and invalid import preser
   await expect(page.locator('.player-row')).toHaveCount(5);
   await expect(page.locator('.player-row').first()).toContainText('Tyler Davis');
 });
+
+test('privacy policy is publicly accessible and reachable from settings', async ({
+  page,
+}, testInfo) => {
+  await page.goto('./privacy');
+  await expect(page.getByRole('heading', { name: 'Privacy Policy.' })).toBeVisible();
+  await expect(page.getByText('100% On-Device')).toBeVisible();
+  await expect(page.getByText('Zero Tracking')).toBeVisible();
+  await assertNoOverflow(page);
+  await page.screenshot({ path: testInfo.outputPath('privacy.png'), fullPage: true });
+
+  await page.getByRole('link', { name: '← Back to Settings' }).click();
+  await expect(page.getByRole('heading', { name: 'Settings.' })).toBeVisible();
+
+  await page.getByRole('link', { name: 'Read our Privacy Policy →' }).click();
+  await expect(page.getByRole('heading', { name: 'Privacy Policy.' })).toBeVisible();
+});

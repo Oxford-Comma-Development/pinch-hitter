@@ -1,4 +1,4 @@
-import { existsSync, copyFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, copyFileSync, readdirSync, statSync, mkdirSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 
 // Locate the browser build directory dynamically to ensure complete repo-name independence
@@ -39,6 +39,12 @@ const notFoundPath = join(browserDir, '404.html');
 
 copyFileSync(indexPath, notFoundPath);
 console.log(`✓ Generated SPA fallback: copied index.html -> ${notFoundPath}`);
+
+const privacyDir = join(browserDir, 'privacy');
+mkdirSync(privacyDir, { recursive: true });
+copyFileSync(indexPath, join(privacyDir, 'index.html'));
+copyFileSync(indexPath, join(browserDir, 'privacy.html'));
+console.log(`✓ Generated static privacy routes: privacy/index.html & privacy.html`);
 
 const manifestPath = join(browserDir, 'manifest.webmanifest');
 if (existsSync(manifestPath)) {

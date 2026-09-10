@@ -25,5 +25,14 @@ export const routes: Routes = [
     loadComponent: () => import('./settings/settings.component').then((m) => m.SettingsComponent),
     title: 'Settings · Pinch Hitter',
   },
+  {
+    path: 'privacy',
+    loadComponent: () => import('./privacy/privacy.component').then((m) => m.PrivacyComponent),
+    title: 'Privacy Policy · Pinch Hitter',
+  },
+  {
+    path: 'privacy.html',
+    redirectTo: 'privacy',
+  },
   { path: '**', redirectTo: '' },
 ];

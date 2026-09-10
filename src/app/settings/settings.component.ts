@@ -6,10 +6,11 @@ import { InstallService } from '../shared/install.service';
 import { CoachStore } from '../data/coach-store';
 import { ImportPreview, Team } from '../data/models';
 import { eventsCsv, backupJson } from '../data/transfer';
+import { RouterLink } from '@angular/router';
 import { backupFileName, canShareFiles, downloadFile, shareFile } from '../shared/files';
 @Component({
   selector: 'app-settings',
-  imports: [FormsModule, ModalDirective, DatePipe],
+  imports: [FormsModule, ModalDirective, DatePipe, RouterLink],
   template: `
     <div class="page">
       <p class="eyebrow">YOUR NOTEBOOK, YOUR WAY</p>
@@ -235,6 +236,9 @@ import { backupFileName, canShareFiles, downloadFile, shareFile } from '../share
           <p class="small muted">
             Pinch Hitter · Version 1.0.0<br />No account. No analytics. No coach data sent to a
             server.
+          </p>
+          <p class="small">
+            <a routerLink="/privacy">Read our Privacy Policy →</a>
           </p>
         </section>
         <section class="card danger-card">

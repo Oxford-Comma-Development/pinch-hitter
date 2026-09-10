@@ -51,7 +51,7 @@ import { ImportPreview } from '../data/models';
             </form>
             <p class="privacy small">
               No account. No subscriptions. Your notebook stays on this device, and you can export
-              it anytime.
+              it anytime. · <a routerLink="/privacy">Privacy Policy</a>
             </p>
           </section>
 
