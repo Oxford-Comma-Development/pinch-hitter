@@ -273,8 +273,17 @@
     </div>
     <div class="field-area">
       <div class="field-instruction">
-        <span>Tap where the ball lands</span
-        ><span>{{ hitterEvents().length }} for this hitter</span>
+        <span>Tap where the ball lands</span>
+        <button
+          type="button"
+          class="whiff-quick-button"
+          [disabled]="!current() || busy()"
+          (click)="recordWhiff()"
+          aria-label="Record swing and miss"
+        >
+          ✕ Swing &amp; miss (0)
+        </button>
+        <span>{{ hitterEvents().length }} for this hitter</span>
       </div>
       <app-field
         [events]="hitterEvents()"
@@ -334,6 +343,18 @@
             (click)="classify('result', result)"
           >
             {{ resultLabels[result] }}
+          </button>
+        }
+      </div>
+      <div class="classify-row hard-hit" role="group" aria-label="Hard hit contact quality">
+        @for (level of hardHitRatings; track level) {
+          <button
+            [disabled]="!latest() && level !== 0"
+            [class.selected]="latest()?.hardHit === level"
+            [attr.aria-pressed]="latest()?.hardHit === level"
+            (click)="classifyHardHit(level)"
+          >
+            {{ hardHitShortLabels[level] }}
           </button>
         }
       </div>

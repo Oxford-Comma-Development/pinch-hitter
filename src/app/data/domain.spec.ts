@@ -220,10 +220,59 @@ describe('coordinates and reporting', () => {
     expect(directionFor({ ...a, fieldX: 0.5, fieldY: 0.88 })).toBe('unknown');
     expect(directionFor({ ...a, fieldX: 0.5 })).toBe('center');
   });
-  it('bins edge coordinates and normalizes density without changing observations', () => {
+  it('filters and summarizes hard hit ratings, contact hits, and whiffs', () => {
+    const normal = capture().event;
+    const whiff = {
+      ...normal,
+      id: 'e2',
+      fieldX: 0.5,
+      fieldY: 0.88,
+      hardHit: 0 as const,
+      contactType: null,
+      result: 'out' as const,
+    };
+    const crushed = {
+      ...normal,
+      id: 'e3',
+      fieldX: 0.8,
+      fieldY: 0.2,
+      hardHit: 5 as const,
+      contactType: 'fly-ball' as const,
+      result: 'home-run' as const,
+    };
+    const medium = {
+      ...normal,
+      id: 'e4',
+      fieldX: 0.4,
+      fieldY: 0.4,
+      hardHit: 3 as const,
+      contactType: 'line-drive' as const,
+      result: 'single' as const,
+    };
+    const events = [normal, whiff, crushed, medium];
+
+    expect(filterEvents(events, { hardHit: 0 })).toEqual([whiff]);
+    expect(filterEvents(events, { hardHit: 5 })).toEqual([crushed]);
+    expect(filterEvents(events, { hardHit: null })).toEqual([normal]);
+
+    const summary = summarizeEvents(events);
+    expect(summary.total).toBe(4);
+    expect(summary.classifiedHardHits).toBe(3);
+    expect(summary.swingsAndMisses).toBe(1);
+    expect(summary.contactHits).toBe(3);
+    expect(summary.hardHitCount).toBe(1); // rating 4 or 5
+    expect(summary.hardHits).toEqual({
+      0: 1,
+      3: 1,
+      5: 1,
+      unclassified: 1,
+    });
+  });
+  it('bins edge coordinates and normalizes density without changing observations or counting whiffs', () => {
     const a = capture().event;
     const b = { ...a, id: 'e2', fieldX: 1, fieldY: 1 };
-    const bins = densityBins([a, a, b], 10);
+    const whiff = { ...a, id: 'e3', fieldX: 0.5, fieldY: 0.88, hardHit: 0 as const };
+    const bins = densityBins([a, a, b, whiff], 10);
     expect(bins).toHaveLength(2);
     expect(bins.find((bin) => bin.count === 2)?.intensity).toBe(1);
     expect(bins.find((bin) => bin.count === 1)).toMatchObject({ x: 0.95, y: 0.95, intensity: 0.5 });

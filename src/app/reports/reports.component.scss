@@ -383,6 +383,24 @@
 .unclassified {
   background: #ffffff;
 }
+.hard-hit-0 {
+  background: #6c757d;
+}
+.hard-hit-1 {
+  background: #fff2bc;
+}
+.hard-hit-2 {
+  background: #ffc24a;
+}
+.hard-hit-3 {
+  background: #f07140;
+}
+.hard-hit-4 {
+  background: #e63946;
+}
+.hard-hit-5 {
+  background: #7b2cbf;
+}
 .insights {
   display: grid;
   gap: 20px;
@@ -434,6 +452,24 @@
 .bar-fill.line-drive,
 .bar-fill.home-run {
   background: #b95730;
+}
+.bar-fill.hard-hit-0 {
+  background: #6c757d;
+}
+.bar-fill.hard-hit-1 {
+  background: #b8a65c;
+}
+.bar-fill.hard-hit-2 {
+  background: #d49b2c;
+}
+.bar-fill.hard-hit-3 {
+  background: #d4592a;
+}
+.bar-fill.hard-hit-4 {
+  background: #c72c39;
+}
+.bar-fill.hard-hit-5 {
+  background: #6a24a6;
 }
 .classification-note {
   font-size: 10px;

@@ -10,7 +10,11 @@ import {
   CONTACT_LABELS,
   CONTACT_TYPES,
   ContactType,
+  HARD_HIT_LABELS,
+  HARD_HIT_RATINGS,
+  HARD_HIT_SHORT_LABELS,
   HIT_RESULTS,
+  HardHitRating,
   HitResult,
   PracticeSession,
   RESULT_LABELS,
@@ -34,6 +38,7 @@ interface ReportSelection {
   pitcherHand: '' | 'L' | 'R' | 'unknown';
   contactType: '' | ContactType | 'unknown';
   result: '' | HitResult | 'unknown';
+  hardHit: '' | HardHitRating | 'unknown';
 }
 
 const initialSelection = (): ReportSelection => ({
@@ -45,6 +50,7 @@ const initialSelection = (): ReportSelection => ({
   pitcherHand: '',
   contactType: '',
   result: '',
+  hardHit: '',
 });
 
 @Component({
@@ -61,7 +67,7 @@ export class ReportsComponent {
   readonly editor = viewChild<ElementRef<HTMLDialogElement>>('editor');
   readonly filters = signal<ReportSelection>(initialSelection());
   readonly view = signal<'spray' | 'heat' | 'history'>('spray');
-  readonly colorBy = signal<'contactType' | 'result'>('contactType');
+  readonly colorBy = signal<'contactType' | 'result' | 'hardHit'>('contactType');
   readonly selectedId = signal('');
   readonly historyLimit = signal(40);
   readonly busy = signal(false);
@@ -71,11 +77,15 @@ export class ReportsComponent {
   readonly results = HIT_RESULTS;
   readonly contactLabels = CONTACT_LABELS;
   readonly resultLabels = RESULT_LABELS;
+  readonly hardHitRatings = HARD_HIT_RATINGS;
+  readonly hardHitLabels = HARD_HIT_LABELS;
+  readonly hardHitShortLabels = HARD_HIT_SHORT_LABELS;
   readonly percent = percent;
   editDraft: BallEvent | null = null;
   editAssociatedNotes: { id: string; timestamp: string; text: string; originalText: string }[] = [];
   editTime = '';
   deletePending = false;
+  deleteSessionPending = false;
   editingSession = false;
   sessionTitle = '';
   sessionLocation = '';
@@ -117,6 +127,12 @@ export class ReportsComponent {
       pitcherHand: selected.pitcherHand === 'unknown' ? null : selected.pitcherHand || undefined,
       contactType: selected.contactType === 'unknown' ? null : selected.contactType || undefined,
       result: selected.result === 'unknown' ? null : selected.result || undefined,
+      hardHit:
+        selected.hardHit === 'unknown'
+          ? null
+          : selected.hardHit === ''
+            ? undefined
+            : (Number(selected.hardHit) as HardHitRating),
     });
   });
   readonly summary = computed(() => summarizeEvents(this.observations()));
@@ -158,6 +174,12 @@ export class ReportsComponent {
       );
     if (f.result)
       parts.push(f.result === 'unknown' ? 'Unclassified result' : RESULT_LABELS[f.result]);
+    if (f.hardHit !== '')
+      parts.push(
+        f.hardHit === 'unknown'
+          ? 'Unclassified hard hit'
+          : HARD_HIT_LABELS[Number(f.hardHit) as HardHitRating],
+      );
     return parts.join(' · ');
   });
   readonly playerActivity = computed(() => {
@@ -203,6 +225,14 @@ export class ReportsComponent {
       type,
       label: RESULT_LABELS[type],
       count: this.summary().results[type] || 0,
+    })),
+  );
+  readonly hardHitDistribution = computed(() =>
+    this.hardHitRatings.map((rating) => ({
+      rating,
+      label: HARD_HIT_LABELS[rating],
+      shortLabel: HARD_HIT_SHORT_LABELS[rating],
+      count: this.summary().hardHits[rating] || 0,
     })),
   );
 
@@ -353,6 +383,7 @@ export class ReportsComponent {
           batterSide: draft.batterSide,
           contactType: draft.contactType,
           result: draft.result,
+          hardHit: draft.hardHit,
           notes: draft.notes,
         },
         this.editAssociatedNotes.map(({ id, text }) => ({ id, text })),
@@ -380,6 +411,23 @@ export class ReportsComponent {
       this.message.set('Observation deleted.');
     } catch (error) {
       this.error.set(error instanceof Error ? error.message : 'Could not delete this observation.');
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  async deleteSession(): Promise<void> {
+    const session = this.session();
+    if (!session || this.busy()) return;
+    this.busy.set(true);
+    try {
+      await this.store.deleteSession(session.id);
+      this.deleteSessionPending = false;
+      this.message.set(`Practice "${session.title || 'Batting practice'}" deleted.`);
+      this.setFilter('sessionIds', []);
+      this.syncScope();
+    } catch (error) {
+      this.error.set(error instanceof Error ? error.message : 'Could not delete this practice.');
     } finally {
       this.busy.set(false);
     }

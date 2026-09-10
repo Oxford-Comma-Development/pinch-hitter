@@ -5,6 +5,8 @@ import {
   CoachNote,
   CONTACT_TYPES,
   Hand,
+  HARD_HIT_RATINGS,
+  HardHitRating,
   HIT_RESULTS,
   ImportPreview,
   Player,
@@ -15,14 +17,16 @@ import {
 } from './models';
 
 type JsonObject = Record<string, unknown>;
+
 function object(value: unknown, label: string): JsonObject {
   if (!value || typeof value !== 'object' || Array.isArray(value))
-    throw new Error(`${label} must be an object.`);
+    throw new Error(`${label} must be a valid object.`);
   return value as JsonObject;
 }
 function string(value: unknown, label: string, required = false): string {
-  if (typeof value !== 'string' || (required && !value.trim()))
-    throw new Error(`${label} must be ${required ? 'a nonempty' : 'a'} text value.`);
+  if (typeof value !== 'string') throw new Error(`${label} must be text.`);
+  const trimmed = value.trim();
+  if (required && !trimmed) throw new Error(`${label} cannot be blank.`);
   return value;
 }
 function date(value: unknown, label: string): string {
@@ -50,7 +54,7 @@ function number(
     );
   return value;
 }
-function enumeration<T extends string | null>(
+function enumeration<T extends string | number | null>(
   value: unknown,
   allowed: readonly T[],
   label: string,
@@ -171,6 +175,14 @@ function parseEvent(row: JsonObject): BallEvent {
     batterSide: enumeration(row['batterSide'], ['L', 'R', null], 'Batter side'),
     contactType: enumeration(row['contactType'], [...CONTACT_TYPES, null], 'Contact type'),
     result: enumeration(row['result'], [...HIT_RESULTS, null], 'Result'),
+    hardHit:
+      row['hardHit'] !== undefined && row['hardHit'] !== null
+        ? (enumeration(
+            row['hardHit'],
+            [...HARD_HIT_RATINGS, null],
+            'Hard hit',
+          ) as HardHitRating | null)
+        : null,
     notes: string(row['notes'], 'Observation notes'),
     playerName: string(row['playerName'], 'Player snapshot name'),
     jerseyNumber: string(row['jerseyNumber'], 'Jersey snapshot'),
@@ -493,6 +505,7 @@ export const EVENT_CSV_COLUMNS = [
   'batter_side',
   'contact_type',
   'result',
+  'hard_hit',
   'field_x',
   'field_y',
   'coordinate_system_version',
@@ -545,6 +558,7 @@ export function eventsCsv(
         event.batterSide,
         event.contactType,
         event.result,
+        event.hardHit,
         event.fieldX,
         event.fieldY,
         event.coordinateSystemVersion,

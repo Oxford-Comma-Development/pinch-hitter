@@ -27,6 +27,24 @@ export const RESULT_LABELS: Record<HitResult, string> = {
   triple: 'Triple',
   'home-run': 'Home run',
 };
+export const HARD_HIT_RATINGS = [0, 1, 2, 3, 4, 5] as const;
+export type HardHitRating = (typeof HARD_HIT_RATINGS)[number];
+export const HARD_HIT_LABELS: Record<HardHitRating, string> = {
+  0: 'Swing & miss',
+  1: 'Weak',
+  2: 'Soft',
+  3: 'Medium',
+  4: 'Hard hit',
+  5: 'Plákata',
+};
+export const HARD_HIT_SHORT_LABELS: Record<HardHitRating, string> = {
+  0: '0 Miss',
+  1: '1 Weak',
+  2: '2 Soft',
+  3: '3 Med',
+  4: '4 Hard',
+  5: '5 Plákata',
+};
 
 export interface Entity {
   id: string;
@@ -90,6 +108,7 @@ export interface BallEvent extends Entity {
   batterSide: BatterSide;
   contactType: ContactType | null;
   result: HitResult | null;
+  hardHit: HardHitRating | null;
   notes: string;
   playerName: string;
   jerseyNumber: string;
@@ -151,6 +170,7 @@ export interface EventFilters {
   pitcherHand?: PitcherHand;
   contactType?: ContactType | null;
   result?: HitResult | null;
+  hardHit?: HardHitRating | null;
 }
 export const defaultSettings = (): AppSettings => ({
   id: 'preferences',

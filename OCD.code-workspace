@@ -1,0 +1,15 @@
+{
+  "folders": [
+    {
+      "path": ".",
+    },
+    {
+      "path": "../Oxford-Comma-Development.github.io",
+    },
+  ],
+  "settings": {
+    "editor.formatOnPaste": false,
+    "editor.allowVariableLineHeights": false,
+    "editor.allowVariableFonts": false
+  },
+}

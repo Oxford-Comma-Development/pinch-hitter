@@ -202,7 +202,7 @@ import { parseRosterCsv } from '../data/transfer';
                       type="checkbox"
                       [checked]="draft.positions.includes(position)"
                       (change)="togglePosition(position)"
-                    />{{ position }}</label
+                    />{{ positionLabels[position] || position }}</label
                   >
                 }
               </div>
@@ -399,8 +399,27 @@ export class RosterComponent {
   readonly message = signal('');
   readonly preview = signal<RosterPreview | null>(null);
   bulkText = '';
+  readonly positions = [
+    'P',
+    'C',
+    '1B',
+    '2B',
+    '3B',
+    'SS',
+    'LF',
+    'CF',
+    'RF',
+    'DH',
+    'IF',
+    'OF',
+    'UTIL',
+  ];
+  readonly positionLabels: Record<string, string> = {
+    IF: 'IF (Infield)',
+    OF: 'OF (Outfield)',
+    UTIL: 'UTIL (Utility)',
+  };
   editingId = '';
-  readonly positions = ['P', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'DH'];
   draft = this.emptyDraft();
   emptyDraft() {
     return {

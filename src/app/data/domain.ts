@@ -1,4 +1,14 @@
-import { BallEvent, BatterSide, EventFilters, Player, PracticeSession, TurnState } from './models';
+import {
+  BallEvent,
+  BatterSide,
+  ContactType,
+  EventFilters,
+  HardHitRating,
+  HitResult,
+  Player,
+  PracticeSession,
+  TurnState,
+} from './models';
 
 export function rotateQueue(queue: readonly string[]): string[] {
   return queue.length > 1 ? [...queue.slice(1), queue[0]] : [...queue];
@@ -68,7 +78,14 @@ export function createContact(
   player: Player,
   fieldX: number,
   fieldY: number,
-  options: { id?: string; now?: string; batterSide?: BatterSide } = {},
+  options: {
+    id?: string;
+    now?: string;
+    batterSide?: BatterSide;
+    hardHit?: HardHitRating | null;
+    contactType?: ContactType | null;
+    result?: HitResult | null;
+  } = {},
 ): { event: BallEvent; session: PracticeSession } {
   assertCoordinates(fieldX, fieldY);
   if (session.endedAt || session.queue[0] !== player.id || player.teamId !== session.teamId)
@@ -94,8 +111,9 @@ export function createContact(
           ? null
           : player.bats
         : options.batterSide,
-    contactType: null,
-    result: null,
+    contactType: options.contactType ?? null,
+    result: options.result ?? null,
+    hardHit: options.hardHit ?? null,
     notes: '',
     playerName: player.name,
     jerseyNumber: player.jerseyNumber,
@@ -167,6 +185,7 @@ export function filterEvents(events: readonly BallEvent[], filters: EventFilters
       (filters.pitcherHand === undefined || event.pitcherHand === filters.pitcherHand) &&
       (filters.contactType === undefined || event.contactType === filters.contactType) &&
       (filters.result === undefined || event.result === filters.result) &&
+      (filters.hardHit === undefined || event.hardHit === filters.hardHit) &&
       Date.parse(event.timestamp) >= from &&
       Date.parse(event.timestamp) <= to,
   );
@@ -184,6 +203,7 @@ export function directionFor(
 export function summarizeEvents(events: readonly BallEvent[]) {
   const contacts: Record<string, number> = {};
   const results: Record<string, number> = {};
+  const hardHits: Record<string, number> = {};
   const byPlayer: Record<string, number> = {};
   const pitcherHands = { R: 0, L: 0, unknown: 0 };
   const directions = { pull: 0, center: 0, opposite: 0, unknown: 0 };
@@ -191,16 +211,35 @@ export function summarizeEvents(events: readonly BallEvent[]) {
     contacts[event.contactType ?? 'unclassified'] =
       (contacts[event.contactType ?? 'unclassified'] ?? 0) + 1;
     results[event.result ?? 'unclassified'] = (results[event.result ?? 'unclassified'] ?? 0) + 1;
+    hardHits[
+      event.hardHit !== null && event.hardHit !== undefined ? String(event.hardHit) : 'unclassified'
+    ] =
+      (hardHits[
+        event.hardHit !== null && event.hardHit !== undefined
+          ? String(event.hardHit)
+          : 'unclassified'
+      ] ?? 0) + 1;
     byPlayer[event.playerId] = (byPlayer[event.playerId] ?? 0) + 1;
     pitcherHands[event.pitcherHand ?? 'unknown']++;
     directions[directionFor(event)]++;
   }
+  const classifiedHardHits = events.filter(
+    (e) => e.hardHit !== null && e.hardHit !== undefined,
+  ).length;
+  const hardHitCount = events.filter((e) => e.hardHit === 4 || e.hardHit === 5).length;
+  const swingsAndMisses = events.filter((e) => e.hardHit === 0).length;
+  const contactHits = events.length - swingsAndMisses;
   return {
     total: events.length,
     classifiedContacts: events.filter((e) => e.contactType !== null).length,
     classifiedResults: events.filter((e) => e.result !== null).length,
+    classifiedHardHits,
+    hardHitCount,
+    swingsAndMisses,
+    contactHits,
     contacts,
     results,
+    hardHits,
     byPlayer,
     pitcherHands,
     directions,
@@ -213,6 +252,7 @@ export function densityBins(
 ): { x: number; y: number; count: number; intensity: number }[] {
   const bins = new Map<string, { x: number; y: number; count: number }>();
   for (const event of events) {
+    if (event.hardHit === 0) continue;
     const x = Math.min(resolution - 1, Math.floor(event.fieldX * resolution));
     const y = Math.min(resolution - 1, Math.floor(event.fieldY * resolution));
     const key = `${x}:${y}`;

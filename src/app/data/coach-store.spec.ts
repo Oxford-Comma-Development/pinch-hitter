@@ -357,4 +357,59 @@ describe('portable backups and CSV', () => {
     expect(parseRosterCsv('name,bats\nMarcus,maybe').errors[0]).toContain('Row 2');
     expect(parseRosterCsv('"unclosed').errors).toHaveLength(1);
   });
+  it('records swings and misses (whiff) at home plate with hardHit: 0', async () => {
+    const { marcus } = await setup();
+    const event = await store.recordSwingAndMiss('R', marcus.id);
+    expect(event).toMatchObject({
+      fieldX: 0.5,
+      fieldY: 0.88,
+      hardHit: 0,
+      contactType: null,
+      result: 'out',
+      playerId: marcus.id,
+    });
+    expect(store.events()).toHaveLength(1);
+    expect(disk.events).toHaveLength(1);
+    expect(disk.events[0].hardHit).toBe(0);
+
+    // Can enrich hardHit rating
+    await store.enrichEvent(event.id, { hardHit: 1 });
+    expect(store.events()[0].hardHit).toBe(1);
+    expect(disk.events[0].hardHit).toBe(1);
+  });
+  it('cascades practice session deletion across sessions, events, and notes', async () => {
+    await setup();
+    const event = await store.recordContact(0.4, 0.4);
+    const session = store.activeSession()!;
+    await store.addNote({ sessionId: session.id }, 'Session note');
+    await store.addNote({ eventId: event.id }, 'Event note');
+
+    expect(store.sessions()).toHaveLength(1);
+    expect(store.events()).toHaveLength(1);
+    expect(store.notes()).toHaveLength(2);
+
+    await store.deleteSession(session.id);
+
+    expect(store.sessions()).toHaveLength(0);
+    expect(store.events()).toHaveLength(0);
+    expect(store.notes()).toHaveLength(0);
+    expect(disk.sessions).toHaveLength(0);
+    expect(disk.events).toHaveLength(0);
+    expect(disk.notes).toHaveLength(0);
+  });
+  it('maintains backward compatibility for older backup imports without hardHit', async () => {
+    await setup();
+    await store.recordContact(0.3, 0.5);
+    const backup = store.exportBackup();
+    // Simulate older backup without hardHit property on events
+    const olderEvent = { ...backup.events[0] } as Record<string, unknown>;
+    delete olderEvent['hardHit'];
+    const olderBackupJson = JSON.stringify({
+      ...backup,
+      events: [olderEvent],
+    });
+
+    const parsed = parseBackup(olderBackupJson);
+    expect(parsed.data.events[0].hardHit).toBeNull();
+  });
 });

@@ -19,6 +19,10 @@ import {
   Player,
   CONTACT_TYPES,
   CONTACT_LABELS,
+  HARD_HIT_LABELS,
+  HARD_HIT_RATINGS,
+  HARD_HIT_SHORT_LABELS,
+  HardHitRating,
   HIT_RESULTS,
   RESULT_LABELS,
 } from '../data/models';
@@ -118,6 +122,9 @@ export class PracticeComponent implements OnDestroy {
   readonly contactLabels = CONTACT_LABELS;
   readonly results = HIT_RESULTS;
   readonly resultLabels = RESULT_LABELS;
+  readonly hardHitRatings = HARD_HIT_RATINGS;
+  readonly hardHitLabels = HARD_HIT_LABELS;
+  readonly hardHitShortLabels = HARD_HIT_SHORT_LABELS;
   title = '';
   location = '';
   sessionNote = '';
@@ -286,6 +293,32 @@ export class PracticeComponent implements OnDestroy {
       Pick<BallEvent, 'contactType' | 'result'>
     >;
     await this.action(() => this.store.enrichEvent(event.id, patch), 'Last contact updated.');
+  }
+
+  async recordWhiff(): Promise<void> {
+    const player = this.current();
+    if (!player) return;
+    const side = this.batterSide();
+    await this.action(async () => {
+      const event = await this.store.recordSwingAndMiss(side, player.id);
+      this.latestId.set(event.id);
+      this.message.set(`Swing & miss recorded for ${player.name}.`);
+    });
+  }
+
+  async classifyHardHit(level: HardHitRating): Promise<void> {
+    const event = this.latest();
+    if (!event) {
+      if (level === 0) {
+        await this.recordWhiff();
+      }
+      return;
+    }
+    const next = event.hardHit === level ? null : level;
+    await this.action(
+      () => this.store.enrichEvent(event.id, { hardHit: next }),
+      'Hard hit rating updated.',
+    );
   }
 
   async undo(): Promise<void> {

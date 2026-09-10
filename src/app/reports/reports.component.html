@@ -162,6 +162,20 @@
               }
             </select>
           </label>
+          <label
+            >Hard hit
+            <select
+              aria-label="Hard hit"
+              [ngModel]="filters().hardHit"
+              (ngModelChange)="setFilter('hardHit', $event)"
+            >
+              <option value="">All ratings</option>
+              <option value="unknown">Unclassified only</option>
+              @for (rating of hardHitRatings; track rating) {
+                <option [value]="rating">{{ hardHitLabels[rating] }}</option>
+              }
+            </select>
+          </label>
         </div>
         <fieldset class="session-filter">
           <legend>
@@ -266,7 +280,40 @@
             >
               {{ session.endedAt ? 'Resume this practice' : 'Return to practice' }} →
             </button>
+            <button
+              class="text-button danger-text"
+              (click)="deleteSessionPending = true"
+              [disabled]="busy()"
+            >
+              Delete practice
+            </button>
           </div>
+          @if (deleteSessionPending) {
+            <div class="delete-confirm no-print" role="alert">
+              <strong>Delete this entire practice?</strong>
+              <p>
+                This permanently deletes "{{ session.title || 'Batting practice' }}", including all
+                recorded contacts and practice notes from this session. It cannot be undone.
+              </p>
+              <div class="inline-actions">
+                <button
+                  type="button"
+                  class="button secondary"
+                  (click)="deleteSessionPending = false"
+                >
+                  Keep practice
+                </button>
+                <button
+                  type="button"
+                  class="button danger"
+                  (click)="deleteSession()"
+                  [disabled]="busy()"
+                >
+                  Delete practice permanently
+                </button>
+              </div>
+            </div>
+          }
           @if (store.activeSession() && store.activeSession()?.id !== session.id) {
             <p class="muted small no-print">
               Finish the current practice before resuming this one.
@@ -395,6 +442,7 @@
                 >Color by<select [ngModel]="colorBy()" (ngModelChange)="colorBy.set($event)">
                   <option value="contactType">Contact type</option>
                   <option value="result">Result</option>
+                  <option value="hardHit">Hard hit rating</option>
                 </select></label
               >
             }
@@ -423,11 +471,18 @@
                     <b>{{ item.count }}</b></span
                   >
                 }
-              } @else {
+              } @else if (colorBy() === 'result') {
                 @for (item of resultDistribution(); track item.type) {
                   <span
                     ><i [class]="'legend-dot ' + item.type" aria-hidden="true"></i>{{ item.label }}
                     <b>{{ item.count }}</b></span
+                  >
+                }
+              } @else {
+                @for (item of hardHitDistribution(); track item.rating) {
+                  <span
+                    ><i [class]="'legend-dot hard-hit-' + item.rating" aria-hidden="true"></i
+                    >{{ item.shortLabel }} <b>{{ item.count }}</b></span
                   >
                 }
               }
@@ -437,7 +492,9 @@
                   summary().total -
                     (colorBy() === 'contactType'
                       ? summary().classifiedContacts
-                      : summary().classifiedResults)
+                      : colorBy() === 'result'
+                        ? summary().classifiedResults
+                        : summary().classifiedHardHits)
                 }}</b></span
               >
             </div>
@@ -472,6 +529,9 @@
                   event.contactType ? contactLabels[event.contactType] : 'Contact unclassified'
                 }}</strong>
                 · {{ event.result ? resultLabels[event.result] : 'Result unclassified' }}
+                @if (event.hardHit !== null && event.hardHit !== undefined) {
+                  · <strong>{{ hardHitLabels[event.hardHit] }}</strong>
+                }
               </p>
               <p class="muted small">
                 {{ sessionName(event.sessionId) }} · Turn {{ event.turnSequence }}, contact
@@ -519,9 +579,14 @@
                     ><span>{{
                       event.contactType ? contactLabels[event.contactType] : 'Location only'
                     }}</span
-                    ><small>{{
-                      event.result ? resultLabels[event.result] : 'No result recorded'
-                    }}</small></span
+                    ><small
+                      >{{ event.result ? resultLabels[event.result] : 'No result recorded'
+                      }}{{
+                        event.hardHit !== null && event.hardHit !== undefined
+                          ? ' · ' + hardHitShortLabels[event.hardHit]
+                          : ''
+                      }}</small
+                    ></span
                   >
                   <span aria-hidden="true">↗</span>
                 </button>
@@ -601,6 +666,39 @@
             <p class="classification-note">
               {{ summary().total - summary().classifiedResults }} without a result. Practice
               outcomes are coach observations.
+            </p>
+          </section>
+          <section class="card distribution-card">
+            <p class="eyebrow">HIT STRENGTH (0–5)</p>
+            <h3>Hard hit ratings</h3>
+            <p class="muted small">
+              {{ summary().classifiedHardHits }} classified of {{ summary().total }} locations ·
+              {{ summary().contactHits }} contacts, {{ summary().swingsAndMisses }} whiffs
+            </p>
+            <div class="distribution">
+              @for (item of hardHitDistribution(); track item.rating) {
+                <div class="distribution-row">
+                  <span>{{ item.label }}</span
+                  ><strong
+                    >{{ item.count }}
+                    <small>{{ percent(item.count, summary().classifiedHardHits) }}</small></strong
+                  >
+                  <span class="bar-track" aria-hidden="true"
+                    ><span
+                      [class]="'bar-fill hard-hit-' + item.rating"
+                      [style.width.%]="
+                        summary().classifiedHardHits
+                          ? (item.count / summary().classifiedHardHits) * 100
+                          : 0
+                      "
+                    ></span
+                  ></span>
+                </div>
+              }
+            </div>
+            <p class="classification-note">
+              {{ summary().total - summary().classifiedHardHits }} without a hard-hit rating.
+              Percentages use classified observations only.
             </p>
           </section>
         </aside>
@@ -866,6 +964,18 @@
               <option [ngValue]="null">Unclassified</option>
               @for (result of results; track result) {
                 <option [value]="result">{{ resultLabels[result] }}</option>
+              }
+            </select></label
+          >
+          <label
+            >Hard hit rating<select
+              aria-label="Hard hit rating"
+              name="hardHit"
+              [(ngModel)]="draft.hardHit"
+            >
+              <option [ngValue]="null">Unclassified</option>
+              @for (rating of hardHitRatings; track rating) {
+                <option [ngValue]="rating">{{ hardHitLabels[rating] }}</option>
               }
             </select></label
           >

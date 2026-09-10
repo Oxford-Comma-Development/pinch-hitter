@@ -36,6 +36,15 @@ export const RESULT_COLORS: Record<string, string> = {
   'home-run': '#d9b6ff',
   unclassified: '#ffffff',
 };
+export const HARD_HIT_COLORS: Record<string, string> = {
+  '0': '#7f8c8d',
+  '1': '#fff2bc',
+  '2': '#fed368',
+  '3': '#ff9f43',
+  '4': '#ee5253',
+  '5': '#d980fa',
+  unclassified: '#ffffff',
+};
 
 @Component({
   selector: 'app-field',
@@ -141,14 +150,30 @@ export const RESULT_COLORS: Record<string, string> = {
                 stroke-width="5"
               />
             }
-            <circle
-              [attr.cx]="event.fieldX * 1000"
-              [attr.cy]="event.fieldY * 1000"
-              [attr.r]="event.id === selectedId() ? 14 : 11"
-              [attr.fill]="eventColor(event)"
-              stroke="#142f2b"
-              stroke-width="3"
-            />
+            @if (event.hardHit === 0) {
+              <g
+                [attr.transform]="
+                  'translate(' + event.fieldX * 1000 + ',' + event.fieldY * 1000 + ')'
+                "
+              >
+                <circle r="12" fill="#2d3436" stroke="#fff9df" stroke-width="2" />
+                <path
+                  d="M-6 -6 L6 6 M-6 6 L6 -6"
+                  stroke="#ff7675"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                />
+              </g>
+            } @else {
+              <circle
+                [attr.cx]="event.fieldX * 1000"
+                [attr.cy]="event.fieldY * 1000"
+                [attr.r]="event.id === selectedId() ? 14 : 11"
+                [attr.fill]="eventColor(event)"
+                stroke="#142f2b"
+                stroke-width="3"
+              />
+            }
             <circle
               [attr.cx]="event.fieldX * 1000"
               [attr.cy]="event.fieldY * 1000"
@@ -156,7 +181,11 @@ export const RESULT_COLORS: Record<string, string> = {
               fill="transparent"
             >
               <title>
-                {{ event.contactType || 'Location only' }} · {{ event.result || 'No result' }}
+                {{
+                  event.hardHit === 0
+                    ? 'Swing & miss (0)'
+                    : (event.contactType || 'Location only') + ' · ' + (event.result || 'No result')
+                }}
               </title>
             </circle>
           </g>
@@ -218,7 +247,7 @@ export class FieldComponent {
   readonly selectedId = input('');
   readonly interactive = input(false);
   readonly heat = input(false);
-  readonly colorBy = input<'contactType' | 'result'>('contactType');
+  readonly colorBy = input<'contactType' | 'result' | 'hardHit'>('contactType');
   readonly label = input('Baseball spray chart');
   // This chart output carries coordinates; it does not refer to window.location.
   // eslint-disable-next-line @angular-eslint/no-output-native
@@ -236,6 +265,7 @@ export class FieldComponent {
   readonly density = computed(() => {
     const cells = new Map<string, { key: string; x: number; y: number; count: number }>();
     for (const event of this.events()) {
+      if (event.hardHit === 0) continue;
       const x = Math.min(39, Math.floor(event.fieldX * 40));
       const y = Math.min(39, Math.floor(event.fieldY * 40));
       const key = `${x},${y}`;
@@ -248,8 +278,15 @@ export class FieldComponent {
   });
 
   eventColor(event: BallEvent): string {
+    if (this.colorBy() === 'hardHit') {
+      const key =
+        event.hardHit !== null && event.hardHit !== undefined
+          ? String(event.hardHit)
+          : 'unclassified';
+      return HARD_HIT_COLORS[key] || HARD_HIT_COLORS['unclassified'];
+    }
     return (this.colorBy() === 'result' ? RESULT_COLORS : CONTACT_COLORS)[
-      event[this.colorBy()] || 'unclassified'
+      (event[this.colorBy()] as string) || 'unclassified'
     ];
   }
 

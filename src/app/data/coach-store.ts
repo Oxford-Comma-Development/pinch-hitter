@@ -16,8 +16,12 @@ import {
   BatterSide,
   CoachNote,
   CONTACT_TYPES,
+  ContactType,
   defaultSettings,
+  HARD_HIT_RATINGS,
+  HardHitRating,
   HIT_RESULTS,
+  HitResult,
   ImportPreview,
   Player,
   PracticeSession,
@@ -379,11 +383,34 @@ export class CoachStore {
       return this.saveSession({ ...session, ...patch });
     });
   }
+  deleteSession(id: string): Promise<void> {
+    return this.write(async () => {
+      const session = this.sessions().find((s) => s.id === id);
+      if (!session) return;
+      const sessionEvents = this.events().filter((e) => e.sessionId === id);
+      const eventIds = sessionEvents.map((e) => e.id);
+      const eventIdSet = new Set(eventIds);
+      const sessionNotes = this.notes().filter(
+        (n) => n.sessionId === id || (n.eventId && eventIdSet.has(n.eventId)),
+      );
+      const noteIds = sessionNotes.map((n) => n.id);
+
+      const changes: DatabaseChange[] = [{ table: 'sessions', delete: [id] }];
+      if (eventIds.length) changes.push({ table: 'events', delete: eventIds });
+      if (noteIds.length) changes.push({ table: 'notes', delete: noteIds });
+      await this.commit(changes);
+    });
+  }
   recordContact(
     fieldX: number,
     fieldY: number,
     batterSide?: BatterSide,
     expectedPlayerId?: string,
+    options: {
+      hardHit?: HardHitRating | null;
+      contactType?: ContactType | null;
+      result?: HitResult | null;
+    } = {},
   ): Promise<BallEvent> {
     return this.write(async () => {
       const session = this.session();
@@ -393,7 +420,10 @@ export class CoachStore {
         );
       const player = this.players().find((p) => p.id === session.queue[0]);
       if (!player) throw new Error('Return a player to the rotation first.');
-      const capture = createContact(session, player, fieldX, fieldY, { batterSide });
+      const capture = createContact(session, player, fieldX, fieldY, {
+        batterSide,
+        ...options,
+      });
       await this.commit([
         { table: 'events', put: [capture.event] },
         { table: 'sessions', put: [capture.session] },
@@ -403,9 +433,16 @@ export class CoachStore {
       return capture.event;
     });
   }
+  recordSwingAndMiss(batterSide?: BatterSide, expectedPlayerId?: string): Promise<BallEvent> {
+    return this.recordContact(0.5, 0.88, batterSide, expectedPlayerId, {
+      hardHit: 0,
+      contactType: null,
+      result: 'out',
+    });
+  }
   enrichEvent(
     id: string,
-    patch: Partial<Pick<BallEvent, 'contactType' | 'result' | 'notes'>>,
+    patch: Partial<Pick<BallEvent, 'contactType' | 'result' | 'hardHit' | 'notes'>>,
   ): Promise<BallEvent> {
     return this.updateEvent(id, patch);
   }
@@ -425,6 +462,7 @@ export class CoachStore {
         batterSide: patch.batterSide === undefined ? existing.batterSide : patch.batterSide,
         contactType: patch.contactType === undefined ? existing.contactType : patch.contactType,
         result: patch.result === undefined ? existing.result : patch.result,
+        hardHit: patch.hardHit === undefined ? existing.hardHit : patch.hardHit,
         notes: patch.notes ?? existing.notes,
       };
       assertCoordinates(allowed.fieldX, allowed.fieldY);
@@ -434,6 +472,8 @@ export class CoachStore {
         throw new Error('Unknown contact type.');
       if (allowed.result !== null && !HIT_RESULTS.includes(allowed.result))
         throw new Error('Unknown result.');
+      if (allowed.hardHit !== null && !HARD_HIT_RATINGS.includes(allowed.hardHit))
+        throw new Error('Unknown hard hit rating.');
       if (
         ![null, 'L', 'R'].includes(allowed.pitcherHand) ||
         ![null, 'L', 'R'].includes(allowed.batterSide)
