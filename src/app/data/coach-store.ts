@@ -82,7 +82,6 @@ export function loadLastBackupAt(): string | null {
 }
 
 @Injectable({ providedIn: 'root' })
-
 export class CoachStore {
   readonly teams = signal<Team[]>([]);
   readonly players = signal<Player[]>([]);
@@ -120,7 +119,8 @@ export class CoachStore {
       let summary = '';
       if (hasSubstantial) {
         const parts: string[] = [];
-        if (sessions.length) parts.push(`${sessions.length} practice${sessions.length > 1 ? 's' : ''}`);
+        if (sessions.length)
+          parts.push(`${sessions.length} practice${sessions.length > 1 ? 's' : ''}`);
         if (events.length) parts.push(`${events.length} contact${events.length > 1 ? 's' : ''}`);
         summary = `${parts.join(', ')} not yet backed up on this device`;
       }
@@ -146,19 +146,21 @@ export class CoachStore {
     const completedNewSessions = sessions.filter(
       (s) => s.endedAt !== null && (s.endedAt > last || s.updatedAt > last),
     ).length;
-    const unbackedPlayers = players.filter(
-      (p) => p.createdAt > last || p.updatedAt > last,
-    ).length;
+    const unbackedPlayers = players.filter((p) => p.createdAt > last || p.updatedAt > last).length;
 
     const hasSubstantialWork =
-      completedNewSessions >= 1 || unbackedEvents >= 3 || unbackedSessions >= 1 || unbackedPlayers >= 2;
+      completedNewSessions >= 1 ||
+      unbackedEvents >= 3 ||
+      unbackedSessions >= 1 ||
+      unbackedPlayers >= 2;
 
     let summary = '';
     if (hasSubstantialWork) {
       const parts: string[] = [];
       if (unbackedSessions)
         parts.push(`${unbackedSessions} new practice${unbackedSessions > 1 ? 's' : ''}`);
-      if (unbackedEvents) parts.push(`${unbackedEvents} new contact${unbackedEvents > 1 ? 's' : ''}`);
+      if (unbackedEvents)
+        parts.push(`${unbackedEvents} new contact${unbackedEvents > 1 ? 's' : ''}`);
       if (!unbackedSessions && !unbackedEvents && unbackedPlayers) {
         parts.push(`${unbackedPlayers} roster change${unbackedPlayers > 1 ? 's' : ''}`);
       }
@@ -530,8 +532,6 @@ export class CoachStore {
         { table: 'events', put: [capture.event] },
         { table: 'sessions', put: [capture.session] },
       ]);
-      if (this.settings().haptics && typeof navigator !== 'undefined' && navigator.vibrate)
-        navigator.vibrate(12);
       return capture.event;
     });
   }
@@ -539,7 +539,7 @@ export class CoachStore {
     return this.recordContact(0.5, 0.88, batterSide, expectedPlayerId, {
       hardHit: 0,
       contactType: null,
-      result: 'out',
+      result: null,
     });
   }
   enrichEvent(
@@ -556,7 +556,12 @@ export class CoachStore {
     return this.write(async () => {
       const existing = this.events().find((event) => event.id === id);
       if (!existing) throw new Error('Observation not found.');
+      const targetPlayerId = patch.playerId ?? existing.playerId;
+      if (!this.players().some((p) => p.id === targetPlayerId)) {
+        throw new Error('Assigned player not found on roster.');
+      }
       const allowed = {
+        playerId: targetPlayerId,
         fieldX: patch.fieldX ?? existing.fieldX,
         fieldY: patch.fieldY ?? existing.fieldY,
         timestamp: patch.timestamp ?? existing.timestamp,
@@ -606,47 +611,77 @@ export class CoachStore {
     });
   }
   deleteEvent(id: string): Promise<void> {
+    return this.deleteEvents([id]);
+  }
+  deleteEvents(ids: string[]): Promise<void> {
     return this.write(async () => {
-      const event = this.events().find((e) => e.id === id);
-      if (!event) return;
-      const session = this.sessions().find((s) => s.id === event.sessionId);
-      const changes: DatabaseChange[] = [
-        { table: 'events', delete: [id] },
-        {
-          table: 'notes',
-          delete: this.notes()
-            .filter((note) => note.eventId === id)
-            .map((note) => note.id),
-        },
-      ];
-      if (session)
-        changes.push({
-          table: 'sessions',
-          put: [
-            {
-              ...session,
-              turnContacts:
-                session.currentTurn === event.turnSequence
-                  ? Math.max(0, session.turnContacts - 1)
-                  : session.turnContacts,
-              undoStack: session.undoStack
-                .filter((undo) => undo.eventId !== id)
-                .map((undo) => {
-                  const adjust = (state: typeof undo.before) => ({
-                    ...state,
-                    turnContacts:
-                      state.currentTurn === event.turnSequence &&
-                      state.nextSequence > event.sequence
-                        ? Math.max(0, state.turnContacts - 1)
-                        : state.turnContacts,
-                  });
-                  return { ...undo, before: adjust(undo.before), after: adjust(undo.after) };
-                }),
-              updatedAt: now(),
-            },
-          ],
-        });
+      if (!ids.length) return;
+      const idSet = new Set(ids);
+      const toDelete = this.events().filter((e) => idSet.has(e.id));
+      if (!toDelete.length) return;
+
+      const notesToDelete = this.notes()
+        .filter((note) => note.eventId && idSet.has(note.eventId))
+        .map((n) => n.id);
+
+      const changes: DatabaseChange[] = [{ table: 'events', delete: toDelete.map((e) => e.id) }];
+      if (notesToDelete.length) {
+        changes.push({ table: 'notes', delete: notesToDelete });
+      }
+
+      const affectedSessionIds = new Set(toDelete.map((e) => e.sessionId));
+      const sessionsToUpdate: PracticeSession[] = [];
+      for (const sId of affectedSessionIds) {
+        const session = this.sessions().find((s) => s.id === sId);
+        if (!session) continue;
+        const sessionDeletedEvents = toDelete.filter((e) => e.sessionId === sId);
+        let updatedSession = { ...session };
+        for (const ev of sessionDeletedEvents) {
+          updatedSession = {
+            ...updatedSession,
+            turnContacts:
+              updatedSession.currentTurn === ev.turnSequence
+                ? Math.max(0, updatedSession.turnContacts - 1)
+                : updatedSession.turnContacts,
+            undoStack: updatedSession.undoStack
+              .filter((undo) => undo.eventId !== ev.id)
+              .map((undo) => {
+                const adjust = (state: typeof undo.before) => ({
+                  ...state,
+                  turnContacts:
+                    state.currentTurn === ev.turnSequence && state.nextSequence > ev.sequence
+                      ? Math.max(0, state.turnContacts - 1)
+                      : state.turnContacts,
+                });
+                return { ...undo, before: adjust(undo.before), after: adjust(undo.after) };
+              }),
+            updatedAt: now(),
+          };
+        }
+        sessionsToUpdate.push(updatedSession);
+      }
+      if (sessionsToUpdate.length) {
+        changes.push({ table: 'sessions', put: sessionsToUpdate });
+      }
       await this.commit(changes);
+    });
+  }
+  moveEvents(eventIds: string[], targetPlayerId: string): Promise<void> {
+    return this.write(async () => {
+      if (!eventIds.length) return;
+      const targetPlayer = this.players().find((p) => p.id === targetPlayerId);
+      if (!targetPlayer) throw new Error('Target player not found.');
+      const idSet = new Set(eventIds);
+      const toMove = this.events().filter((e) => idSet.has(e.id));
+      if (!toMove.length) return;
+
+      const updatedEvents = toMove.map((event) => ({
+        ...event,
+        playerId: targetPlayerId,
+        updatedAt: now(),
+      }));
+
+      await this.commit([{ table: 'events', put: updatedEvents }]);
     });
   }
   undoLast(): Promise<BallEvent | null> {
@@ -866,4 +901,3 @@ export class CoachStore {
     return this.write(() => this.commit([], true));
   }
 }
-

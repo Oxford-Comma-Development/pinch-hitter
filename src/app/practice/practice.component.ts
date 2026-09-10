@@ -307,13 +307,12 @@ export class PracticeComponent implements OnDestroy {
   }
 
   async classifyHardHit(level: HardHitRating): Promise<void> {
-    const event = this.latest();
-    if (!event) {
-      if (level === 0) {
-        await this.recordWhiff();
-      }
+    if (level === 0) {
+      await this.recordWhiff();
       return;
     }
+    const event = this.latest();
+    if (!event) return;
     const next = event.hardHit === level ? null : level;
     await this.action(
       () => this.store.enrichEvent(event.id, { hardHit: next }),

@@ -96,12 +96,14 @@ function rows<T>(
   return records;
 }
 function parseTeam(row: JsonObject): Team {
+  const logoUrl = typeof row['logoUrl'] === 'string' ? row['logoUrl'] : undefined;
   return {
     ...base(row, 'Team'),
     name: string(row['name'], 'Team name', true),
     shortName: string(row['shortName'], 'Team short name'),
     season: string(row['season'], 'Season'),
     notes: string(row['notes'], 'Team notes'),
+    ...(logoUrl ? { logoUrl } : {}),
   };
 }
 function parsePlayer(row: JsonObject): Player {

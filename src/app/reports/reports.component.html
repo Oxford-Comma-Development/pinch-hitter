@@ -108,74 +108,78 @@
         <summary>
           Refine report <span class="muted">Dates, practices &amp; classifications</span>
         </summary>
-        <div class="filter-grid">
-          <label
-            >From date<input
-              type="date"
-              [ngModel]="filters().from"
-              (ngModelChange)="setFilter('from', $event); setFilter('preset', 'custom')"
-          /></label>
-          <label
-            >Through date<input
-              type="date"
-              [ngModel]="filters().through"
-              (ngModelChange)="setFilter('through', $event); setFilter('preset', 'custom')"
-          /></label>
-          <label
-            >Pitcher hand
-            <select
-              [ngModel]="filters().pitcherHand"
-              aria-label="Pitcher hand"
-              (ngModelChange)="setFilter('pitcherHand', $event)"
-            >
-              <option value="">Any pitcher</option>
-              <option value="R">RHP</option>
-              <option value="L">LHP</option>
-              <option value="unknown">Unknown hand</option>
-            </select>
-          </label>
-          <label
-            >Contact type
-            <select
-              [ngModel]="filters().contactType"
-              aria-label="Contact type"
-              (ngModelChange)="setFilter('contactType', $event)"
-            >
-              <option value="">All contacts</option>
-              <option value="unknown">Unclassified only</option>
-              @for (type of contactTypes; track type) {
-                <option [value]="type">{{ contactLabels[type] }}</option>
-              }
-            </select>
-          </label>
-          <label
-            >Result
-            <select
-              aria-label="Result"
-              [ngModel]="filters().result"
-              (ngModelChange)="setFilter('result', $event)"
-            >
-              <option value="">All results</option>
-              <option value="unknown">Unclassified only</option>
-              @for (result of results; track result) {
-                <option [value]="result">{{ resultLabels[result] }}</option>
-              }
-            </select>
-          </label>
-          <label
-            >Hard hit
-            <select
-              aria-label="Hard hit"
-              [ngModel]="filters().hardHit"
-              (ngModelChange)="setFilter('hardHit', $event)"
-            >
-              <option value="">All ratings</option>
-              <option value="unknown">Unclassified only</option>
-              @for (rating of hardHitRatings; track rating) {
-                <option [value]="rating">{{ hardHitLabels[rating] }}</option>
-              }
-            </select>
-          </label>
+        <div class="filter-groups">
+          <div class="filter-dates-grid">
+            <label
+              >From date<input
+                type="date"
+                [ngModel]="filters().from"
+                (ngModelChange)="setFilter('from', $event); setFilter('preset', 'custom')"
+            /></label>
+            <label
+              >Through date<input
+                type="date"
+                [ngModel]="filters().through"
+                (ngModelChange)="setFilter('through', $event); setFilter('preset', 'custom')"
+            /></label>
+          </div>
+          <div class="filter-class-grid">
+            <label
+              >Pitcher hand
+              <select
+                [ngModel]="filters().pitcherHand"
+                aria-label="Pitcher hand"
+                (ngModelChange)="setFilter('pitcherHand', $event)"
+              >
+                <option value="">Any pitcher</option>
+                <option value="R">RHP</option>
+                <option value="L">LHP</option>
+                <option value="unknown">Unknown hand</option>
+              </select>
+            </label>
+            <label
+              >Contact type
+              <select
+                [ngModel]="filters().contactType"
+                aria-label="Contact type"
+                (ngModelChange)="setFilter('contactType', $event)"
+              >
+                <option value="">All contacts</option>
+                <option value="unknown">Unclassified only</option>
+                @for (type of contactTypes; track type) {
+                  <option [value]="type">{{ contactLabels[type] }}</option>
+                }
+              </select>
+            </label>
+            <label
+              >Result
+              <select
+                aria-label="Result"
+                [ngModel]="filters().result"
+                (ngModelChange)="setFilter('result', $event)"
+              >
+                <option value="">All results</option>
+                <option value="unknown">Unclassified only</option>
+                @for (result of results; track result) {
+                  <option [value]="result">{{ resultLabels[result] }}</option>
+                }
+              </select>
+            </label>
+            <label
+              >Hard hit
+              <select
+                aria-label="Hard hit"
+                [ngModel]="filters().hardHit"
+                (ngModelChange)="setFilter('hardHit', $event)"
+              >
+                <option value="">All ratings</option>
+                <option value="unknown">Unclassified only</option>
+                @for (rating of hardHitRatings; track rating) {
+                  <option [value]="rating">{{ hardHitLabels[rating] }}</option>
+                }
+              </select>
+            </label>
+          </div>
         </div>
         <fieldset class="session-filter">
           <legend>
@@ -244,6 +248,17 @@
         }
         <p class="print-context">{{ context() }}</p>
       </div>
+      @if (player(); as player) {
+        <div class="identity-actions no-print">
+          <button
+            type="button"
+            class="button secondary manage-player-button"
+            (click)="openManagePlayerModal()"
+          >
+            Manage player hits…
+          </button>
+        </div>
+      }
     </section>
 
     @if (session(); as session) {
@@ -557,39 +572,137 @@
 
           @if (view() === 'history') {
             <div class="history-list no-print" aria-label="Observation history">
-              <p class="muted small">Newest first. Choose a contact to review it.</p>
+              <div class="history-bulk-toolbar">
+                <label class="check-label select-all-label">
+                  <input
+                    type="checkbox"
+                    [checked]="history().length > 0 && selectedEventIds().size === history().length"
+                    (change)="
+                      selectedEventIds().size === history().length
+                        ? deselectAll()
+                        : selectAllVisible()
+                    "
+                  />
+                  <span>
+                    {{
+                      selectedEventIds().size > 0
+                        ? selectedEventIds().size + ' of ' + history().length + ' selected'
+                        : 'Select all (' + history().length + ')'
+                    }}
+                  </span>
+                </label>
+                @if (selectedEventIds().size > 0) {
+                  <button type="button" class="text-button" (click)="deselectAll()">
+                    Deselect all
+                  </button>
+                }
+              </div>
+
+              @if (selectedEventIds().size > 0) {
+                <div class="bulk-action-bar">
+                  <div class="bulk-move-controls">
+                    <label class="visually-hidden" for="bulk-target-select"
+                      >Move selected contacts to player</label
+                    >
+                    <select id="bulk-target-select" [(ngModel)]="bulkTargetPlayerId">
+                      <option value="">Move to hitter…</option>
+                      @for (p of players(); track p.id) {
+                        <option [value]="p.id">
+                          {{ p.name }} {{ p.jerseyNumber ? '(#' + p.jerseyNumber + ')' : '' }}
+                        </option>
+                      }
+                    </select>
+                    <button
+                      type="button"
+                      class="button secondary small-btn"
+                      [disabled]="!bulkTargetPlayerId || busy()"
+                      (click)="moveSelectedEvents()"
+                    >
+                      Move {{ selectedEventIds().size }}
+                    </button>
+                  </div>
+                  @if (bulkDeletePending) {
+                    <div class="bulk-delete-confirm-box">
+                      <span>Permanently delete {{ selectedEventIds().size }} contacts?</span>
+                      <button
+                        type="button"
+                        class="button danger small-btn"
+                        [disabled]="busy()"
+                        (click)="deleteSelectedEvents()"
+                      >
+                        Delete
+                      </button>
+                      <button type="button" class="text-button" (click)="bulkDeletePending = false">
+                        Cancel
+                      </button>
+                    </div>
+                  } @else {
+                    <button
+                      type="button"
+                      class="button danger small-btn"
+                      [disabled]="busy()"
+                      (click)="bulkDeletePending = true"
+                    >
+                      Delete {{ selectedEventIds().size }}
+                    </button>
+                  }
+                </div>
+              }
+
+              <p class="muted small">
+                Newest first. Choose a contact to review it, or select contacts to move or delete.
+              </p>
               @for (event of visibleHistory(); track event.id) {
-                <button
-                  class="history-event"
-                  [class.active]="selectedId() === event.id"
-                  (click)="selectObservation(event.id)"
-                  [attr.aria-label]="
-                    'Select contact ' + event.sequence + ' for ' + eventName(event)
-                  "
-                >
-                  <span class="event-sequence">{{ event.sequence }}</span>
-                  <span class="event-main"
-                    ><strong>{{ eventName(event) }}</strong
-                    ><small
-                      >{{ event.timestamp | date: 'MMM d · h:mm a' }} ·
-                      {{ event.pitcherHand ? event.pitcherHand + 'HP' : 'Hand unknown' }}</small
-                    ></span
+                <div class="history-row-container" [class.active]="selectedId() === event.id">
+                  <input
+                    type="checkbox"
+                    class="row-checkbox"
+                    [checked]="isSelected(event.id)"
+                    (click)="$event.stopPropagation()"
+                    (change)="toggleSelectEvent(event.id)"
+                    [attr.aria-label]="'Select contact ' + event.sequence"
+                  />
+                  <button
+                    class="history-event"
+                    [class.active]="selectedId() === event.id"
+                    (click)="selectObservation(event.id)"
+                    [attr.aria-label]="
+                      'Select contact ' + event.sequence + ' for ' + eventName(event)
+                    "
                   >
-                  <span class="event-classification"
-                    ><span>{{
-                      event.contactType ? contactLabels[event.contactType] : 'Location only'
-                    }}</span
-                    ><small
-                      >{{ event.result ? resultLabels[event.result] : 'No result recorded'
-                      }}{{
-                        event.hardHit !== null && event.hardHit !== undefined
-                          ? ' · ' + hardHitShortLabels[event.hardHit]
-                          : ''
-                      }}</small
-                    ></span
-                  >
-                  <span aria-hidden="true">↗</span>
-                </button>
+                    <span class="event-sequence">{{ event.sequence }}</span>
+                    <span class="event-main"
+                      ><strong>{{ eventName(event) }}</strong
+                      ><small
+                        >{{ event.timestamp | date: 'MMM d · h:mm a' }} ·
+                        {{ event.pitcherHand ? event.pitcherHand + 'HP' : 'Hand unknown' }}</small
+                      ></span
+                    >
+                    <span class="event-classification"
+                      ><span>{{
+                        event.contactType
+                          ? contactLabels[event.contactType]
+                          : event.hardHit === 0
+                            ? 'Swing & miss'
+                            : 'Location only'
+                      }}</span
+                      ><small
+                        >{{
+                          event.result
+                            ? resultLabels[event.result]
+                            : event.hardHit === 0
+                              ? 'Whiff'
+                              : 'No result recorded'
+                        }}{{
+                          event.hardHit !== null && event.hardHit !== undefined
+                            ? ' · ' + hardHitShortLabels[event.hardHit]
+                            : ''
+                        }}</small
+                      ></span
+                    >
+                    <span aria-hidden="true">↗</span>
+                  </button>
+                </div>
               }
               @if (historyLimit() < history().length) {
                 <button
@@ -931,6 +1044,15 @@
               step="1"
               required
           /></label>
+          <label
+            >Hitter / Player<select name="eventPlayer" [(ngModel)]="draft.playerId">
+              @for (p of players(); track p.id) {
+                <option [value]="p.id">
+                  {{ p.name }} {{ p.jerseyNumber ? '(#' + p.jerseyNumber + ')' : '' }}
+                </option>
+              }
+            </select></label
+          >
           <div class="filter-grid">
             <label
               >Pitcher hand<select name="pitcherHand" [(ngModel)]="draft.pitcherHand">
@@ -1047,3 +1169,103 @@
     </form>
   }
 </dialog>
+
+@if (managePlayerModalOpen() && player(); as currPlayer) {
+  <div class="sheet-backdrop no-print">
+    <section
+      class="sheet manage-player-sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="manage-player-title"
+    >
+      <div class="sheet-header">
+        <h2 id="manage-player-title">Manage hits for {{ currPlayer.name }}</h2>
+        <button
+          type="button"
+          class="icon-button"
+          (click)="managePlayerModalOpen.set(false)"
+          aria-label="Close dialog"
+        >
+          ✕
+        </button>
+      </div>
+      <p class="muted">
+        This player has <strong>{{ playerHitCount(currPlayer.id) }}</strong> recorded contacts in
+        this notebook.
+      </p>
+
+      <div class="manage-player-sections">
+        <div class="manage-section">
+          <h3>Move all hits to another player</h3>
+          <p class="muted small">
+            Reassign all contacts recorded for {{ currPlayer.name }} to someone else.
+          </p>
+          <div class="manage-row">
+            <select
+              [(ngModel)]="playerManageTargetId"
+              aria-label="Select player to receive all hits"
+            >
+              <option value="">Choose receiving player…</option>
+              @for (p of otherPlayers(currPlayer.id); track p.id) {
+                <option [value]="p.id">
+                  {{ p.name }} {{ p.jerseyNumber ? '(#' + p.jerseyNumber + ')' : '' }}
+                </option>
+              }
+            </select>
+            <button
+              type="button"
+              class="button primary"
+              [disabled]="!playerManageTargetId || busy() || playerHitCount(currPlayer.id) === 0"
+              (click)="moveAllPlayerContacts(currPlayer.id, playerManageTargetId)"
+            >
+              Move all {{ playerHitCount(currPlayer.id) }} hits
+            </button>
+          </div>
+        </div>
+
+        <div class="manage-section danger-section">
+          <h3>Delete all hits for {{ currPlayer.name }}</h3>
+          <p class="muted small">
+            Permanently remove all {{ playerHitCount(currPlayer.id) }} contacts and linked notes for
+            this player.
+          </p>
+          @if (playerManageAction() === 'delete') {
+            <div class="delete-confirm-box">
+              <p>
+                <strong>Are you sure?</strong> This will permanently delete all
+                {{ playerHitCount(currPlayer.id) }} contacts for {{ currPlayer.name }}. This cannot
+                be undone.
+              </p>
+              <div class="manage-row">
+                <button
+                  type="button"
+                  class="button danger"
+                  [disabled]="busy()"
+                  (click)="deleteAllPlayerContacts(currPlayer.id)"
+                >
+                  Yes, delete all {{ playerHitCount(currPlayer.id) }} hits
+                </button>
+                <button
+                  type="button"
+                  class="button secondary"
+                  (click)="playerManageAction.set('move')"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          } @else {
+            <button
+              type="button"
+              class="button danger"
+              [disabled]="playerHitCount(currPlayer.id) === 0 || busy()"
+              (click)="playerManageAction.set('delete')"
+            >
+              Delete all {{ playerHitCount(currPlayer.id) }} hits…
+            </button>
+          }
+        </div>
+      </div>
+    </section>
+  </div>
+}

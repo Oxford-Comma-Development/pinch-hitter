@@ -3,7 +3,11 @@ export function backupFileName(date = new Date()): string {
 }
 
 export function canShareFiles(): boolean {
-  if (typeof navigator === 'undefined' || typeof navigator.share !== 'function' || !navigator.canShare) {
+  if (
+    typeof navigator === 'undefined' ||
+    typeof navigator.share !== 'function' ||
+    !navigator.canShare
+  ) {
     return false;
   }
   try {
@@ -47,4 +51,3 @@ export async function shareFile(
   downloadFile(content, name, type);
   return 'Notebook downloaded. Save it to iCloud Drive, Google Drive, or your files.';
 }
-

@@ -56,6 +56,7 @@ export interface Team extends Entity {
   shortName: string;
   season: string;
   notes: string;
+  logoUrl?: string;
 }
 export interface Player extends Entity {
   teamId: string;

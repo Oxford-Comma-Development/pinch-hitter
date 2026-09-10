@@ -40,12 +40,12 @@ The UI loads domain records into Angular signals once and derives reports from t
 
 All domain entities have `id`, `createdAt`, and `updatedAt`. Dates are ISO 8601 timestamps normalized to UTC on import. The interfaces in `src/app/data/models.ts` are the exact schema.
 
-- **Team:** `name`, `shortName`, `season`, `notes`. Seasons remain text so coaches can use labels such as `Spring 2026`.
+- **Team:** `name`, `shortName`, `season`, `notes`, optional `logoUrl`. Seasons remain text so coaches can use labels such as `Spring 2026`. `logoUrl` stores an optional custom team emblem image (e.g. data URL).
 - **Player:** `teamId`, `name`, `jerseyNumber`, `grade`, `bats`, `throws`, `positions`, `notes`, `active`, `order`. Jersey numbers remain strings, preserving values such as `00`. `bats` and `throws` are `L`, `R`, or `S`; positions are strings. Archiving does not delete historical events or session participation.
 - **PracticeSession:** `teamId`, `startedAt`, nullable `endedAt`, `title`, `location`, `notes`, `participantIds`, `queue`, `currentTurn`, `turnContacts`, `nextSequence`, nullable `rotationCount`, `pitcherHand`, and `undoStack`. Participants include players temporarily removed from the active queue. The queue has no duplicates; its first ID is current. Empty queues are valid while all participants are temporarily removed.
-- **BallEvent:** `schemaVersion`, `teamId`, `playerId`, `sessionId`, `timestamp`, `sequence`, `turnSequence`, `contactSequence`, `fieldX`, `fieldY`, `coordinateSystemVersion`, `pitcherHand`, `batterSide`, nullable `contactType`, nullable `result`, `notes`, `playerName`, `jerseyNumber`, and common entity fields. `playerName` and `jerseyNumber` are event-time snapshots; roster edits do not rewrite historical identity.
+- **BallEvent:** `schemaVersion`, `teamId`, `playerId`, `sessionId`, `timestamp`, `sequence`, `turnSequence`, `contactSequence`, `fieldX`, `fieldY`, `coordinateSystemVersion`, `pitcherHand`, `batterSide`, nullable `contactType`, nullable `result`, nullable `hardHit`, `notes`, `playerName`, `jerseyNumber`, and common entity fields. `playerName` and `jerseyNumber` are event-time snapshots; roster edits do not rewrite historical identity. `hardHit` represents the 0–5 hit power scale (0 is a swing and miss; 1–5 indicates contact quality).
 - **CoachNote:** `teamId`, nullable `playerId`, `sessionId`, `eventId`, `timestamp`, `text`, and common entity fields. Event notes inherit player and session scope. References must belong to the same team; an event-associated note must match its event's player/session.
-- **AppSettings:** singleton `id`, nullable `activeTeamId`, `defaultPitcherHand`, nullable `rotationCount`, `haptics`, `updatedAt`.
+- **AppSettings:** singleton `id`, nullable `activeTeamId`, `defaultPitcherHand`, nullable `rotationCount`, `haptics`, `updatedAt`. `haptics` is preserved for backward compatibility with existing backups.
 
 Every event's player and session must exist and belong to the event's team. The player must occur in that session's participant list. An event can have both inline `notes` and multiple separately timestamped notes. CSV combines these into its notes cell; JSON preserves the distinction.
 
@@ -100,7 +100,7 @@ Export produces UTF-8 JSON with this top-level structure:
 }
 ```
 
-The export includes all teams, archived players, completed/active sessions, events, notes and settings. Empty strings mean an optional text value was not entered. Nullable classification or handedness fields use JSON `null` rather than an invented category. Accepted contact types are `dribbler`, `ground-ball`, `line-drive`, `pop-up`, `fly-ball`; results are `out`, `single`, `double`, `triple`, `home-run`.
+The export includes all teams, archived players, completed/active sessions, events, notes and settings. Empty strings mean an optional text value was not entered. Nullable classification or handedness fields use JSON `null` rather than an invented category. Accepted contact types are `dribbler`, `ground-ball`, `line-drive`, `pop-up`, `fly-ball`; results are `out`, `single`, `double`, `triple`, `home-run`; hit power (`hardHit`) accepts `0` (swing and miss) through `5` (crushed). A swing and miss is recorded as `hardHit: 0` with `contactType: null` and `result: null` (it does not record as an out).
 
 ### Import and merge
 
@@ -119,7 +119,7 @@ Merge does not propagate deletion tombstones; importing an older backup can rest
 CSV uses UTF-8 text, comma separators, CRLF rows, and RFC 4180 quoted cells. Quotes inside a cell are doubled; notes may contain newlines. Unknown/null values become empty cells. The first row contains stable column names:
 
 ```text
-event_id,player_id,player_name,jersey_number,team_id,team_name,team_season,session_id,session_date,event_timestamp,pitcher_hand,batter_side,contact_type,result,field_x,field_y,coordinate_system_version,event_sequence,turn_sequence,contact_sequence,notes,created_at,updated_at
+event_id,player_id,player_name,jersey_number,team_id,team_name,team_season,session_id,session_date,event_timestamp,pitcher_hand,batter_side,contact_type,result,hard_hit,field_x,field_y,coordinate_system_version,event_sequence,turn_sequence,contact_sequence,notes,created_at,updated_at
 ```
 
 `session_date` is the full practice-start ISO timestamp. `event_timestamp`, `created_at` and `updated_at` are ISO timestamps. Coordinates are the original normalized numbers with no rounding. Classification values use the JSON enum codes. `notes` includes inline observation notes followed by timestamped event-associated notes.
@@ -134,6 +134,6 @@ Simple bulk entry also accepts one `Name, Number` per line without headers. Quot
 
 ## Derived reports versus observations
 
-All location counts include classified and unclassified events. Contact-type distributions use and explicitly report the number of events with contact classifications; result distributions use their own classified count. Neither denominator is assumed to equal all observations. Unknown pitcher hand and batter side remain visible or excluded with context.
+All location counts include classified and unclassified events. Contact-type distributions use and explicitly report the number of events with contact classifications; result distributions use their own classified count. Neither denominator is assumed to equal all observations. Unknown pitcher hand and batter side remain visible or excluded with context. Swings and misses (`hardHit: 0`) record without batted-ball contact (`result: null`) and do not count toward batted-ball trajectory or spray metrics. Historical contact management allows reassigning a contact's hitter, bulk moving contacts between teammates, or bulk deleting events while maintaining session sequence integrity.
 
 Density cells, directional zones, summary counts and recent-versus-season percentages are derived in memory and never replace raw events. Density intensity is relative to the most populated displayed bin. Changing filters recalculates the selected dataset. None of these summaries represent batting averages, exit velocities, real field distances or conclusions about unrecorded pitches.

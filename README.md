@@ -8,9 +8,9 @@ A coach’s personal baseball notebook and batting-practice spray chart. Built f
 
 1. Name your team and add players individually, paste a `Name, Number` list, or preview and import a roster CSV.
 2. Tap **Start Practice**. Your active roster is ready in its usual order; choose a subset or rearrange today’s lineup if needed.
-3. Tap the field where the ball lands. That is enough to save a contact. Optionally classify the latest contact or add a note.
+3. Tap the field where the ball lands, or tap **0 Miss** on the hit power scale to record a swing and miss. Optionally classify contact quality (1–5 scale), trajectory, or outcome, and add a note.
 4. Keep recording for the same hitter. **Next batter** moves them to the back of the line. Automatic rotation after a chosen number of recorded contacts is also available.
-5. Finish and review a player or practice. Explore the spray chart, density, event history, classifications, pitcher splits, and direction tendencies. Correct older observations with explicit Save / Cancel controls.
+5. Finish and review a player or practice. Explore the spray chart, density, event history, classifications, pitcher splits, and direction tendencies. Correct older observations with explicit Save / Cancel controls, reassign hits to another player, or use bulk tools to move and delete contacts.
 6. Download or share a backup after practice.
 
 The active practice screen includes current hitter, on-deck queue, touch reordering, skip/defer, sit-out/return, direct player selection, RHP/LHP, switch-hitter side, notes, and Undo Last. Undo also restores an automatic hitter change. Speech selection is optional and falls back to searchable roster selection.

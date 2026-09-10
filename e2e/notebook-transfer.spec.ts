@@ -52,7 +52,6 @@ test.describe('Take Your Notebook With You: Mobile Transfers', () => {
     // Navigate to Settings
     await iphonePage.getByRole('link', { name: 'Settings' }).click();
 
-
     // Verify philosophy statement & cross-platform PWA messaging
     await expect(iphonePage.locator('.philosophy-quote')).toContainText(
       "Pinch Hitter doesn't keep your data on our servers",
@@ -146,7 +145,6 @@ test.describe('Take Your Notebook With You: Mobile Transfers', () => {
     await expect(ipadPage.locator('.count-pill')).toContainText('2 contacts');
     await assertNoOverflow(ipadPage);
 
-
     await iphoneContext.close();
     await ipadContext.close();
   });
@@ -198,12 +196,13 @@ test.describe('Take Your Notebook With You: Mobile Transfers', () => {
 
     // Finish practice session
     await androidPage.getByRole('button', { name: 'Finish', exact: true }).click();
-    await androidPage.getByRole('button', { name: 'Finish & review practice', exact: true }).click();
+    await androidPage
+      .getByRole('button', { name: 'Finish & review practice', exact: true })
+      .click();
     await expect(androidPage.getByRole('heading', { name: 'See the whole field.' })).toBeVisible();
 
     // Return to Practice/Home tab
     await androidPage.getByRole('link', { name: 'Practice', exact: true }).click();
-
 
     // Polite unbacked flag is visible on the Home coach card
     await expect(androidPage.locator('.unbacked-flag')).toBeVisible();

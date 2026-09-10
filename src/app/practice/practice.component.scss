@@ -397,24 +397,6 @@ summary .muted {
   margin: 0 0 5px;
   gap: 8px;
 }
-.whiff-quick-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: #253932;
-  color: #fffaf0;
-  border: 1px solid #3c544b;
-  border-radius: 6px;
-  padding: 3px 8px;
-  font-size: 0.66rem;
-  font-weight: 700;
-  min-height: 28px;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.whiff-quick-button:hover:not(:disabled) {
-  background: #172621;
-}
 .field-instruction > :first-child {
   font-weight: 650;
 }
@@ -527,6 +509,17 @@ summary .muted {
   background: #6c4ebb;
   color: #fffdf8;
   border-color: #543999;
+}
+.classify-row.hard-hit button.whiff-scale-button {
+  background: #2b3a36;
+  color: #f7eed7;
+  border-color: #3f554f;
+  font-weight: 700;
+}
+.classify-row.hard-hit button.whiff-scale-button.selected {
+  background: #d63031;
+  color: #fff;
+  border-color: #ff7675;
 }
 .practice-actions {
   grid-area: actions;

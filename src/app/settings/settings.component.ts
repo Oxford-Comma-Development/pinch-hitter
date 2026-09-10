@@ -80,13 +80,6 @@ import { backupFileName, canShareFiles, downloadFile, shareFile } from '../share
               /></label>
             }
           </div>
-          <label class="check-label"
-            ><input
-              type="checkbox"
-              [ngModel]="store.settings().haptics"
-              (ngModelChange)="store.updateSettings({ haptics: $event })"
-            />Gentle vibration after a contact, when supported</label
-          >
           <p class="muted small">
             Defaults apply to new practices. You can change them during a session.
           </p>
@@ -102,7 +95,10 @@ import { backupFileName, canShareFiles, downloadFile, shareFile } from '../share
             Works on iPhone, iPad, Android, Windows, Mac, and Chromebook. No app store required.
           </p>
 
-          <div class="backup-status-pill" [class.unbacked]="store.unbackedWork().hasSubstantialWork">
+          <div
+            class="backup-status-pill"
+            [class.unbacked]="store.unbackedWork().hasSubstantialWork"
+          >
             @if (store.unbackedWork().hasSubstantialWork) {
               <span class="status-indicator warning" aria-hidden="true">●</span>
               <div>
@@ -182,8 +178,8 @@ import { backupFileName, canShareFiles, downloadFile, shareFile } from '../share
               (change)="readBackup($event)"
           /></label>
           <p class="small muted">
-            Tip: On iPhone/iPad, choose your file from iCloud Drive or Files. On Android, choose from
-            Google Drive or Downloads.
+            Tip: On iPhone/iPad, choose your file from iCloud Drive or Files. On Android, choose
+            from Google Drive or Downloads.
           </p>
           @if (importError()) {
             <p role="alert" class="error">{{ importError() }}</p>
@@ -294,6 +290,27 @@ import { backupFileName, canShareFiles, downloadFile, shareFile } from '../share
               ><label
                 >Season<input name="season" [(ngModel)]="teamDraft.season" maxlength="40"
               /></label>
+            </div>
+            <div class="logo-upload-group">
+              <span>Team logo <span class="muted small">(optional)</span></span>
+              @if (teamDraft.logoUrl) {
+                <div class="logo-preview-row">
+                  <img [src]="teamDraft.logoUrl" alt="Team logo preview" class="logo-thumb" />
+                  <button type="button" class="text-button" (click)="removeLogo()">
+                    Remove logo
+                  </button>
+                </div>
+              } @else {
+                <label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    (change)="onLogoSelected($event)"
+                    aria-label="Upload team logo"
+                  />
+                </label>
+                <span class="small muted">Square or crest image recommended (PNG, JPG, SVG).</span>
+              }
             </div>
             <label
               >Team notes<textarea
@@ -419,6 +436,24 @@ import { backupFileName, canShareFiles, downloadFile, shareFile } from '../share
       color: var(--green);
       margin: 12px 0;
     }
+    .logo-upload-group {
+      margin-top: 6px;
+    }
+    .logo-preview-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 6px;
+    }
+    .logo-thumb {
+      width: 52px;
+      height: 52px;
+      object-fit: contain;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 4px;
+    }
     @media (max-width: 760px) {
       .settings-grid {
         grid-template-columns: 1fr;
@@ -446,7 +481,13 @@ export class SettingsComponent {
   csvScope = 'team';
   deleteText = '';
   teamId = '';
-  teamDraft = { name: '', shortName: '', season: String(new Date().getFullYear()), notes: '' };
+  teamDraft: {
+    name: string;
+    shortName: string;
+    season: string;
+    notes: string;
+    logoUrl?: string;
+  } = { name: '', shortName: '', season: String(new Date().getFullYear()), notes: '', logoUrl: '' };
   custom = false;
 
   rotationChoice() {
@@ -477,9 +518,63 @@ export class SettingsComponent {
   editTeam(team?: Team) {
     this.teamId = team?.id || '';
     this.teamDraft = team
-      ? { name: team.name, shortName: team.shortName, season: team.season, notes: team.notes }
-      : { name: '', shortName: '', season: String(new Date().getFullYear()), notes: '' };
+      ? {
+          name: team.name,
+          shortName: team.shortName,
+          season: team.season,
+          notes: team.notes,
+          logoUrl: team.logoUrl || '',
+        }
+      : {
+          name: '',
+          shortName: '',
+          season: String(new Date().getFullYear()),
+          notes: '',
+          logoUrl: '',
+        };
     this.teamEditor.set(true);
+  }
+  onLogoSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      this.message.set('Please choose an image file (PNG, JPEG, WebP, SVG).');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const maxDim = 256;
+        let width = img.width;
+        let height = img.height;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          this.teamDraft.logoUrl = canvas.toDataURL('image/png');
+        } else {
+          this.teamDraft.logoUrl = reader.result as string;
+        }
+      };
+      img.src = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+  }
+  removeLogo() {
+    this.teamDraft.logoUrl = '';
   }
   async saveTeam() {
     if (!this.teamDraft.name.trim() || this.busy()) return;

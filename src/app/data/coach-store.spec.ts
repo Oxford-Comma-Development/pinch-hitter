@@ -360,7 +360,7 @@ describe('portable backups and CSV', () => {
     expect(parseRosterCsv('name,bats\nMarcus,maybe').errors[0]).toContain('Row 2');
     expect(parseRosterCsv('"unclosed').errors).toHaveLength(1);
   });
-  it('records swings and misses (whiff) at home plate with hardHit: 0', async () => {
+  it('records swings and misses (whiff) at home plate with hardHit: 0 and null result', async () => {
     const { marcus } = await setup();
     const event = await store.recordSwingAndMiss('R', marcus.id);
     expect(event).toMatchObject({
@@ -368,17 +368,48 @@ describe('portable backups and CSV', () => {
       fieldY: 0.88,
       hardHit: 0,
       contactType: null,
-      result: 'out',
+      result: null,
       playerId: marcus.id,
     });
     expect(store.events()).toHaveLength(1);
     expect(disk.events).toHaveLength(1);
     expect(disk.events[0].hardHit).toBe(0);
+    expect(disk.events[0].result).toBeNull();
 
     // Can enrich hardHit rating
     await store.enrichEvent(event.id, { hardHit: 1 });
     expect(store.events()[0].hardHit).toBe(1);
     expect(disk.events[0].hardHit).toBe(1);
+  });
+  it('moves events to another player', async () => {
+    const { marcus, tyler } = await setup();
+    const ev1 = await store.recordContact(0.4, 0.4, 'R', marcus.id);
+    const ev2 = await store.recordContact(0.6, 0.6, 'R', marcus.id);
+
+    expect(store.events().filter((e) => e.playerId === marcus.id)).toHaveLength(2);
+    expect(store.events().filter((e) => e.playerId === tyler.id)).toHaveLength(0);
+
+    // Single move via updateEvent
+    await store.updateEvent(ev1.id, { playerId: tyler.id });
+    expect(store.events().find((e) => e.id === ev1.id)?.playerId).toBe(tyler.id);
+
+    // Batch move via moveEvents
+    await store.moveEvents([ev2.id], tyler.id);
+    expect(store.events().filter((e) => e.playerId === tyler.id)).toHaveLength(2);
+    expect(store.events().filter((e) => e.playerId === marcus.id)).toHaveLength(0);
+  });
+  it('mass deletes events and removes associated notes', async () => {
+    const { marcus } = await setup();
+    const ev1 = await store.recordContact(0.4, 0.4, 'R', marcus.id);
+    const ev2 = await store.recordContact(0.6, 0.6, 'R', marcus.id);
+    await store.addNote({ eventId: ev1.id }, 'Note on hit 1');
+
+    expect(store.events()).toHaveLength(2);
+    expect(store.notes().filter((n) => n.eventId === ev1.id)).toHaveLength(1);
+
+    await store.deleteEvents([ev1.id, ev2.id]);
+    expect(store.events()).toHaveLength(0);
+    expect(store.notes().filter((n) => n.eventId === ev1.id)).toHaveLength(0);
   });
   it('cascades practice session deletion across sessions, events, and notes', async () => {
     await setup();
@@ -433,8 +464,9 @@ describe('portable backups and CSV', () => {
     await store.recordContact(0.5, 0.5);
     expect(store.unbackedWork().hasSubstantialWork).toBe(true);
     expect(store.unbackedWork().unbackedEvents).toBe(3);
-    expect(store.unbackedWork().summary).toContain('3 new contacts recorded since your last backup');
-
+    expect(store.unbackedWork().summary).toContain(
+      '3 new contacts recorded since your last backup',
+    );
 
     // Exporting again clears the unbacked flag
     store.recordBackupExported();
@@ -445,4 +477,3 @@ describe('portable backups and CSV', () => {
     expect(store.lastBackupAt()).toBeNull();
   });
 });
-

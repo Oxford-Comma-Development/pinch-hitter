@@ -50,8 +50,8 @@ import { ImportPreview } from '../data/models';
               </button>
             </form>
             <p class="privacy small">
-              No account. No subscriptions. Your notebook stays on this device, and you can export it
-              anytime.
+              No account. No subscriptions. Your notebook stays on this device, and you can export
+              it anytime.
             </p>
           </section>
 
@@ -106,7 +106,26 @@ import { ImportPreview } from '../data/models';
           <h1>{{ store.activeTeam()!.name }}</h1>
           <p class="muted">Good habits start with a good round.</p>
         </div>
-        <span class="team-stamp">{{ store.activeTeam()!.shortName || 'BP' }}</span>
+        <div class="team-emblem-badge">
+          @if (store.activeTeam()!.logoUrl) {
+            <img
+              class="team-logo-img"
+              [src]="store.activeTeam()!.logoUrl"
+              [alt]="store.activeTeam()!.name + ' logo'"
+            />
+          } @else {
+            <div class="team-crest" [title]="store.activeTeam()!.name">
+              <div class="team-crest-diamond" aria-hidden="true"></div>
+              <div class="team-crest-inner">
+                <span class="team-crest-monogram">{{ teamMonogram() }}</span>
+                <span class="team-crest-season">{{ store.activeTeam()!.season || 'BP' }}</span>
+              </div>
+            </div>
+          }
+          <a routerLink="/settings" class="change-logo-link">{{
+            store.activeTeam()!.logoUrl ? 'Change logo' : 'Add logo'
+          }}</a>
+        </div>
       </div>
       <section class="practice-hero">
         <div>
@@ -197,7 +216,9 @@ We’ll keep the notebook.'
                 <p class="small muted">{{ store.unbackedWork().summary }}.</p>
               </div>
             </div>
-            <a routerLink="/settings" class="button primary unbacked-btn">Take notebook with you →</a>
+            <a routerLink="/settings" class="button primary unbacked-btn"
+              >Take notebook with you →</a
+            >
           } @else {
             <p class="small muted">
               {{
@@ -211,7 +232,6 @@ We’ll keep the notebook.'
         </aside>
       </div>
     }
-
   </div>`,
   styles: `
     .welcome {
@@ -257,14 +277,81 @@ We’ll keep the notebook.'
       gap: 20px;
       align-items: center;
     }
-    .team-stamp {
-      border: 2px solid var(--green);
-      padding: 18px 12px;
-      transform: rotate(-5deg);
+    .team-emblem-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .team-crest {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #255442, #132b23);
+      border: 3px solid #dfd8be;
+      box-shadow:
+        0 4px 12px rgba(19, 43, 35, 0.25),
+        inset 0 0 0 2px #1c4234;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      color: #fff9e6;
+    }
+    .team-crest-diamond {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      border: 1px dashed rgba(223, 216, 190, 0.35);
+      transform: rotate(45deg);
+    }
+    .team-crest-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 1;
+    }
+    .team-crest-monogram {
+      font-family: ui-serif, Georgia, 'Times New Roman', serif;
+      font-size: 1.55rem;
       font-weight: 900;
-      letter-spacing: 2px;
-      max-width: 150px;
-      overflow-wrap: anywhere;
+      letter-spacing: 1px;
+      line-height: 1;
+      color: #f7e096;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+    }
+    .team-crest-season {
+      font-size: 0.52rem;
+      font-weight: 750;
+      letter-spacing: 1.5px;
+      color: #c0cfc5;
+      text-transform: uppercase;
+      margin-top: 3px;
+    }
+    .team-logo-img {
+      width: 84px;
+      height: 84px;
+      object-fit: contain;
+      border-radius: 12px;
+      background: #fff;
+      padding: 6px;
+      border: 1px solid var(--line);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+    .change-logo-link {
+      font-size: 0.66rem;
+      color: var(--muted);
+      text-decoration: none;
+      font-weight: 600;
+      padding: 2px 6px;
+    }
+    .change-logo-link:hover {
+      text-decoration: underline;
+      color: var(--green);
     }
     .practice-hero {
       margin-top: 14px;
@@ -427,7 +514,6 @@ We’ll keep the notebook.'
       line-height: 1.25;
     }
     .coach-note hr {
-
       border: 0;
       border-top: 1px solid var(--line);
       margin: 24px 0;
@@ -492,9 +578,16 @@ We’ll keep the notebook.'
       .practice-hero p {
         max-width: 245px;
       }
-      .team-stamp {
-        font-size: 11px;
-        max-width: 94px;
+      .team-crest {
+        width: 68px;
+        height: 68px;
+      }
+      .team-crest-monogram {
+        font-size: 1.3rem;
+      }
+      .team-logo-img {
+        width: 70px;
+        height: 70px;
       }
       .context-row {
         gap: 13px;
@@ -524,6 +617,16 @@ export class HomeComponent {
   name = '';
   shortName = '';
   season = String(new Date().getFullYear());
+  readonly teamMonogram = computed(() => {
+    const team = this.store.activeTeam();
+    if (!team) return 'PH';
+    if (team.shortName && team.shortName.length <= 4) return team.shortName;
+    const parts = team.name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return team.name.slice(0, 3).toUpperCase();
+  });
   readonly sessions = computed(() =>
     this.store
       .sessions()
@@ -582,4 +685,3 @@ export class HomeComponent {
     }
   }
 }
-

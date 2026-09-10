@@ -16,6 +16,7 @@ import {
   HIT_RESULTS,
   HardHitRating,
   HitResult,
+  Player,
   PracticeSession,
   RESULT_LABELS,
 } from '../data/models';
@@ -91,6 +92,12 @@ export class ReportsComponent {
   sessionLocation = '';
   sessionNotes = '';
   noteText = '';
+  selectedEventIds = signal<Set<string>>(new Set());
+  bulkTargetPlayerId = '';
+  bulkDeletePending = false;
+  managePlayerModalOpen = signal(false);
+  playerManageAction = signal<'move' | 'delete'>('move');
+  playerManageTargetId = '';
 
   readonly players = computed(() =>
     this.store
@@ -376,6 +383,7 @@ export class ReportsComponent {
       await this.store.updateEvent(
         draft.id,
         {
+          playerId: draft.playerId,
           fieldX: draft.fieldX,
           fieldY: draft.fieldY,
           timestamp: new Date(this.editTime).toISOString(),
@@ -411,6 +419,120 @@ export class ReportsComponent {
       this.message.set('Observation deleted.');
     } catch (error) {
       this.error.set(error instanceof Error ? error.message : 'Could not delete this observation.');
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  isSelected(id: string): boolean {
+    return this.selectedEventIds().has(id);
+  }
+
+  toggleSelectEvent(id: string): void {
+    this.selectedEventIds.update((set) => {
+      const next = new Set(set);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  selectAllVisible(): void {
+    const ids = this.history().map((e) => e.id);
+    this.selectedEventIds.set(new Set(ids));
+  }
+
+  deselectAll(): void {
+    this.selectedEventIds.set(new Set());
+    this.bulkDeletePending = false;
+  }
+
+  async moveSelectedEvents(): Promise<void> {
+    const ids = Array.from(this.selectedEventIds());
+    if (!ids.length || !this.bulkTargetPlayerId || this.busy()) return;
+    const targetPlayer = this.players().find((p) => p.id === this.bulkTargetPlayerId);
+    if (!targetPlayer) return;
+    this.busy.set(true);
+    try {
+      await this.store.moveEvents(ids, this.bulkTargetPlayerId);
+      this.message.set(
+        `Moved ${ids.length} contact${ids.length > 1 ? 's' : ''} to ${targetPlayer.name}.`,
+      );
+      this.deselectAll();
+      this.bulkTargetPlayerId = '';
+    } catch (err) {
+      this.error.set(err instanceof Error ? err.message : 'Could not move contacts.');
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  async deleteSelectedEvents(): Promise<void> {
+    const ids = Array.from(this.selectedEventIds());
+    if (!ids.length || this.busy()) return;
+    this.busy.set(true);
+    try {
+      await this.store.deleteEvents(ids);
+      this.message.set(`Deleted ${ids.length} contact${ids.length > 1 ? 's' : ''}.`);
+      this.deselectAll();
+      if (this.selectedId() && ids.includes(this.selectedId())) {
+        this.selectedId.set('');
+      }
+    } catch (err) {
+      this.error.set(err instanceof Error ? err.message : 'Could not delete contacts.');
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  playerHitCount(playerId: string): number {
+    return this.store.events().filter((e) => e.playerId === playerId).length;
+  }
+
+  otherPlayers(playerId: string): Player[] {
+    return this.players().filter((p) => p.id !== playerId);
+  }
+
+  openManagePlayerModal(): void {
+    this.playerManageAction.set('move');
+    this.playerManageTargetId = '';
+    this.managePlayerModalOpen.set(true);
+  }
+
+  async moveAllPlayerContacts(sourcePlayerId: string, targetPlayerId: string): Promise<void> {
+    if (!sourcePlayerId || !targetPlayerId || this.busy()) return;
+    const events = this.store.events().filter((e) => e.playerId === sourcePlayerId);
+    if (!events.length) return;
+    const targetPlayer = this.players().find((p) => p.id === targetPlayerId);
+    this.busy.set(true);
+    try {
+      await this.store.moveEvents(
+        events.map((e) => e.id),
+        targetPlayerId,
+      );
+      this.message.set(`Moved all ${events.length} contacts to ${targetPlayer?.name || 'player'}.`);
+      this.managePlayerModalOpen.set(false);
+      this.setFilter('playerId', targetPlayerId);
+      this.syncScope();
+    } catch (err) {
+      this.error.set(err instanceof Error ? err.message : 'Could not move player contacts.');
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  async deleteAllPlayerContacts(playerId: string): Promise<void> {
+    if (!playerId || this.busy()) return;
+    const events = this.store.events().filter((e) => e.playerId === playerId);
+    if (!events.length) return;
+    this.busy.set(true);
+    try {
+      await this.store.deleteEvents(events.map((e) => e.id));
+      this.message.set(`Permanently deleted all ${events.length} contacts for this player.`);
+      this.managePlayerModalOpen.set(false);
+      this.selectedId.set('');
+    } catch (err) {
+      this.error.set(err instanceof Error ? err.message : 'Could not delete player contacts.');
     } finally {
       this.busy.set(false);
     }

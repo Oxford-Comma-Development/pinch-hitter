@@ -274,15 +274,6 @@
     <div class="field-area">
       <div class="field-instruction">
         <span>Tap where the ball lands</span>
-        <button
-          type="button"
-          class="whiff-quick-button"
-          [disabled]="!current() || busy()"
-          (click)="recordWhiff()"
-          aria-label="Record swing and miss"
-        >
-          ✕ Swing &amp; miss (0)
-        </button>
         <span>{{ hitterEvents().length }} for this hitter</span>
       </div>
       <app-field
@@ -316,8 +307,12 @@
         @if (failure()) {
           <span class="error">{{ failure() }}</span>
         } @else if (latest(); as event) {
-          <span><b>✓ Contact saved</b> · {{ playerName(event.playerId) }}</span
-          ><span class="optional-label">Details optional</span>
+          <span
+            ><b>✓ {{ event.hardHit === 0 ? 'Swing & miss saved' : 'Contact saved' }}</b> ·
+            {{ playerName(event.playerId) }}</span
+          ><span class="optional-label">{{
+            event.hardHit === 0 ? 'Recorded at plate' : 'Details optional'
+          }}</span>
         } @else {
           <span>Location is all you need.</span><span class="optional-label">Details optional</span>
         }
@@ -348,14 +343,29 @@
       </div>
       <div class="classify-row hard-hit" role="group" aria-label="Hard hit contact quality">
         @for (level of hardHitRatings; track level) {
-          <button
-            [disabled]="!latest() && level !== 0"
-            [class.selected]="latest()?.hardHit === level"
-            [attr.aria-pressed]="latest()?.hardHit === level"
-            (click)="classifyHardHit(level)"
-          >
-            {{ hardHitShortLabels[level] }}
-          </button>
+          @if (level === 0) {
+            <button
+              type="button"
+              class="whiff-scale-button"
+              [disabled]="!current() || busy()"
+              [class.selected]="latest()?.hardHit === 0"
+              [attr.aria-pressed]="latest()?.hardHit === 0"
+              (click)="recordWhiff()"
+              aria-label="Record swing and miss (0)"
+            >
+              {{ hardHitShortLabels[0] }}
+            </button>
+          } @else {
+            <button
+              type="button"
+              [disabled]="!latest() || busy()"
+              [class.selected]="latest()?.hardHit === level"
+              [attr.aria-pressed]="latest()?.hardHit === level"
+              (click)="classifyHardHit(level)"
+            >
+              {{ hardHitShortLabels[level] }}
+            </button>
+          }
         }
       </div>
     </section>
