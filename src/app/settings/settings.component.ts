@@ -1,14 +1,15 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { DatePipe } from '@angular/common';
 import { ModalDirective } from '../shared/modal.directive';
 import { InstallService } from '../shared/install.service';
 import { CoachStore } from '../data/coach-store';
 import { ImportPreview, Team } from '../data/models';
 import { eventsCsv, backupJson } from '../data/transfer';
-import { downloadFile, shareFile } from '../shared/files';
+import { backupFileName, canShareFiles, downloadFile, shareFile } from '../shared/files';
 @Component({
   selector: 'app-settings',
-  imports: [FormsModule, ModalDirective],
+  imports: [FormsModule, ModalDirective, DatePipe],
   template: `
     <div class="page">
       <p class="eyebrow">YOUR NOTEBOOK, YOUR WAY</p>
@@ -92,11 +93,39 @@ import { downloadFile, shareFile } from '../shared/files';
         </section>
         <section class="card data-card">
           <p class="eyebrow">TAKE YOUR NOTEBOOK WITH YOU</p>
-          <h2>Backup & export</h2>
-          <p class="muted">
-            Save a complete JSON backup to restore on another device. Use CSV for spreadsheets and
-            baseball analysis.
+          <h2>Take your notebook with you</h2>
+          <p class="philosophy-quote">
+            “Pinch Hitter doesn't keep your data on our servers. Your notebook stays on your devices
+            and in whatever storage provider you trust.”
           </p>
+          <p class="platform-statement muted small">
+            Works on iPhone, iPad, Android, Windows, Mac, and Chromebook. No app store required.
+          </p>
+
+          <div class="backup-status-pill" [class.unbacked]="store.unbackedWork().hasSubstantialWork">
+            @if (store.unbackedWork().hasSubstantialWork) {
+              <span class="status-indicator warning" aria-hidden="true">●</span>
+              <div>
+                <strong>Backup recommended:</strong> {{ store.unbackedWork().summary }}.
+                <p class="small muted">Save a copy to iCloud Drive, Google Drive, or your files.</p>
+              </div>
+            } @else if (store.lastBackupAt()) {
+              <span class="status-indicator up-to-date" aria-hidden="true">✓</span>
+              <div>
+                <strong>Notebook backed up.</strong>
+                <p class="small muted">
+                  Last saved on this device: {{ store.lastBackupAt() | date: 'medium' }}
+                </p>
+              </div>
+            } @else {
+              <span class="status-indicator" aria-hidden="true">○</span>
+              <div>
+                <strong>Not yet backed up on this device.</strong>
+                <p class="small muted">Save a copy to keep your team and practices safe.</p>
+              </div>
+            }
+          </div>
+
           <div class="data-counts">
             <span
               ><strong>{{ store.teams().length }}</strong> teams</span
@@ -109,9 +138,23 @@ import { downloadFile, shareFile } from '../shared/files';
             >
           </div>
           <div class="row">
-            <button class="primary" (click)="exportJson()">Download JSON backup</button
-            ><button (click)="shareBackup()">Share backup</button>
+            @if (canShare()) {
+              <button class="primary" (click)="shareBackup()">Save or share notebook</button>
+              <button (click)="exportJson()">Download JSON backup</button>
+            } @else {
+              <button class="primary" (click)="exportJson()">Download JSON backup</button>
+              <button (click)="shareBackup()">Save or share notebook</button>
+            }
           </div>
+          <p class="muted small share-hint">
+            @if (canShare()) {
+              Opens your device share sheet. On iPhone/iPad, choose
+              <strong>Save to Files / iCloud Drive</strong> or AirDrop. On Android, choose
+              <strong>Save to Drive</strong> or Quick Share.
+            } @else {
+              Save a complete JSON backup to restore on another device.
+            }
+          </p>
           <div class="csv-row">
             <label
               >CSV scope<select aria-label="CSV scope" [(ngModel)]="csvScope">
@@ -120,14 +163,17 @@ import { downloadFile, shareFile } from '../shared/files';
               </select></label
             ><button (click)="exportCsv()">Export contacts CSV</button>
           </div>
-          <p class="muted small">For a player, session, or filtered CSV, export from Reports.</p>
+          <p class="muted small">
+            For spreadsheets and baseball analysis. For a player or session CSV, export from
+            Reports.
+          </p>
         </section>
         <section class="card">
-          <p class="eyebrow">BRING YOUR DATA HOME</p>
-          <h2>Import a backup</h2>
+          <p class="eyebrow">BRING YOUR NOTEBOOK HOME</p>
+          <h2>Open notebook on this device</h2>
           <p class="muted">
-            Choose a Pinch Hitter JSON file. Review its contents before merging it into this
-            notebook.
+            Opening on another phone, iPad, or laptop? Select your Pinch Hitter JSON file from
+            iCloud Drive, Google Drive, or Files. Review its contents before merging.
           </p>
           <label
             >JSON backup<input
@@ -135,6 +181,10 @@ import { downloadFile, shareFile } from '../shared/files';
               accept=".json,application/json"
               (change)="readBackup($event)"
           /></label>
+          <p class="small muted">
+            Tip: On iPhone/iPad, choose your file from iCloud Drive or Files. On Android, choose from
+            Google Drive or Downloads.
+          </p>
           @if (importError()) {
             <p role="alert" class="error">{{ importError() }}</p>
           }
@@ -167,6 +217,9 @@ import { downloadFile, shareFile } from '../shared/files';
           <p class="muted">
             Once loaded, your roster, practice capture, reports, and exports work offline. Speech
             recognition may require a connection.
+          </p>
+          <p class="small cross-platform-note">
+            Works on iPhone, iPad, Android, Windows, Mac, and Chromebook. No app store required.
           </p>
           @if (installPrompt()) {
             <button class="primary" (click)="install()">Install Pinch Hitter</button>
@@ -209,6 +262,7 @@ import { downloadFile, shareFile } from '../shared/files';
         </section>
       </div>
     </div>
+
     @if (teamEditor()) {
       <div class="sheet-backdrop">
         <section
@@ -312,6 +366,59 @@ import { downloadFile, shareFile } from '../shared/files';
     .danger-card button {
       margin-top: 16px;
     }
+    .philosophy-quote {
+      font-style: italic;
+      color: var(--ink);
+      background: #e4e8d4;
+      padding: 12px 14px;
+      border-left: 3px solid var(--green);
+      border-radius: 0 8px 8px 0;
+      margin: 14px 0 10px;
+      line-height: 1.4;
+      font-size: 13px;
+    }
+    .platform-statement {
+      margin-bottom: 16px;
+      font-weight: 500;
+    }
+    .backup-status-pill {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      background: #f4f6ec;
+      border: 1px solid #d2d8bf;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin: 16px 0;
+      font-size: 13px;
+    }
+    .backup-status-pill.unbacked {
+      background: #fef7ea;
+      border-color: #ebd2a4;
+    }
+    .status-indicator {
+      font-weight: 900;
+      font-size: 14px;
+      line-height: 1.3;
+    }
+    .status-indicator.warning {
+      color: #b8621b;
+    }
+    .status-indicator.up-to-date {
+      color: var(--green);
+    }
+    .backup-status-pill p {
+      margin: 3px 0 0;
+    }
+    .share-hint {
+      margin-top: 10px;
+      line-height: 1.35;
+    }
+    .cross-platform-note {
+      font-weight: 600;
+      color: var(--green);
+      margin: 12px 0;
+    }
     @media (max-width: 760px) {
       .settings-grid {
         grid-template-columns: 1fr;
@@ -335,6 +442,7 @@ export class SettingsComponent {
   readonly installer = inject(InstallService);
   readonly installPrompt = this.installer.prompt;
   readonly storageStatus = signal('');
+  readonly canShare = signal(canShareFiles());
   csvScope = 'team';
   deleteText = '';
   teamId = '';
@@ -389,15 +497,21 @@ export class SettingsComponent {
   async exportJson() {
     const backup = await this.store.exportFreshBackup();
     downloadFile(backupJson(backup), this.backupName(), 'application/json');
+    this.store.recordBackupExported();
     this.message.set('JSON backup downloaded. Save it somewhere you can find on another device.');
   }
   backupName() {
-    return 'pinch-hitter-' + new Date().toISOString().slice(0, 10) + '.json';
+    return backupFileName();
   }
   async shareBackup() {
     const backup = await this.store.exportFreshBackup();
-    this.message.set(await shareFile(backupJson(backup), this.backupName(), 'application/json'));
+    const result = await shareFile(backupJson(backup), this.backupName(), 'application/json');
+    if (!result.includes('canceled')) {
+      this.store.recordBackupExported();
+    }
+    this.message.set(result);
   }
+
   async exportCsv() {
     const backup = await this.store.exportFreshBackup();
     const events = backup.events.filter(

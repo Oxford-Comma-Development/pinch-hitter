@@ -3,6 +3,7 @@ import { RouterLink, Router } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CoachStore } from '../data/coach-store';
+import { ImportPreview } from '../data/models';
 @Component({
   selector: 'app-home',
   imports: [RouterLink, DatePipe, FormsModule],
@@ -13,46 +14,88 @@ import { CoachStore } from '../data/coach-store';
           <img src="icons/mark.svg" alt="" /><span>MAKE EVERY<br />ROUND COUNT.</span>
           <p>A little less screen time.<br />A little more field time.</p>
         </div>
-        <section class="setup card">
-          <p class="eyebrow">YOUR BASEBALL NOTEBOOK</p>
-          <h1>Let's get to the field.</h1>
-          <p class="muted">
-            A team, a roster, and you're ready. Keep every contact, coaching note, and spray chart
-            in your pocket.
-          </p>
-          <form class="stack" (ngSubmit)="createTeam()">
-            <label
-              >Team name<input
-                name="teamName"
-                [(ngModel)]="name"
-                required
-                maxlength="100"
-                placeholder="e.g. Westfield Wildcats"
-                autocomplete="organization"
-            /></label>
-            <div class="form-grid">
+        <div class="welcome-panels">
+          <section class="setup card">
+            <p class="eyebrow">YOUR BASEBALL NOTEBOOK</p>
+            <h1>Let's get to the field.</h1>
+            <p class="muted">
+              A team, a roster, and you're ready. Keep every contact, coaching note, and spray chart
+              in your pocket.
+            </p>
+            <form class="stack" (ngSubmit)="createTeam()">
               <label
-                ><span>Short name <span class="muted small">(optional)</span></span
-                ><input
-                  name="shortName"
-                  [(ngModel)]="shortName"
-                  maxlength="20"
-                  placeholder="WILDCATS" /></label
-              ><label
-                ><span>Season</span
-                ><input name="season" [(ngModel)]="season" maxlength="40" placeholder="2026"
+                >Team name<input
+                  name="teamName"
+                  [(ngModel)]="name"
+                  required
+                  maxlength="100"
+                  placeholder="e.g. Westfield Wildcats"
+                  autocomplete="organization"
               /></label>
-            </div>
-            <button class="primary" [disabled]="busy() || !name.trim()">
-              Create team & add players <span aria-hidden="true">→</span>
-            </button>
-          </form>
-          <p class="privacy small">
-            No account. No subscriptions. Your notebook stays on this device, and you can export it
-            anytime.
-          </p>
-          <a routerLink="/settings" class="text-button button">Already have a backup? Import it</a>
-        </section>
+              <div class="form-grid">
+                <label
+                  ><span>Short name <span class="muted small">(optional)</span></span
+                  ><input
+                    name="shortName"
+                    [(ngModel)]="shortName"
+                    maxlength="20"
+                    placeholder="WILDCATS" /></label
+                ><label
+                  ><span>Season</span
+                  ><input name="season" [(ngModel)]="season" maxlength="40" placeholder="2026"
+                /></label>
+              </div>
+              <button class="primary" [disabled]="busy() || !name.trim()">
+                Create team & add players <span aria-hidden="true">→</span>
+              </button>
+            </form>
+            <p class="privacy small">
+              No account. No subscriptions. Your notebook stays on this device, and you can export it
+              anytime.
+            </p>
+          </section>
+
+          <section class="card receive-card">
+            <p class="eyebrow">OPENING ON ANOTHER DEVICE?</p>
+            <h2>Bring your notebook over</h2>
+            <p class="muted small">
+              Saved your notebook to iCloud Drive, Google Drive, or sent it from another coach? Pick
+              up right where you left off.
+            </p>
+            <label class="receive-file-label button">
+              <span>Choose notebook backup (.json)</span>
+              <input
+                type="file"
+                aria-label="Choose notebook file to import"
+                accept=".json,application/json"
+                (change)="readWelcomeBackup($event)"
+              />
+            </label>
+            <p class="small muted cross-platform-badge">
+              Works on iPhone, iPad, Android, Windows, Mac, and Chromebook. No app store required.
+            </p>
+            @if (importError()) {
+              <p role="alert" class="error">{{ importError() }}</p>
+            }
+            @if (preview()) {
+              <div class="welcome-preview-box">
+                <h3>Ready to open</h3>
+                <p class="small">
+                  <strong>{{ preview()!.counts.teams }}</strong> teams ·
+                  <strong>{{ preview()!.counts.players }}</strong> players ·
+                  <strong>{{ preview()!.counts.sessions }}</strong> practices ·
+                  <strong>{{ preview()!.counts.events }}</strong> contacts
+                </p>
+                <div class="row">
+                  <button class="primary" [disabled]="busy()" (click)="applyWelcomeImport()">
+                    Open notebook on this device
+                  </button>
+                  <button type="button" (click)="preview.set(null)">Cancel</button>
+                </div>
+              </div>
+            }
+          </section>
+        </div>
       </div>
     } @else {
       <div class="home-heading">
@@ -139,20 +182,36 @@ We’ll keep the notebook.'
           }
         </section>
         <aside class="coach-note card">
-          <p class="eyebrow">ONE TAP IS ENOUGH</p>
+          <p class="eyebrow">TAKE YOUR NOTEBOOK WITH YOU</p>
           <h2>Watch the ball.<br />Mark the spot.</h2>
-          <p class="muted">
-            A location is all you need to save a contact. Contact type and result are always
-            optional.
+          <p class="muted small philosophy-blurb">
+            “Pinch Hitter doesn't keep your data on our servers. Your notebook stays on your devices
+            and in whatever storage provider you trust.”
           </p>
           <hr />
-          <p class="small muted">
-            Your data stays with you. Make a backup after practice to keep a copy off this device.
-          </p>
-          <a routerLink="/settings">Back up your notebook →</a>
+          @if (store.unbackedWork().hasSubstantialWork) {
+            <div class="unbacked-flag">
+              <span class="unbacked-dot" aria-hidden="true">●</span>
+              <div>
+                <strong>Backup recommended</strong>
+                <p class="small muted">{{ store.unbackedWork().summary }}.</p>
+              </div>
+            </div>
+            <a routerLink="/settings" class="button primary unbacked-btn">Take notebook with you →</a>
+          } @else {
+            <p class="small muted">
+              {{
+                store.lastBackupAt()
+                  ? 'Notebook is backed up to your storage.'
+                  : 'Make a backup after practice to keep a copy off this device.'
+              }}
+            </p>
+            <a routerLink="/settings">Take your notebook with you →</a>
+          }
         </aside>
       </div>
     }
+
   </div>`,
   styles: `
     .welcome {
@@ -295,10 +354,80 @@ We’ll keep the notebook.'
       margin-top: 30px;
       background: #efefdf;
     }
+    .welcome-panels {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .receive-card {
+      background: #ecefdf;
+      border-color: #d8deca;
+    }
+    .receive-file-label {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      margin-top: 14px;
+      font-weight: 700;
+    }
+    .receive-file-label input[type='file'] {
+      position: absolute;
+      left: 0;
+      top: 0;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+    .cross-platform-badge {
+      margin-top: 14px;
+      line-height: 1.35;
+      font-weight: 500;
+      color: #3b5a45;
+    }
+    .welcome-preview-box {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+    .welcome-preview-box .row {
+      margin-top: 14px;
+    }
+    .philosophy-blurb {
+      font-style: italic;
+      line-height: 1.35;
+      margin-top: 8px;
+    }
+    .unbacked-flag {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      background: #fdf5ea;
+      border: 1px solid #ebd2a4;
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      font-size: 12px;
+    }
+    .unbacked-dot {
+      color: #b8621b;
+      font-size: 13px;
+      line-height: 1.2;
+    }
+    .unbacked-flag p {
+      margin: 2px 0 0;
+    }
+    .unbacked-btn {
+      display: block;
+      text-align: center;
+    }
     .coach-note h2 {
       line-height: 1.25;
     }
     .coach-note hr {
+
       border: 0;
       border-top: 1px solid var(--line);
       margin: 24px 0;
@@ -390,6 +519,8 @@ export class HomeComponent {
   readonly store = inject(CoachStore);
   private readonly router = inject(Router);
   readonly busy = signal(false);
+  readonly preview = signal<ImportPreview | null>(null);
+  readonly importError = signal('');
   name = '';
   shortName = '';
   season = String(new Date().getFullYear());
@@ -420,4 +551,35 @@ export class HomeComponent {
       this.busy.set(false);
     }
   }
+  async readWelcomeBackup(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    this.preview.set(null);
+    this.importError.set('');
+    try {
+      if (file) {
+        if (file.size > 50_000_000) throw new Error('Please choose a backup smaller than 50 MB.');
+        this.preview.set(this.store.previewImport(await file.text()));
+      }
+    } catch (error) {
+      this.importError.set(error instanceof Error ? error.message : 'This file could not be read.');
+    }
+    input.value = '';
+  }
+  async applyWelcomeImport() {
+    const preview = this.preview();
+    if (!preview || this.busy()) return;
+    this.busy.set(true);
+    try {
+      await this.store.importBackup(preview);
+      this.preview.set(null);
+    } catch (error) {
+      this.importError.set(
+        error instanceof Error ? error.message : 'Import failed. Existing data was preserved.',
+      );
+    } finally {
+      this.busy.set(false);
+    }
+  }
 }
+

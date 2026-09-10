@@ -20,9 +20,12 @@ let store: CoachStore;
 let commits: DatabaseChange[][];
 let rejectNext: boolean;
 beforeEach(() => {
+  if (typeof localStorage !== 'undefined') localStorage.clear();
+
   disk = { teams: [], players: [], sessions: [], events: [], notes: [], settings: [] };
   commits = [];
   rejectNext = false;
+
   vi.spyOn(CoachRepository.prototype, 'load').mockImplementation(async () => structuredClone(disk));
   vi.spyOn(CoachRepository.prototype, 'hasChanges').mockResolvedValue(false);
   vi.spyOn(CoachRepository.prototype, 'apply').mockImplementation(async (changes, clear) => {
@@ -412,4 +415,34 @@ describe('portable backups and CSV', () => {
     const parsed = parseBackup(olderBackupJson);
     expect(parsed.data.events[0].hardHit).toBeNull();
   });
+  it('tracks lastBackupAt locally and flags substantial unbacked work', async () => {
+    await setup();
+    // Before any backup, we have a session and player
+    expect(store.lastBackupAt()).toBeNull();
+    expect(store.unbackedWork().hasSubstantialWork).toBe(true);
+
+    // Record a backup
+    store.recordBackupExported();
+    expect(store.lastBackupAt()).toBeTruthy();
+    expect(store.unbackedWork().hasSubstantialWork).toBe(false);
+
+    // Simulate backup was in the past and new work is recorded
+    store.recordBackupExported('2026-01-01T00:00:00.000Z');
+    await store.recordContact(0.3, 0.5);
+    await store.recordContact(0.4, 0.5);
+    await store.recordContact(0.5, 0.5);
+    expect(store.unbackedWork().hasSubstantialWork).toBe(true);
+    expect(store.unbackedWork().unbackedEvents).toBe(3);
+    expect(store.unbackedWork().summary).toContain('3 new contacts recorded since your last backup');
+
+
+    // Exporting again clears the unbacked flag
+    store.recordBackupExported();
+    expect(store.unbackedWork().hasSubstantialWork).toBe(false);
+
+    // Clearing data clears lastBackupAt
+    await store.clearAll();
+    expect(store.lastBackupAt()).toBeNull();
+  });
 });
+

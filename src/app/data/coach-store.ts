@@ -59,7 +59,30 @@ function requireRotation(value: number | null): void {
     throw new Error('Automatic rotation must be between 1 and 100 recorded contacts.');
 }
 
+export const LAST_BACKUP_STORAGE_KEY = 'pinch_hitter_last_backup_at';
+
+export interface UnbackedWorkSummary {
+  hasSubstantialWork: boolean;
+  unbackedSessions: number;
+  unbackedEvents: number;
+  unbackedPlayers: number;
+  summary: string;
+}
+
+export function loadLastBackupAt(): string | null {
+  try {
+    if (typeof localStorage !== 'undefined') {
+      const val = localStorage.getItem(LAST_BACKUP_STORAGE_KEY);
+      if (val && !isNaN(Date.parse(val))) return val;
+    }
+  } catch {
+    // Ignore storage restrictions
+  }
+  return null;
+}
+
 @Injectable({ providedIn: 'root' })
+
 export class CoachStore {
   readonly teams = signal<Team[]>([]);
   readonly players = signal<Player[]>([]);
@@ -84,7 +107,86 @@ export class CoachStore {
         .filter((session) => session.teamId === this.settings().activeTeamId && !session.endedAt)
         .sort((a, b) => b.startedAt.localeCompare(a.startedAt))[0] ?? null,
   );
+  readonly lastBackupAt = signal<string | null>(loadLastBackupAt());
+  readonly unbackedWork = computed<UnbackedWorkSummary>(() => {
+    const last = this.lastBackupAt();
+    const sessions = this.sessions();
+    const events = this.events();
+    const players = this.players();
+
+    if (!last) {
+      const completedSessions = sessions.filter((s) => !!s.endedAt).length;
+      const hasSubstantial = completedSessions >= 1 || events.length >= 3 || sessions.length >= 1;
+      let summary = '';
+      if (hasSubstantial) {
+        const parts: string[] = [];
+        if (sessions.length) parts.push(`${sessions.length} practice${sessions.length > 1 ? 's' : ''}`);
+        if (events.length) parts.push(`${events.length} contact${events.length > 1 ? 's' : ''}`);
+        summary = `${parts.join(', ')} not yet backed up on this device`;
+      }
+      return {
+        hasSubstantialWork: hasSubstantial,
+        unbackedSessions: sessions.length,
+        unbackedEvents: events.length,
+        unbackedPlayers: players.length,
+        summary,
+      };
+    }
+
+    const unbackedEvents = events.filter(
+      (e) => e.createdAt > last || e.updatedAt > last || e.timestamp > last,
+    ).length;
+    const unbackedSessions = sessions.filter(
+      (s) =>
+        s.startedAt > last ||
+        s.createdAt > last ||
+        s.updatedAt > last ||
+        (s.endedAt !== null && s.endedAt > last),
+    ).length;
+    const completedNewSessions = sessions.filter(
+      (s) => s.endedAt !== null && (s.endedAt > last || s.updatedAt > last),
+    ).length;
+    const unbackedPlayers = players.filter(
+      (p) => p.createdAt > last || p.updatedAt > last,
+    ).length;
+
+    const hasSubstantialWork =
+      completedNewSessions >= 1 || unbackedEvents >= 3 || unbackedSessions >= 1 || unbackedPlayers >= 2;
+
+    let summary = '';
+    if (hasSubstantialWork) {
+      const parts: string[] = [];
+      if (unbackedSessions)
+        parts.push(`${unbackedSessions} new practice${unbackedSessions > 1 ? 's' : ''}`);
+      if (unbackedEvents) parts.push(`${unbackedEvents} new contact${unbackedEvents > 1 ? 's' : ''}`);
+      if (!unbackedSessions && !unbackedEvents && unbackedPlayers) {
+        parts.push(`${unbackedPlayers} roster change${unbackedPlayers > 1 ? 's' : ''}`);
+      }
+      summary = `${parts.join(' and ')} recorded since your last backup`;
+    }
+
+    return {
+      hasSubstantialWork,
+      unbackedSessions,
+      unbackedEvents,
+      unbackedPlayers,
+      summary,
+    };
+  });
+
+  recordBackupExported(timestamp = now()): void {
+    this.lastBackupAt.set(timestamp);
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(LAST_BACKUP_STORAGE_KEY, timestamp);
+      }
+    } catch {
+      // Ignore storage restrictions
+    }
+  }
+
   private readonly repository = new CoachRepository();
+
   private initialization: Promise<void> | null = null;
   private pending: Promise<unknown> = Promise.resolve();
 
@@ -749,9 +851,19 @@ export class CoachStore {
       }
       changes.push({ table: 'settings', put: [data.settings] });
       await this.commit(changes);
+      this.recordBackupExported(imported.exportedAt || now());
     });
   }
   clearAll(): Promise<void> {
+    this.lastBackupAt.set(null);
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem(LAST_BACKUP_STORAGE_KEY);
+      }
+    } catch {
+      // Ignore storage restrictions
+    }
     return this.write(() => this.commit([], true));
   }
 }
+
