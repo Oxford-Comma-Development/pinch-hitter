@@ -128,6 +128,10 @@ label {
   gap: 6px;
   font-size: 13px;
   font-weight: 650;
+
+  .muted {
+    font-weight: 400;
+  }
 }
 .check-label {
   flex-direction: row;

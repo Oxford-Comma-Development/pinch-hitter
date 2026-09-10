@@ -32,14 +32,15 @@ import { CoachStore } from '../data/coach-store';
             /></label>
             <div class="form-grid">
               <label
-                >Short name <span class="muted small">Optional</span
+                ><span>Short name <span class="muted small">(optional)</span></span
                 ><input
                   name="shortName"
                   [(ngModel)]="shortName"
                   maxlength="20"
                   placeholder="WILDCATS" /></label
               ><label
-                >Season<input name="season" [(ngModel)]="season" maxlength="40" placeholder="2026"
+                ><span>Season</span
+                ><input name="season" [(ngModel)]="season" maxlength="40" placeholder="2026"
               /></label>
             </div>
             <button class="primary" [disabled]="busy() || !name.trim()">
