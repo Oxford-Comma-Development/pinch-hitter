@@ -87,6 +87,14 @@ Because Pinch Hitter is an offline-capable PWA used on baseball fields without r
    - The token is cached in IndexedDB with an `offlineValidUntil` timestamp (e.g., 30–60 days).
    - The coach can coach offline uninterrupted; Pinch Hitter refreshes validity whenever an internet connection is available.
 
+### 1.3 Current Implementation: Zero-Config Unlocked with In-App Tier Simulator
+
+The foundation of the entitlement engine is implemented in [`EntitlementService`](file:///c:/Users/chris/OneDrive/Documents/GitHub/pinch-hitter/src/app/data/entitlement.service.ts):
+
+- **Zero-Config Default**: Operates out-of-the-box in `pro` mode (`canAccess()` returns `true` for all capabilities). No external API keys, license files, or environment variables are required.
+- **In-App Simulator**: Coaches and developers can simulate either `Pro Coach` or `Free Coach` tiers via interactive radio selectors in `Settings → Coach License & Pro Features`.
+- **Clean Storage Separation**: The simulated tier is persisted in browser `localStorage` (`pinch_hitter_simulated_tier`) rather than IndexedDB, ensuring simulation flags never leak into team notebook backup exports.
+
 ---
 
 ## 2. Feature-by-Feature Pros & Cons and Gating Analysis
@@ -241,27 +249,34 @@ flowchart LR
 
 ## 5. Accessibility & Ergonomics (Universal Design)
 
-These display and ergonomic settings are built into the baseline application.
+These display and ergonomic settings are built into the baseline application and are fully implemented.
 
 ### 5.1 Color-Blind Safe Modes (Solving Red-on-Green on the Diamond)
 
 - **The Challenge**: A baseball diamond is naturally rendered as a green turf/grass surface (`--green: #235d42`). Standard baseball charts frequently use red dots for outs or hard-hit balls. For coaches with red-green color vision deficiency (deuteranopia or protanopia, affecting ~8% of men), red markers on green grass are nearly invisible or blend into muddy brown.
-- **The Solution**:
-  1. **Color-Blind Safe Palette**: Provide an optional color palette toggle (Settings → Display) utilizing mathematically proven accessible color scales (such as Okabe-Ito):
-     - Line drives: Bright Cyan / Sky Blue (`#56B4E9`)
-     - Fly balls: Vivid Yellow (`#F0E442`)
-     - Ground balls: Dark Charcoal / Slate (`#000000` / `#4B5563`)
-     - Pop-ups: Purple / Reddish Purple (`#CC79A7`)
-     - Bunts: Bright Orange (`#E69F00`)
-  2. **Multi-Shape Markers (Redundant Encoding)**:
-     - Never rely on color alone to communicate data.
-     - Out vs. Hit, or Trajectory classifications can use distinctive SVG glyphs:
-       - Circle: Standard hit / contact
-       - Cross / X: Out
-       - Diamond: Extra base hit
-       - Square: Hard-hit ball
-  3. **High-Contrast Field Surface**:
-     - Toggle between "Classic Ballpark Green" and "High-Contrast Monochrome / Blueprint Field" (slate/cream line art with maximized dot contrast under bright outdoor sunlight).
+- **The Implemented Solution**:
+  1. **Okabe-Ito Barrier-Free Palette**: Accessible color palette toggle (`Settings → Visual Accessibility & Display` and `⚙ Practice options`) utilizing the scientifically validated Okabe-Ito color spectrum:
+     - Dribblers & Singles: Vivid Yellow (`#F0E442`)
+     - Ground balls & Doubles: Orange (`#E69F00`)
+     - Line drives: Vermilion (`#D55E00`)
+     - Pop-ups & Triples: Sky Blue (`#56B4E9`)
+     - Fly balls & Home runs: Reddish Purple (`#CC79A7`)
+     - Outs & Whiffs: Dark Charcoal (`#2C3437`) / Black (`#000000`)
+     - CVD Heatmap Gradient: Deep Blue (`#0072B2`) → Sky Blue (`#56B4E9`) → Bright Yellow (`#F0E442`)
+  2. **Multi-Shape Markers (WCAG 1.4.1 Redundant Encoding)**:
+     - Color is never the sole visual differentiator. Every contact classification and outcome renders as a distinct geometric SVG glyph:
+       - Dribblers: Small Circle (`•`)
+       - Ground balls & Singles: Standard Circle (`●`)
+       - Line drives & Doubles: Diamond (`◆`)
+       - Fly balls & Triples: Upward Triangle (`▲`)
+       - Pop-ups: Inverted Triangle (`▼`)
+       - Outs & Whiffs: High-contrast Cross (`✖` / `⊗`)
+       - Home runs: 5-Point Star (`★`)
+       - Rocket hard hits: Square (`■`)
+       - Spray Chart Legend: Dynamically renders matching CSS shape glyphs alongside counts.
+  3. **High-Contrast Slate Field Surface**:
+     - Toggle between "Classic Ballpark Green" and "High-Contrast Slate" (`#0f172a` canvas, 6px pure white chalk foul lines, 4px baselines, pure white bases with 3px black borders, and high-visibility 700-weight white labels) to eliminate glare under 10,000-lumen midday summer sunlight.
+     - Automatically switches to an ink-friendly line-art blueprint when generating physical printouts (`@media print`).
 
 ### 5.2 Left-Handed Dugout Mode (One-Handed Mobile Ergonomics)
 
@@ -270,14 +285,15 @@ These display and ergonomic settings are built into the baseline application.
   - For left-handed coaches holding the phone in their left hand:
     - Reaching the bottom-right **"Next batter →"** primary action button requires awkward thumb strain across a 6.1"–6.7" smartphone screen.
     - Accidental taps on "Undo last" (bottom-left) can occur when reaching across.
-- **The Implementation**:
+- **The Implemented Solution**:
   - **Action Bar Mirroring**:
     - Right-Handed (Default): `[ ↶ Undo last ] [ Skip ] [ Next batter → (Primary) ]`
     - Left-Handed Mode: `[ ← Next batter (Primary) ] [ Skip ] [ Undo last ↷ ]`
   - **Thumb-Zone Controls**:
-    - The most frequent action ("Next batter") is pinned directly under the left thumb.
+    - The most frequent action ("Next batter") is pinned directly under the left thumb with `flex: 1.5`.
     - Switch-hitter side toggle (`Left / Right`) and pitcher hand toggle (`RHP / LHP`) align to the left rail for immediate one-thumb tapping.
-  - **Quick Dugout Toggle**: Accessible in Settings or via a fast one-tap icon in the practice header.
+    - Queue manipulation chips and drag handles mirror to the left edge.
+  - **Dual Access**: Configurable persistently in `Settings → Practice defaults` and instantly switchable on the field inside `⚙ Practice options`.
 
 ---
 

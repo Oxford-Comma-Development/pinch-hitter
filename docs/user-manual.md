@@ -20,6 +20,8 @@ Pinch Hitter was designed specifically for the coach standing behind the batting
    - [Pitcher Handedness & Switch Hitters](#pitcher-handedness--switch-hitters)
    - [Managing the Queue on the Fly](#managing-the-queue-on-the-fly)
    - [Hands-Free Voice Selection](#hands-free-voice-selection)
+   - [Left-Handed Dugout Mode](#left-handed-dugout-mode)
+   - [Practice Options & Mid-Session Toggles](#practice-options--mid-session-toggles)
    - [One-Tap Undo](#one-tap-undo)
 5. [Reports, Spray Charts & Analytics](#5-reports-spray-charts--analytics)
    - [Interactive Spray Charts](#interactive-spray-charts)
@@ -33,6 +35,11 @@ Pinch Hitter was designed specifically for the coach standing behind the batting
    - [CSV Spreadsheet Export](#csv-spreadsheet-export)
    - [Print & PDF Generation](#print--pdf-generation)
    - [Installing for 100% Offline Use](#installing-for-100-offline-use)
+7. [Accessibility, Display & Field Ergonomics](#7-accessibility-display--field-ergonomics)
+   - [Color-Blind Friendly Palette (Okabe-Ito)](#color-blind-friendly-palette-okabe-ito)
+   - [Multi-Shape Marker Glyphs](#multi-shape-marker-glyphs)
+   - [High-Contrast Slate Field for Direct Sunlight](#high-contrast-slate-field-for-direct-sunlight)
+   - [One-Handed Mobile Ergonomics](#one-handed-mobile-ergonomics)
 
 ---
 
@@ -198,6 +205,28 @@ If you're throwing batting practice or tracking while standing behind a safety s
 2. Say the player's name or number (e.g., _"Marcus"_, _"Chen"_, or _"Number 24"_).
 3. Pinch Hitter recognizes the hitter and automatically rotates them into the batter's box.
 
+### Left-Handed Dugout Mode
+
+In live batting practice, coaches rarely operate phones with two hands. One hand holds a fungo bat, a bucket of balls, or grips the protective screen. When holding a phone in your **left hand**, reaching across to the bottom-right corner for the primary "Next batter" button causes awkward thumb strain and accidental taps on "Undo".
+
+- **Left-Handed Mode** mirrors the bottom action bar:
+  - Standard (Right Hand): `[ ↶ Undo last ] [ Skip ] [ Next batter → ]`
+  - Left-Handed: `[ ← Next batter ] [ Skip ] [ Undo last ↷ ]`
+- The large `Next batter` button is placed directly under your left thumb.
+- Pitcher toggle (`RHP / LHP`) and queue management chips shift to the left rail for immediate one-thumb reach.
+- Enable it in **Settings → Practice defaults**, or toggle it instantly on the field in **`⚙ Practice options`**.
+
+---
+
+### Practice Options & Mid-Session Toggles
+
+Tap the **Gear (`⚙`)** icon in the practice toolbar at any time to adjust live session settings without stopping practice:
+
+- **Hitter Rotation**: Switch between manual advance and automatic rotation after 1, 3, 5, or custom recorded contacts.
+- **Left-Handed Dugout Mode**: Switch left/right hand reach on the fly.
+- **High-Contrast Sunlight Field**: Instantly switch the diamond to dark slate if outdoor sun glare makes the grass difficult to see.
+- **Color-Blind Friendly Palette**: Toggle the Okabe-Ito barrier-free color scheme.
+
 ---
 
 ### One-Tap Undo
@@ -301,3 +330,67 @@ Pinch Hitter is a Progressive Web App (PWA):
 - **Mac / Windows / Chromebook**: Click the install icon in your browser address bar or use **Settings → Install Coach Helper**.
 
 Once installed, Pinch Hitter launches in full screen like a native app and works anywhere you coach, with or without Wi-Fi or cellular service.
+
+---
+
+## 7. Accessibility, Display & Field Ergonomics
+
+Baseball and softball happen in bright sunlight, dusty dugouts, and high-pressure practice rounds. Pinch Hitter includes built-in visual accessibility and ergonomic controls designed to keep charts legible and recording fast under any field conditions.
+
+### Color-Blind Friendly Palette (Okabe-Ito)
+
+Baseball diagrams traditionally render as green turf, and contact outcomes are frequently marked in red (for outs) and green (for hits). For coaches with red-green color vision deficiency (deuteranopia or protanopia), red markers on green grass can blend into muddy brown.
+
+Pinch Hitter offers an accessible color palette based on the scientifically validated Okabe-Ito barrier-free color spectrum:
+
+- **Line Drives & Singles**: Bright, high-visibility Yellow (`#F0E442`).
+- **Ground Balls & Doubles**: Distinct Orange (`#E69F00`).
+- **Fly Balls & Triples**: Reddish Purple (`#CC79A7`).
+- **Pop-Ups**: Sky Blue (`#56B4E9`).
+- **Bunts**: Vivid Vermilion (`#D55E00`).
+- **Outs & Whiffs**: Dark Charcoal (`#2C3437`) and deep black borders for high contrast.
+- **CVD-Friendly Heatmaps**: Contact density transitions smoothly from Deep Blue (`#0072B2`) through Sky Blue (`#56B4E9`) to Bright Yellow (`#F0E442`), avoiding ambiguous red-green gradients.
+
+You can enable this in **Settings → Visual Accessibility & Display** or switch it live during practice via the **Practice Options (`⚙`)** sheet.
+
+---
+
+### Multi-Shape Marker Glyphs
+
+In harsh outdoor light or for coaches with severe vision differences, color alone is often not enough. Pinch Hitter supports redundant visual encoding (WCAG 1.4.1) through distinct geometric shapes:
+
+- **Line Drives**: Diamond (`◆`)
+- **Fly Balls**: Upward Triangle (`▲`)
+- **Ground Balls**: Standard Circle (`●`)
+- **Pop-Ups**: Inverted Triangle (`▼`)
+- **Bunts**: High-contrast Cross (`+`)
+- **Outs & Whiffs**: Square (`■`) or circled cross (`⊗`)
+- **Home Runs**: 5-Point Star (`★`)
+
+When shape markers are enabled, the spray chart legend, contact detail inspection cards, and the interactive SVG diamond all synchronize to show these geometric symbols. You can instantly distinguish contact trajectories even on black-and-white printouts or low-brightness screens.
+
+---
+
+### High-Contrast Slate Field for Direct Sunlight
+
+Midday summer doubleheaders bring intense solar glare that can wash out phone screens, making green grass backgrounds hard to read.
+
+The **High-Contrast Slate** theme replaces the green turf diamond with an obsidian slate field (`#0f172a`):
+
+- **6px Pure White Foul Lines**: Bold chalk lines remain razor-sharp even in full direct sunlight.
+- **Luminous White Bases**: First, second, and third bases and home plate render in high-contrast solid white with dark borders.
+- **Bold 700-Weight Typography**: Field yardage and position labels stand out clearly at arm's length.
+- **Print Optimization**: When you print or save a report to PDF, the app automatically converts the slate field into a clean, crisp line-art blueprint with white paper background, saving printer toner while preserving contrast.
+
+---
+
+### One-Handed Mobile Ergonomics
+
+Coaches rarely have two hands free during batting practice. You're typically holding a bat, gripping a bucket of balls, or steadying yourself against the protective L-screen while operating your phone with one thumb.
+
+Pinch Hitter's mobile layout is engineered for single-thumb reach:
+
+- **Right-Handed & Left-Handed Modes**: The bottom action bar can be flipped in seconds so your primary action button—**Next batter**—is positioned right under your thumb with extra touch padding (`flex: 1.5`), preventing thumb strain across large modern screens.
+- **Protected Secondary Actions**: The **Undo** button is positioned safely on the opposite corner to eliminate accidental taps when reaching for rotation controls.
+- **Single-Thumb Toggles**: Pitcher handedness (`RHP / LHP`), switch-hitter sides, and the lineup sheet button all adapt to your active hand rail.
+- **Mid-Session Practice Options**: Tap the gear (`⚙`) icon at the top of the practice screen to switch handedness, field theme, or rotation counts in two taps without losing your active round or queue state.

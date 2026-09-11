@@ -109,7 +109,14 @@ erDiagram
   - Scoped coaching notes attached to a team, player, session, or specific ball event.
 
 - **`AppSettings`**:
-  - Singleton settings record managing `activeTeamId`, `defaultPitcherHand`, `rotationCount`, and persistent preferences.
+  - Singleton settings record managing application preferences and dugout configurations:
+    - `activeTeamId`: ID of the currently selected active team.
+    - `defaultPitcherHand`: Baseline pitcher handedness (`'R'` or `'L'`) for new sessions.
+    - `rotationCount`: `null` for manual hitter advancement, or positive integer (e.g., 3, 5) for automatic rotation.
+    - `leftHandedMode`: Boolean dugout ergonomic flag that mirrors the action rail, placing "Next batter" under the left thumb and shifting pitcher/queue controls to the left edge.
+    - `colorPalette`: Color spectrum mode (`'standard'`, `'colorblind'` using Okabe-Ito barrier-free palette, or `'high_contrast'`).
+    - `fieldTheme`: Field canvas theme (`'classic'` green turf or `'high_contrast'` obsidian slate `#0f172a` for intense outdoor sunlight).
+    - `shapeMarkers`: Boolean enabling redundant geometric SVG marker glyphs (circles, diamonds, triangles, stars, crosses, squares) per WCAG 1.4.1.
 
 ---
 
@@ -163,6 +170,7 @@ src/app/
 │   ├── domain.ts             # Pure functions: queue math, coordinates, summaries, filters
 │   ├── repository.ts         # Native IndexedDB driver, schema upgrades, transaction handling
 │   ├── coach-store.ts        # Signal-based centralized store & serialized state mutations
+│   ├── entitlement.service.ts # Method-agnostic feature authorization & simulation tier
 │   └── transfer.ts           # JSON canonical backup/merge, CSV parsing & export
 │
 ├── home/                     # Home Dashboard
@@ -174,7 +182,7 @@ src/app/
 ├── practice/                 # Batting Practice Workspace
 │   ├── practice.component.ts # Live capture orchestration, speech recognition, sheets
 │   ├── practice.component.html # Field interaction, classification buttons, queue strip
-│   └── practice.component.scss # High-contrast dugout styling, touch-optimized targets
+│   └── practice.component.scss # High-contrast dugout styling, left-hand mirroring, touch targets
 │
 ├── reports/                  # Analytics & Reports
 │   ├── reports.component.ts  # Filtering signals, distributions, bulk event management
@@ -182,14 +190,32 @@ src/app/
 │   └── reports.component.html # Spray charts, heatmaps, breakdowns, print layout
 │
 ├── settings/                 # Settings & Data Management
-│   └── settings.component.ts # Team switcher, defaults, storage status, JSON/CSV exports
+│   └── settings.component.ts # Team switcher, defaults, visual accessibility, storage, tier simulator
 │
 ├── shared/                   # Reusable UI & Utilities
-│   ├── field.component.ts    # Normalized SVG baseball diamond & hit visualizer
+│   ├── field.component.ts    # Normalized SVG diamond: Okabe-Ito colors, shape markers, slate theme
 │   ├── modal.directive.ts    # Accessible native dialog wrapper
 │   ├── install.service.ts    # PWA install prompt handler
 │   └── files.ts              # Native Web Share API & download triggers
 ```
+
+### 5.1 Feature Entitlement & Authorization Architecture
+
+Pinch Hitter uses a method-agnostic authorization gateway (`EntitlementService` in `src/app/data/entitlement.service.ts`):
+
+- **Zero-Config Default**: Out of the box, `EntitlementService` defaults to fully unlocked (`pro`), allowing all coaches immediate access without requiring license files, logins, or environment variables.
+- **Method-Agnostic Interface**: Consumers call `canAccess(feature: FeatureKey)` or read reactive signals (`tier()`, `isPro()`). The caller never knows whether an entitlement was granted via a local test toggle, a cryptographic license key, or a future payment webhook.
+- **In-App Simulator Switch**: In `Settings → Pro Features Simulator`, coaches and developers can toggle between `Pro Coach` and `Free Coach` to test gated boundaries. The simulation state persists in `localStorage` (`pinch-hitter:simulated-tier`).
+- **Extensible Verification Hook**: Designed to seamlessly accept future verification mechanisms (such as offline Ed25519 signature checks or Stripe webhooks) without altering application or domain logic.
+
+### 5.2 Accessibility & Dugout Ergonomics Architecture
+
+Pinch Hitter treats accessibility and dugout usability as baseline universal design:
+
+- **Okabe-Ito Barrier-Free Palette**: Implemented in `FieldComponent` and `ReportsComponent`. Replaces problematic red-green pairings with scientifically validated high-contrast pigments (yellow, orange, vermilion, sky blue, reddish purple) and blue-to-yellow density heatmaps.
+- **Multi-Shape Glyph Markers (WCAG 1.4.1)**: Redundant visual encoding ensures color is never the only data carrier. Batted-ball markers render as distinct geometric SVG shapes (circles, diamonds, triangles, stars, crosses, squares). The spray chart legend synchronizes with these shapes dynamically.
+- **High-Contrast Slate Field (`#0f172a`)**: Designed for intense direct sunlight (midday summer games). Sharp 6px solid pure white foul lines and bright white bases ensure visibility through glare. Physical printing automatically inverts this canvas to an ink-saving line-art blueprint.
+- **Left-Handed Dugout Ergonomics**: In batting practice, coaches frequently operate phones with one hand while holding equipment. `PracticeComponent` supports full mirroring of the bottom action bar (`flex: 1.5` primary "Next batter" button positioned under the left thumb) and moves pitcher and queue controls to the left rail for single-thumb reach.
 
 ---
 

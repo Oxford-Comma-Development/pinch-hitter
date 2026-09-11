@@ -13,7 +13,7 @@ A coach’s personal baseball notebook and batting-practice spray chart. Built f
 5. Finish and review a player or practice. Explore the spray chart, density, event history, classifications, pitcher splits, and direction tendencies. Correct older observations with explicit Save / Cancel controls, reassign hits to another player, or use bulk tools to move and delete contacts.
 6. Download or share a backup after practice.
 
-The active practice screen includes current hitter, on-deck queue, touch reordering, skip/defer, sit-out/return, direct player selection, RHP/LHP, switch-hitter side, notes, and Undo Last. Undo also restores an automatic hitter change. Speech selection is optional and falls back to searchable roster selection.
+The active practice screen includes current hitter, on-deck queue, touch reordering, skip/defer, sit-out/return, direct player selection, RHP/LHP, switch-hitter side, notes, and Undo Last. Undo also restores an automatic hitter change. Left-Handed Dugout Mode mirrors the action rail to position "Next batter" right under the left thumb and shifts queue controls to the left edge. Visual accessibility settings provide an Okabe-Ito barrier-free palette, multi-shape marker glyphs (WCAG 1.4.1), and an obsidian slate diamond for intense outdoor sunlight. Speech selection is optional and falls back to searchable roster selection.
 
 ## Your notebook belongs to you
 
@@ -67,8 +67,9 @@ npm run e2e:pwa
 - `src/app/data/domain.ts`: pure queue, event creation, undo, coordinate, filtering, and summary logic.
 - `src/app/data/repository.ts`: native IndexedDB stores, indexes, migrations, revision checks, and atomic transactions.
 - `src/app/data/coach-store.ts`: signal-based application state and serialized writes. Web Locks coordinate tabs when available; transaction revision checks prevent stale writes without that API.
+- `src/app/data/entitlement.service.ts`: method-agnostic feature authorization gateway. Defaults to unlocked (`pro`) out-of-the-box with a built-in simulator switch in Settings for local verification.
 - `src/app/data/transfer.ts`: strict portable backup validation/merge, roster CSV parsing, and event exports.
-- `src/app/shared/field.component.ts`: responsive normalized SVG used for capture, reports, and corrections. The source coordinate system is square, top-left origin, X right, Y down, home plate `(0.5, 0.88)`, version 1.
+- `src/app/shared/field.component.ts`: responsive normalized SVG used for capture, reports, and corrections. Supports classic turf and high-contrast slate themes, Okabe-Ito barrier-free color mapping, and geometric SVG marker glyphs. The source coordinate system is square, top-left origin, X right, Y down, home plate `(0.5, 0.88)`, version 1.
 - `src/app/reports/`: combined filters, distributions with explicit denominators, density derived from observations, event editing, and print layouts.
 
 Raw locations are authoritative. Classifications are nullable. Batter and pitcher handedness are captured per event; player metadata edits cannot rewrite the historical batting side. Counts mean recorded contacts, never inferred swings, batting average, or complete game statistics. The notebook models one season per team record; create another team/season in Settings to keep seasons separate.
