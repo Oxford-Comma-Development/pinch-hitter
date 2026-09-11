@@ -99,6 +99,57 @@ export class ReportsComponent {
   playerManageAction = signal<'move' | 'delete'>('move');
   playerManageTargetId = '';
 
+  legendShapeClass(typeOrRating: string | number): string {
+    if (!this.store.settings().shapeMarkers) return 'shape-circle';
+    if (this.colorBy() === 'result') {
+      switch (typeOrRating) {
+        case 'out':
+          return 'shape-cross';
+        case 'single':
+          return 'shape-circle';
+        case 'double':
+          return 'shape-diamond';
+        case 'triple':
+          return 'shape-triangle-up';
+        case 'home-run':
+          return 'shape-star';
+        default:
+          return 'shape-circle';
+      }
+    }
+    if (this.colorBy() === 'hardHit') {
+      switch (typeOrRating) {
+        case 0:
+          return 'shape-cross';
+        case 1:
+        case 2:
+          return 'shape-circle';
+        case 3:
+          return 'shape-triangle-up';
+        case 4:
+          return 'shape-diamond';
+        case 5:
+          return 'shape-square';
+        default:
+          return 'shape-circle';
+      }
+    }
+    switch (typeOrRating) {
+      case 'dribbler':
+        return 'shape-small-circle';
+      case 'ground-ball':
+        return 'shape-circle';
+      case 'line-drive':
+        return 'shape-diamond';
+      case 'fly-ball':
+        return 'shape-triangle-up';
+      case 'pop-up':
+        return 'shape-triangle-down';
+      default:
+        return 'shape-circle';
+    }
+  }
+
   readonly players = computed(() =>
     this.store
       .players()

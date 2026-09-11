@@ -210,6 +210,18 @@ function parseSettings(row: JsonObject): AppSettings {
     defaultPitcherHand: enumeration(row['defaultPitcherHand'], ['L', 'R'], 'Default pitcher hand'),
     rotationCount: rotation(row['rotationCount']),
     haptics: row['haptics'],
+    leftHandedMode: typeof row['leftHandedMode'] === 'boolean' ? row['leftHandedMode'] : false,
+    colorPalette:
+      typeof row['colorPalette'] === 'string' &&
+      ['standard', 'colorblind', 'high_contrast'].includes(row['colorPalette'])
+        ? (row['colorPalette'] as AppSettings['colorPalette'])
+        : 'standard',
+    fieldTheme:
+      typeof row['fieldTheme'] === 'string' &&
+      ['classic', 'high_contrast'].includes(row['fieldTheme'])
+        ? (row['fieldTheme'] as AppSettings['fieldTheme'])
+        : 'classic',
+    shapeMarkers: typeof row['shapeMarkers'] === 'boolean' ? row['shapeMarkers'] : false,
     updatedAt: date(row['updatedAt'], 'Settings update'),
   };
 }

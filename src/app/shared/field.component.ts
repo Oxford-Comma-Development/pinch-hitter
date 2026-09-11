@@ -1,5 +1,5 @@
 import { Component, computed, input, output, signal } from '@angular/core';
-import { BallEvent } from '../data/models';
+import { BallEvent, ColorPaletteMode, FieldThemeMode } from '../data/models';
 
 export interface FieldPoint {
   x: number;
@@ -46,6 +46,60 @@ export const HARD_HIT_COLORS: Record<string, string> = {
   unclassified: '#ffffff',
 };
 
+// Okabe-Ito barrier-free color palette (universally distinguishable across CVD types)
+export const OKABE_ITO_CONTACT_COLORS: Record<string, string> = {
+  dribbler: '#f0e442', // Yellow
+  'ground-ball': '#e69f00', // Orange
+  'line-drive': '#d55e00', // Vermilion
+  'pop-up': '#56b4e9', // Sky Blue
+  'fly-ball': '#cc79a7', // Reddish Purple
+  unclassified: '#ffffff',
+};
+export const OKABE_ITO_RESULT_COLORS: Record<string, string> = {
+  out: '#2c3437', // Dark Charcoal
+  single: '#f0e442', // Yellow
+  double: '#e69f00', // Orange
+  triple: '#56b4e9', // Sky Blue
+  'home-run': '#cc79a7', // Reddish Purple
+  unclassified: '#ffffff',
+};
+export const OKABE_ITO_HARD_HIT_COLORS: Record<string, string> = {
+  '0': '#000000', // Black
+  '1': '#f0e442', // Yellow
+  '2': '#e69f00', // Orange
+  '3': '#56b4e9', // Sky Blue
+  '4': '#0072b2', // Deep Blue
+  '5': '#cc79a7', // Reddish Purple
+  unclassified: '#ffffff',
+};
+
+// High contrast palette (maximized luminance contrast for harsh sunlight)
+export const HIGH_CONTRAST_CONTACT_COLORS: Record<string, string> = {
+  dribbler: '#ffeb3b', // Bright Yellow
+  'ground-ball': '#ff9800', // Deep Amber
+  'line-drive': '#ff3d00', // Bright Vermilion
+  'pop-up': '#00e5ff', // Electric Cyan
+  'fly-ball': '#e040fb', // Neon Purple
+  unclassified: '#ffffff',
+};
+export const HIGH_CONTRAST_RESULT_COLORS: Record<string, string> = {
+  out: '#1e293b', // Deep Slate
+  single: '#ffeb3b',
+  double: '#ff9800',
+  triple: '#00e5ff',
+  'home-run': '#e040fb',
+  unclassified: '#ffffff',
+};
+export const HIGH_CONTRAST_HARD_HIT_COLORS: Record<string, string> = {
+  '0': '#000000',
+  '1': '#ffeb3b',
+  '2': '#ff9800',
+  '3': '#00e5ff',
+  '4': '#2979ff',
+  '5': '#e040fb',
+  unclassified: '#ffffff',
+};
+
 @Component({
   selector: 'app-field',
   template: `
@@ -53,6 +107,7 @@ export const HARD_HIT_COLORS: Record<string, string> = {
       viewBox="0 0 1000 1000"
       preserveAspectRatio="xMidYMid meet"
       [class.capture]="interactive()"
+      [class.high-contrast-field]="theme() === 'high_contrast'"
       [attr.role]="interactive() ? 'button' : 'img'"
       [attr.tabindex]="interactive() ? 0 : null"
       [attr.aria-label]="label()"
@@ -76,25 +131,82 @@ export const HARD_HIT_COLORS: Record<string, string> = {
           <path d="M 500 880 L 64 444 C 131 -44 869 -44 936 444 Z" />
         </clipPath>
         <radialGradient [id]="heatId">
-          <stop offset="0" stop-color="#ff582c" stop-opacity=".88" />
-          <stop offset=".4" stop-color="#ffb433" stop-opacity=".65" />
-          <stop offset="1" stop-color="#ffec8b" stop-opacity="0" />
+          @if (palette() !== 'standard') {
+            <stop offset="0" stop-color="#d55e00" stop-opacity=".95" />
+            <stop offset=".4" stop-color="#56b4e9" stop-opacity=".75" />
+            <stop offset="1" stop-color="#f0e442" stop-opacity="0" />
+          } @else {
+            <stop offset="0" stop-color="#ff582c" stop-opacity=".88" />
+            <stop offset=".4" stop-color="#ffb433" stop-opacity=".65" />
+            <stop offset="1" stop-color="#ffec8b" stop-opacity="0" />
+          }
         </radialGradient>
       </defs>
-      <rect width="1000" height="1000" rx="28" fill="#173f36" />
-      <path d="M 500 880 L 64 444 C 131 -44 869 -44 936 444 Z" fill="#37734c" />
-      <g [attr.clip-path]="'url(#' + clipId + ')'" opacity=".2" fill="#a3c977">
+      <rect
+        width="1000"
+        height="1000"
+        rx="28"
+        [attr.fill]="theme() === 'high_contrast' ? '#080d14' : '#173f36'"
+      />
+      <path
+        d="M 500 880 L 64 444 C 131 -44 869 -44 936 444 Z"
+        [attr.fill]="theme() === 'high_contrast' ? '#0f172a' : '#37734c'"
+      />
+      <g
+        [attr.clip-path]="'url(#' + clipId + ')'"
+        [attr.opacity]="theme() === 'high_contrast' ? '.12' : '.2'"
+        [attr.fill]="theme() === 'high_contrast' ? '#334155' : '#a3c977'"
+      >
         <path d="M0 80H1000V180H0z M0 280H1000V380H0z M0 480H1000V580H0z M0 680H1000V780H0z" />
       </g>
-      <path d="M64 444 C131 -44 869 -44 936 444" fill="none" stroke="#c7b78c" stroke-width="20" />
-      <path d="M64 444 C131 -44 869 -44 936 444" fill="none" stroke="#fff4d3" stroke-width="3" />
-      <path d="M 500 880 L 277 657 Q 500 383 723 657 Z" fill="#bf9769" />
-      <path d="M500 829L357 686L500 543L643 686Z" fill="#448052" />
-      <path d="M42 422L500 880L958 422" fill="none" stroke="#fff9df" stroke-width="5" />
-      <path d="M500 880L330 710L500 540L670 710Z" fill="none" stroke="#fbebc5" stroke-width="3" />
-      <circle cx="500" cy="716" r="32" fill="#cda478" />
-      <path d="M485 714H515" stroke="#fff9ec" stroke-width="7" />
-      <g fill="#fff9e8" stroke="#987b53" stroke-width="2">
+      <path
+        d="M64 444 C131 -44 869 -44 936 444"
+        fill="none"
+        [attr.stroke]="theme() === 'high_contrast' ? '#334155' : '#c7b78c'"
+        stroke-width="20"
+      />
+      <path
+        d="M64 444 C131 -44 869 -44 936 444"
+        fill="none"
+        [attr.stroke]="theme() === 'high_contrast' ? '#38bdf8' : '#fff4d3'"
+        [attr.stroke-width]="theme() === 'high_contrast' ? '4' : '3'"
+      />
+      <path
+        d="M 500 880 L 277 657 Q 500 383 723 657 Z"
+        [attr.fill]="theme() === 'high_contrast' ? '#1e293b' : '#bf9769'"
+      />
+      <path
+        d="M500 829L357 686L500 543L643 686Z"
+        [attr.fill]="theme() === 'high_contrast' ? '#0f172a' : '#448052'"
+      />
+      <path
+        d="M42 422L500 880L958 422"
+        fill="none"
+        [attr.stroke]="theme() === 'high_contrast' ? '#ffffff' : '#fff9df'"
+        [attr.stroke-width]="theme() === 'high_contrast' ? '6' : '5'"
+      />
+      <path
+        d="M500 880L330 710L500 540L670 710Z"
+        fill="none"
+        [attr.stroke]="theme() === 'high_contrast' ? '#ffffff' : '#fbebc5'"
+        [attr.stroke-width]="theme() === 'high_contrast' ? '4' : '3'"
+      />
+      <circle
+        cx="500"
+        cy="716"
+        r="32"
+        [attr.fill]="theme() === 'high_contrast' ? '#334155' : '#cda478'"
+      />
+      <path
+        d="M485 714H515"
+        [attr.stroke]="theme() === 'high_contrast' ? '#ffffff' : '#fff9ec'"
+        stroke-width="7"
+      />
+      <g
+        [attr.fill]="theme() === 'high_contrast' ? '#ffffff' : '#fff9e8'"
+        [attr.stroke]="theme() === 'high_contrast' ? '#000000' : '#987b53'"
+        [attr.stroke-width]="theme() === 'high_contrast' ? '3' : '2'"
+      >
         <path d="M500 871L513 879V891H487V879Z" />
         <path d="M330 698L342 710L330 722L318 710Z" />
         <path d="M500 528L512 540L500 552L488 540Z" />
@@ -103,15 +215,15 @@ export const HARD_HIT_COLORS: Record<string, string> = {
       <path
         d="M457 866H477V902H457Z M523 866H543V902H523Z"
         fill="none"
-        stroke="#e8e6d3"
-        stroke-width="2"
+        [attr.stroke]="theme() === 'high_contrast' ? '#ffffff' : '#e8e6d3'"
+        [attr.stroke-width]="theme() === 'high_contrast' ? '3' : '2'"
       />
       <g
-        fill="#f7f4db"
-        opacity=".8"
+        [attr.fill]="theme() === 'high_contrast' ? '#ffffff' : '#f7f4db'"
+        [attr.opacity]="theme() === 'high_contrast' ? '1' : '.8'"
         font-family="system-ui, sans-serif"
         font-size="25"
-        font-weight="600"
+        font-weight="700"
         text-anchor="middle"
         letter-spacing="4"
       >
@@ -136,17 +248,17 @@ export const HARD_HIT_COLORS: Record<string, string> = {
             @if (event.id === selectedId()) {
               <path
                 [attr.d]="'M500 880 L' + event.fieldX * 1000 + ' ' + event.fieldY * 1000"
-                stroke="#fff9df"
+                [attr.stroke]="theme() === 'high_contrast' ? '#38bdf8' : '#fff9df'"
                 stroke-width="3"
                 stroke-dasharray="9 8"
-                opacity=".7"
+                opacity=".85"
               />
               <circle
                 [attr.cx]="event.fieldX * 1000"
                 [attr.cy]="event.fieldY * 1000"
                 r="26"
                 fill="none"
-                stroke="#fff9df"
+                [attr.stroke]="theme() === 'high_contrast' ? '#38bdf8' : '#fff9df'"
                 stroke-width="5"
               />
             }
@@ -156,23 +268,121 @@ export const HARD_HIT_COLORS: Record<string, string> = {
                   'translate(' + event.fieldX * 1000 + ',' + event.fieldY * 1000 + ')'
                 "
               >
-                <circle r="12" fill="#2d3436" stroke="#fff9df" stroke-width="2" />
+                <circle
+                  r="12"
+                  [attr.fill]="theme() === 'high_contrast' ? '#000000' : '#2d3436'"
+                  [attr.stroke]="theme() === 'high_contrast' ? '#ffffff' : '#fff9df'"
+                  stroke-width="2"
+                />
                 <path
                   d="M-6 -6 L6 6 M-6 6 L6 -6"
-                  stroke="#ff7675"
+                  [attr.stroke]="palette() !== 'standard' ? '#ffffff' : '#ff7675'"
                   stroke-width="2.5"
                   stroke-linecap="round"
                 />
               </g>
             } @else {
-              <circle
-                [attr.cx]="event.fieldX * 1000"
-                [attr.cy]="event.fieldY * 1000"
-                [attr.r]="event.id === selectedId() ? 14 : 11"
-                [attr.fill]="eventColor(event)"
-                stroke="#142f2b"
-                stroke-width="3"
-              />
+              @switch (markerShape(event)) {
+                @case ('cross') {
+                  <g
+                    [attr.transform]="
+                      'translate(' + event.fieldX * 1000 + ',' + event.fieldY * 1000 + ')'
+                    "
+                  >
+                    <circle
+                      r="12"
+                      [attr.fill]="eventColor(event)"
+                      [attr.stroke]="markerStroke(event)"
+                      stroke-width="3"
+                    />
+                    <path
+                      d="M-5 -5 L5 5 M-5 5 L5 -5"
+                      stroke="#ffffff"
+                      stroke-width="2.5"
+                      stroke-linecap="round"
+                    />
+                  </g>
+                }
+                @case ('small-circle') {
+                  <circle
+                    [attr.cx]="event.fieldX * 1000"
+                    [attr.cy]="event.fieldY * 1000"
+                    r="8"
+                    [attr.fill]="eventColor(event)"
+                    [attr.stroke]="markerStroke(event)"
+                    stroke-width="2.5"
+                  />
+                }
+                @case ('diamond') {
+                  <polygon
+                    [attr.transform]="
+                      'translate(' + event.fieldX * 1000 + ',' + event.fieldY * 1000 + ')'
+                    "
+                    points="0,-14 14,0 0,14 -14,0"
+                    [attr.fill]="eventColor(event)"
+                    [attr.stroke]="markerStroke(event)"
+                    stroke-width="3"
+                  />
+                }
+                @case ('triangle-up') {
+                  <polygon
+                    [attr.transform]="
+                      'translate(' + event.fieldX * 1000 + ',' + event.fieldY * 1000 + ')'
+                    "
+                    points="0,-15 13,10 -13,10"
+                    [attr.fill]="eventColor(event)"
+                    [attr.stroke]="markerStroke(event)"
+                    stroke-width="3"
+                  />
+                }
+                @case ('triangle-down') {
+                  <polygon
+                    [attr.transform]="
+                      'translate(' + event.fieldX * 1000 + ',' + event.fieldY * 1000 + ')'
+                    "
+                    points="0,15 13,-10 -13,-10"
+                    [attr.fill]="eventColor(event)"
+                    [attr.stroke]="markerStroke(event)"
+                    stroke-width="3"
+                  />
+                }
+                @case ('star') {
+                  <polygon
+                    [attr.transform]="
+                      'translate(' + event.fieldX * 1000 + ',' + event.fieldY * 1000 + ')'
+                    "
+                    points="0,-15 4.5,-4.5 15,-4.5 6.5,2.5 10,14 0,7 -10,14 -6.5,2.5 -15,-4.5 -4.5,-4.5"
+                    [attr.fill]="eventColor(event)"
+                    [attr.stroke]="markerStroke(event)"
+                    stroke-width="2.5"
+                  />
+                }
+                @case ('square') {
+                  <rect
+                    [attr.transform]="
+                      'translate(' + event.fieldX * 1000 + ',' + event.fieldY * 1000 + ')'
+                    "
+                    x="-11"
+                    y="-11"
+                    width="22"
+                    height="22"
+                    rx="3"
+                    [attr.fill]="eventColor(event)"
+                    [attr.stroke]="markerStroke(event)"
+                    stroke-width="3"
+                  />
+                }
+                @default {
+                  <circle
+                    [attr.cx]="event.fieldX * 1000"
+                    [attr.cy]="event.fieldY * 1000"
+                    [attr.r]="event.id === selectedId() ? 14 : 11"
+                    [attr.fill]="eventColor(event)"
+                    [attr.stroke]="markerStroke(event)"
+                    stroke-width="3"
+                  />
+                }
+              }
             }
             <circle
               [attr.cx]="event.fieldX * 1000"
@@ -240,6 +450,11 @@ export const HARD_HIT_COLORS: Record<string, string> = {
     .capture .observation {
       pointer-events: none;
     }
+    @media print {
+      svg.high-contrast-field {
+        filter: invert(1) hue-rotate(180deg);
+      }
+    }
   `,
 })
 export class FieldComponent {
@@ -248,6 +463,9 @@ export class FieldComponent {
   readonly interactive = input(false);
   readonly heat = input(false);
   readonly colorBy = input<'contactType' | 'result' | 'hardHit'>('contactType');
+  readonly palette = input<ColorPaletteMode>('standard');
+  readonly theme = input<FieldThemeMode>('classic');
+  readonly shapeMarkers = input(false);
   readonly label = input('Baseball spray chart');
   // This chart output carries coordinates; it does not refer to window.location.
   // eslint-disable-next-line @angular-eslint/no-output-native
@@ -278,16 +496,103 @@ export class FieldComponent {
   });
 
   eventColor(event: BallEvent): string {
+    const isCvd = this.palette() === 'colorblind';
+    const isHc = this.palette() === 'high_contrast';
     if (this.colorBy() === 'hardHit') {
       const key =
         event.hardHit !== null && event.hardHit !== undefined
           ? String(event.hardHit)
           : 'unclassified';
-      return HARD_HIT_COLORS[key] || HARD_HIT_COLORS['unclassified'];
+      const map = isHc
+        ? HIGH_CONTRAST_HARD_HIT_COLORS
+        : isCvd
+          ? OKABE_ITO_HARD_HIT_COLORS
+          : HARD_HIT_COLORS;
+      return map[key] || map['unclassified'];
     }
-    return (this.colorBy() === 'result' ? RESULT_COLORS : CONTACT_COLORS)[
-      (event[this.colorBy()] as string) || 'unclassified'
-    ];
+    const isResult = this.colorBy() === 'result';
+    const val = (event[this.colorBy()] as string) || 'unclassified';
+    const map = isHc
+      ? isResult
+        ? HIGH_CONTRAST_RESULT_COLORS
+        : HIGH_CONTRAST_CONTACT_COLORS
+      : isCvd
+        ? isResult
+          ? OKABE_ITO_RESULT_COLORS
+          : OKABE_ITO_CONTACT_COLORS
+        : isResult
+          ? RESULT_COLORS
+          : CONTACT_COLORS;
+    return map[val] || map['unclassified'];
+  }
+
+  markerStroke(event: BallEvent): string {
+    if (this.theme() === 'high_contrast') {
+      if (event.hardHit === 0 || (this.colorBy() === 'result' && event.result === 'out')) {
+        return '#ffffff';
+      }
+      return '#000000';
+    }
+    return '#142f2b';
+  }
+
+  markerShape(
+    event: BallEvent,
+  ):
+    | 'circle'
+    | 'small-circle'
+    | 'diamond'
+    | 'triangle-up'
+    | 'triangle-down'
+    | 'cross'
+    | 'star'
+    | 'square' {
+    if (!this.shapeMarkers()) return 'circle';
+    if (this.colorBy() === 'result') {
+      switch (event.result) {
+        case 'out':
+          return 'cross';
+        case 'single':
+          return 'circle';
+        case 'double':
+          return 'diamond';
+        case 'triple':
+          return 'triangle-up';
+        case 'home-run':
+          return 'star';
+        default:
+          return 'circle';
+      }
+    }
+    if (this.colorBy() === 'hardHit') {
+      switch (event.hardHit) {
+        case 1:
+        case 2:
+          return 'circle';
+        case 3:
+          return 'triangle-up';
+        case 4:
+          return 'diamond';
+        case 5:
+          return 'square';
+        default:
+          return 'circle';
+      }
+    }
+    switch (event.contactType) {
+      case 'dribbler':
+        return 'small-circle';
+      case 'ground-ball':
+        return 'circle';
+      case 'line-drive':
+        return 'diamond';
+      case 'fly-ball':
+        return 'triangle-up';
+      case 'pop-up':
+        return 'triangle-down';
+      default:
+        return 'circle';
+    }
   }
 
   beginTap(event: PointerEvent): void {

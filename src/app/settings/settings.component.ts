@@ -4,6 +4,7 @@ import { DatePipe } from '@angular/common';
 import { ModalDirective } from '../shared/modal.directive';
 import { InstallService } from '../shared/install.service';
 import { CoachStore } from '../data/coach-store';
+import { EntitlementService, CoachTier } from '../data/entitlement.service';
 import { ImportPreview, Team } from '../data/models';
 import { eventsCsv, backupJson } from '../data/transfer';
 import { RouterLink } from '@angular/router';
@@ -81,8 +82,231 @@ import { backupFileName, canShareFiles, downloadFile, shareFile } from '../share
               /></label>
             }
           </div>
+          <label
+            class="check-label"
+            style="margin-top: 14px; display: flex; align-items: center; gap: 8px;"
+          >
+            <input
+              type="checkbox"
+              [ngModel]="store.settings().leftHandedMode"
+              (ngModelChange)="store.updateSettings({ leftHandedMode: $event })"
+            />
+            Left-handed dugout mode (mirrors primary controls for left-thumb reach)
+          </label>
           <p class="muted small">
             Defaults apply to new practices. You can change them during a session.
+          </p>
+        </section>
+        <section class="card visual-card">
+          <p class="eyebrow">VISUAL ACCESSIBILITY &amp; DISPLAY</p>
+          <h2>Field surface &amp; color palette</h2>
+          <p class="muted small">
+            Customize spray chart contrast and marker colors for barrier-free vision and outdoor
+            sunlight.
+          </p>
+
+          <fieldset class="setting-group" style="margin-top: 16px; border: 0; padding: 0;">
+            <legend class="eyebrow" style="margin-bottom: 8px;">COLOR PALETTE</legend>
+            <div class="visual-options" role="radiogroup" aria-label="Spray chart color palette">
+              <label
+                class="visual-option"
+                [class.selected]="(store.settings().colorPalette || 'standard') === 'standard'"
+              >
+                <input
+                  type="radio"
+                  name="colorPalette"
+                  value="standard"
+                  [checked]="(store.settings().colorPalette || 'standard') === 'standard'"
+                  (change)="store.updateSettings({ colorPalette: 'standard' })"
+                />
+                <div>
+                  <strong>Standard Classic</strong>
+                  <p class="small muted">Pastel palette: soft coral, amber, and violet tones.</p>
+                </div>
+              </label>
+
+              <label
+                class="visual-option"
+                [class.selected]="store.settings().colorPalette === 'colorblind'"
+              >
+                <input
+                  type="radio"
+                  name="colorPalette"
+                  value="colorblind"
+                  [checked]="store.settings().colorPalette === 'colorblind'"
+                  (change)="
+                    store.updateSettings({ colorPalette: 'colorblind', shapeMarkers: true })
+                  "
+                />
+                <div>
+                  <strong>Color-Blind Friendly (Okabe-Ito)</strong>
+                  <p class="small muted">
+                    Barrier-free spectrum for red-green CVD (deuteranopia, protanopia) with
+                    blue-yellow heatmaps.
+                  </p>
+                </div>
+              </label>
+
+              <label
+                class="visual-option"
+                [class.selected]="store.settings().colorPalette === 'high_contrast'"
+              >
+                <input
+                  type="radio"
+                  name="colorPalette"
+                  value="high_contrast"
+                  [checked]="store.settings().colorPalette === 'high_contrast'"
+                  (change)="
+                    store.updateSettings({ colorPalette: 'high_contrast', shapeMarkers: true })
+                  "
+                />
+                <div>
+                  <strong>High Contrast</strong>
+                  <p class="small muted">
+                    Maximized luminance contrast: electric yellow, cyan, and neon accents.
+                  </p>
+                </div>
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset class="setting-group" style="margin-top: 18px; border: 0; padding: 0;">
+            <legend class="eyebrow" style="margin-bottom: 8px;">FIELD SURFACE</legend>
+            <div class="visual-options" role="radiogroup" aria-label="Field background surface">
+              <label
+                class="visual-option"
+                [class.selected]="(store.settings().fieldTheme || 'classic') === 'classic'"
+              >
+                <input
+                  type="radio"
+                  name="fieldTheme"
+                  value="classic"
+                  [checked]="(store.settings().fieldTheme || 'classic') === 'classic'"
+                  (change)="store.updateSettings({ fieldTheme: 'classic' })"
+                />
+                <div>
+                  <strong>Classic Ballpark Green</strong>
+                  <p class="small muted">Traditional grass field with dirt infield diamond.</p>
+                </div>
+              </label>
+
+              <label
+                class="visual-option"
+                [class.selected]="store.settings().fieldTheme === 'high_contrast'"
+              >
+                <input
+                  type="radio"
+                  name="fieldTheme"
+                  value="high_contrast"
+                  [checked]="store.settings().fieldTheme === 'high_contrast'"
+                  (change)="store.updateSettings({ fieldTheme: 'high_contrast' })"
+                />
+                <div>
+                  <strong>High-Contrast Slate (Direct Sunlight)</strong>
+                  <p class="small muted">
+                    Deep slate field with bold white chalk baselines and high-visibility bases to
+                    cut outdoor glare.
+                  </p>
+                </div>
+              </label>
+            </div>
+          </fieldset>
+
+          <div style="margin-top: 18px;">
+            <label class="check-label" style="display: flex; align-items: center; gap: 8px;">
+              <input
+                type="checkbox"
+                [ngModel]="store.settings().shapeMarkers"
+                (ngModelChange)="store.updateSettings({ shapeMarkers: $event })"
+              />
+              Multi-shape marker glyphs (circles, diamonds, triangles, crosses, and stars)
+            </label>
+            <p class="small muted" style="margin-top: 4px; margin-left: 28px;">
+              Ensures contact classifications and results are distinguishable without relying on
+              color alone (WCAG 1.4.1).
+            </p>
+          </div>
+        </section>
+        <section class="card license-card">
+          <p class="eyebrow">COACH LICENSE</p>
+          <div class="license-heading">
+            <h2>Pro features &amp; license</h2>
+            <span class="badge" [class.badge-pro]="entitlement.isPro()">
+              {{ entitlement.isPro() ? 'PRO COACH' : 'FREE COACH' }}
+            </span>
+          </div>
+          <p class="muted small">
+            Test and preview Pinch Hitter features. Choose between full Pro access or simulated Free
+            Coach tier.
+          </p>
+
+          <div class="license-simulator" role="radiogroup" aria-label="Simulated license tier">
+            <label class="simulator-option" [class.selected]="entitlement.tier() === 'pro'">
+              <input
+                type="radio"
+                name="simulatedTier"
+                value="pro"
+                [checked]="entitlement.tier() === 'pro'"
+                (change)="setTier('pro')"
+              />
+              <div>
+                <strong>Pro Coach (Unlocked)</strong>
+                <p class="small muted">
+                  All features unlocked: custom fences, multi-team, deep analytics.
+                </p>
+              </div>
+            </label>
+
+            <label class="simulator-option" [class.selected]="entitlement.tier() === 'free'">
+              <input
+                type="radio"
+                name="simulatedTier"
+                value="free"
+                [checked]="entitlement.tier() === 'free'"
+                (change)="setTier('free')"
+              />
+              <div>
+                <strong>Free Coach (Preview)</strong>
+                <p class="small muted">
+                  Core features only; preview how gating and pro badges appear.
+                </p>
+              </div>
+            </label>
+          </div>
+
+          <div class="license-features-summary">
+            <span class="small eyebrow">CAPABILITIES:</span>
+            <ul class="feature-bullets">
+              <li>Live BP capture, whiff scale &amp; undo: <strong>Always Free</strong></li>
+              <li>JSON backups &amp; CSV export: <strong>Always Free</strong></li>
+              <li>
+                Multi-team management:
+                <strong>{{ entitlement.canAccess('multi_team') ? 'Unlocked' : 'Pro Only' }}</strong>
+              </li>
+              <li>
+                Custom outfield fences:
+                <strong>{{
+                  entitlement.canAccess('custom_field_dimensions') ? 'Unlocked' : 'Pro Only'
+                }}</strong>
+              </li>
+              <li>
+                Multi-hitter comparisons:
+                <strong>{{
+                  entitlement.canAccess('multi_player_comparison') ? 'Unlocked' : 'Pro Only'
+                }}</strong>
+              </li>
+              <li>
+                Rolling trend curves:
+                <strong>{{
+                  entitlement.canAccess('advanced_time_series') ? 'Unlocked' : 'Pro Only'
+                }}</strong>
+              </li>
+            </ul>
+          </div>
+
+          <p class="small muted license-note">
+            Method-agnostic entitlement active. Payment integrations (Stripe / offline keys) plug
+            into this engine.
           </p>
         </section>
         <section class="card data-card">
@@ -349,6 +573,86 @@ import { backupFileName, canShareFiles, downloadFile, shareFile } from '../share
     .card .row {
       margin-top: 16px;
     }
+    .license-card {
+      border-color: #c9d8c5;
+      background: #fbfcf8;
+    }
+    .license-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .license-heading h2 {
+      margin-bottom: 0;
+    }
+    .badge-pro {
+      background: var(--green);
+      color: #fff8de;
+      letter-spacing: 0.5px;
+    }
+    .license-simulator,
+    .visual-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 14px 0;
+    }
+    .simulator-option,
+    .visual-option {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--surface);
+      cursor: pointer;
+      transition:
+        border-color 0.15s ease,
+        background 0.15s ease;
+    }
+    .simulator-option.selected,
+    .visual-option.selected {
+      border-color: var(--green);
+      background: #f4f7ee;
+    }
+    .simulator-option input[type='radio'],
+    .visual-option input[type='radio'] {
+      margin-top: 3px;
+      accent-color: var(--green);
+    }
+    .simulator-option strong,
+    .visual-option strong {
+      display: block;
+      font-size: 14px;
+      color: var(--ink);
+    }
+    .simulator-option p,
+    .visual-option p {
+      margin: 2px 0 0;
+      line-height: 1.35;
+    }
+    .license-features-summary {
+      background: var(--cream);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-top: 14px;
+    }
+    .feature-bullets {
+      margin: 8px 0 0;
+      padding-left: 18px;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .feature-bullets li {
+      margin-bottom: 3px;
+    }
+    .license-note {
+      margin-top: 12px;
+      line-height: 1.35;
+    }
     .data-card {
       background: #ecefdf;
     }
@@ -473,6 +777,7 @@ import { backupFileName, canShareFiles, downloadFile, shareFile } from '../share
 })
 export class SettingsComponent {
   readonly store = inject(CoachStore);
+  readonly entitlement = inject(EntitlementService);
   readonly message = signal('');
   readonly importError = signal('');
   readonly preview = signal<ImportPreview | null>(null);
@@ -518,6 +823,14 @@ export class SettingsComponent {
   async switchTeam(id: string) {
     await this.store.setActiveTeam(id);
     this.message.set('Active team changed. Your other teams and practices are saved.');
+  }
+  setTier(tier: CoachTier) {
+    this.entitlement.setSimulatedTier(tier);
+    this.message.set(
+      tier === 'pro'
+        ? 'License switched to Pro Coach (all features unlocked).'
+        : 'License switched to Free Coach (gated preview mode).',
+    );
   }
   editTeam(team?: Team) {
     this.teamId = team?.id || '';

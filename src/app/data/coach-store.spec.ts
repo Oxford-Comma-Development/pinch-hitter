@@ -229,6 +229,14 @@ describe('CoachStore persistence boundary', () => {
     const event = await store.recordContact(0.5, 0.4);
     expect(event.playerId).toBe(tyler.id);
   });
+  it('updates and persists leftHandedMode in preferences', async () => {
+    await setup();
+    expect(store.settings().leftHandedMode).toBe(false);
+    await store.updateSettings({ leftHandedMode: true });
+    expect(store.settings().leftHandedMode).toBe(true);
+    await store.updateSettings({ leftHandedMode: false });
+    expect(store.settings().leftHandedMode).toBe(false);
+  });
 });
 
 describe('portable backups and CSV', () => {
@@ -475,5 +483,30 @@ describe('portable backups and CSV', () => {
     // Clearing data clears lastBackupAt
     await store.clearAll();
     expect(store.lastBackupAt()).toBeNull();
+  });
+  it('updates and persists visual accessibility settings in coach store', async () => {
+    await setup();
+    expect(store.settings().colorPalette).toBe('standard');
+    expect(store.settings().fieldTheme).toBe('classic');
+    expect(store.settings().shapeMarkers).toBe(false);
+
+    await store.updateSettings({
+      colorPalette: 'colorblind',
+      fieldTheme: 'high_contrast',
+      shapeMarkers: true,
+      leftHandedMode: true,
+    });
+
+    expect(store.settings().colorPalette).toBe('colorblind');
+    expect(store.settings().fieldTheme).toBe('high_contrast');
+    expect(store.settings().shapeMarkers).toBe(true);
+    expect(store.settings().leftHandedMode).toBe(true);
+
+    const backup = store.exportBackup();
+    const preview = parseBackup(backupJson(backup));
+    expect(preview.data.settings.colorPalette).toBe('colorblind');
+    expect(preview.data.settings.fieldTheme).toBe('high_contrast');
+    expect(preview.data.settings.shapeMarkers).toBe(true);
+    expect(preview.data.settings.leftHandedMode).toBe(true);
   });
 });

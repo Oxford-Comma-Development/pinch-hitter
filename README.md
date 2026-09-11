@@ -26,7 +26,11 @@ Browser storage is tied to a browser profile and site address. Use Settings to r
 - **Sharing:** native file sharing where supported, ordinary download everywhere else.
 - **Print / PDF:** player, team, and session reports include the chart, filter context, and summaries. Use the browser print dialog to print or save a PDF.
 
-See [the data format and migration guide](docs/data-format.md) for IndexedDB stores, entity relationships, JSON, CSV columns, merge rules, and coordinates.
+See [the data format and migration guide](docs/data-format.md) for IndexedDB stores, entity relationships, JSON, CSV columns, merge rules, and coordinates. Additional documentation:
+
+- [Technical Architecture & Project Overview](docs/project-overview.md)
+- [Coach's Field Manual & User Guide](docs/user-manual.md)
+- [Pro Tier Strategy, Feature Gating & Analytics Roadmap](docs/pro-tier-strategy.md)
 
 ## Install and use offline
 

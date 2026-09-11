@@ -468,6 +468,9 @@
               [selectedId]="selectedId()"
               [heat]="view() === 'heat'"
               [colorBy]="colorBy()"
+              [palette]="store.settings().colorPalette || 'standard'"
+              [theme]="store.settings().fieldTheme || 'classic'"
+              [shapeMarkers]="store.settings().shapeMarkers ?? false"
               (selectEvent)="selectObservation($event)"
               label="Spray chart of the filtered observations. Select a recorded contact to inspect or edit it."
             />
@@ -478,31 +481,48 @@
                   : 'Every mark is a recorded contact. Tap a mark to see its details.'
               }}
             </p>
-            <div class="chart-legend" aria-label="Chart legend">
+            <div
+              class="chart-legend"
+              [class.palette-colorblind]="store.settings().colorPalette === 'colorblind'"
+              [class.palette-high-contrast]="store.settings().colorPalette === 'high_contrast'"
+              [class.shapes-enabled]="store.settings().shapeMarkers"
+              aria-label="Chart legend"
+            >
               @if (colorBy() === 'contactType') {
                 @for (item of contactDistribution(); track item.type) {
                   <span
-                    ><i [class]="'legend-dot ' + item.type" aria-hidden="true"></i>{{ item.label }}
-                    <b>{{ item.count }}</b></span
+                    ><i
+                      [class]="'legend-dot ' + item.type + ' ' + legendShapeClass(item.type)"
+                      aria-hidden="true"
+                    ></i
+                    >{{ item.label }} <b>{{ item.count }}</b></span
                   >
                 }
               } @else if (colorBy() === 'result') {
                 @for (item of resultDistribution(); track item.type) {
                   <span
-                    ><i [class]="'legend-dot ' + item.type" aria-hidden="true"></i>{{ item.label }}
-                    <b>{{ item.count }}</b></span
+                    ><i
+                      [class]="'legend-dot ' + item.type + ' ' + legendShapeClass(item.type)"
+                      aria-hidden="true"
+                    ></i
+                    >{{ item.label }} <b>{{ item.count }}</b></span
                   >
                 }
               } @else {
                 @for (item of hardHitDistribution(); track item.rating) {
                   <span
-                    ><i [class]="'legend-dot hard-hit-' + item.rating" aria-hidden="true"></i
+                    ><i
+                      [class]="
+                        'legend-dot hard-hit-' + item.rating + ' ' + legendShapeClass(item.rating)
+                      "
+                      aria-hidden="true"
+                    ></i
                     >{{ item.shortLabel }} <b>{{ item.count }}</b></span
                   >
                 }
               }
               <span
-                ><i class="legend-dot unclassified" aria-hidden="true"></i>Unclassified
+                ><i class="legend-dot unclassified shape-circle" aria-hidden="true"></i>Unclassified
                 <b>{{
                   summary().total -
                     (colorBy() === 'contactType'

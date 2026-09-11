@@ -865,3 +865,25 @@ button:disabled {
     padding: 8px;
   }
 }
+
+.practice-workspace.left-handed {
+  .practice-actions {
+    flex-direction: row-reverse;
+  }
+  .current-hitter {
+    flex-direction: row-reverse;
+  }
+  .queue-strip {
+    flex-direction: row-reverse;
+  }
+}
+
+.practice-option-check {
+  margin: 14px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}

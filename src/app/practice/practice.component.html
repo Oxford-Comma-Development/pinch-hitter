@@ -153,7 +153,11 @@
   </section>
 } @else {
   @let session = store.activeSession()!;
-  <section class="practice-workspace" aria-label="Active batting practice">
+  <section
+    class="practice-workspace"
+    [class.left-handed]="store.settings().leftHandedMode"
+    aria-label="Active batting practice"
+  >
     <header class="practice-toolbar">
       <span class="practice-live"
         ><span aria-hidden="true"></span> LIVE PRACTICE
@@ -280,6 +284,9 @@
         [events]="hitterEvents()"
         [selectedId]="latest()?.id || ''"
         [interactive]="!!current() && !busy()"
+        [palette]="store.settings().colorPalette || 'standard'"
+        [theme]="store.settings().fieldTheme || 'classic'"
+        [shapeMarkers]="store.settings().shapeMarkers ?? false"
         (location)="capture($event)"
         [label]="'Record a contact for ' + (current()?.name || 'current hitter')"
       />
@@ -371,7 +378,11 @@
     </section>
     <footer class="practice-actions">
       <button class="undo-button" [disabled]="!session.undoStack.length || busy()" (click)="undo()">
-        <span aria-hidden="true">↶</span> Undo last</button
+        @if (store.settings().leftHandedMode) {
+          Undo last <span aria-hidden="true">↷</span>
+        } @else {
+          <span aria-hidden="true">↶</span> Undo last
+        }</button
       ><button
         class="defer-button"
         [disabled]="session.queue.length < 2 || busy()"
@@ -380,7 +391,11 @@
       >
         Skip</button
       ><button class="primary next-button" [disabled]="!current() || busy()" (click)="next()">
-        Next batter <span aria-hidden="true">→</span>
+        @if (store.settings().leftHandedMode) {
+          <span aria-hidden="true">←</span> Next batter
+        } @else {
+          Next batter <span aria-hidden="true">→</span>
+        }
       </button>
     </footer>
   </section>
@@ -554,6 +569,40 @@
         Automatic rotation counts recorded contacts, not pitches or swings. Changes apply on the
         next capture.
       </p>
+      <label class="check-label practice-option-check">
+        <input
+          type="checkbox"
+          [ngModel]="store.settings().leftHandedMode"
+          (ngModelChange)="store.updateSettings({ leftHandedMode: $event })"
+          name="leftHandedMode"
+        />
+        Left-handed dugout mode (left-thumb reach)
+      </label>
+      <label class="check-label practice-option-check">
+        <input
+          type="checkbox"
+          [ngModel]="store.settings().fieldTheme === 'high_contrast'"
+          (ngModelChange)="
+            store.updateSettings({ fieldTheme: $event ? 'high_contrast' : 'classic' })
+          "
+          name="fieldTheme"
+        />
+        High-contrast field (for bright outdoor sunlight)
+      </label>
+      <label class="check-label practice-option-check">
+        <input
+          type="checkbox"
+          [ngModel]="store.settings().colorPalette === 'colorblind'"
+          (ngModelChange)="
+            store.updateSettings({
+              colorPalette: $event ? 'colorblind' : 'standard',
+              shapeMarkers: $event ? true : store.settings().shapeMarkers,
+            })
+          "
+          name="colorPalette"
+        />
+        Color-blind friendly palette (Okabe-Ito CVD safe)
+      </label>
       <button class="button primary full-width" type="submit" [disabled]="busy()">
         Save practice options
       </button>

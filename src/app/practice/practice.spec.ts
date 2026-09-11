@@ -162,3 +162,164 @@ describe('Resuming practice', () => {
     expect(component.batterSide()).toBe('R');
   });
 });
+
+describe('Left-handed dugout mode', () => {
+  it('reflects left-handed setting from store', () => {
+    const settings = signal({ leftHandedMode: true });
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([]),
+        {
+          provide: CoachStore,
+          useValue: {
+            ready: signal(true),
+            events: signal([]),
+            players: signal([]),
+            activeSession: signal(null),
+            settings,
+          },
+        },
+      ],
+    });
+    const component = TestBed.runInInjectionContext(() => new PracticeComponent());
+    expect(component.store.settings().leftHandedMode).toBe(true);
+  });
+});
+
+describe('Visual accessibility and field display', () => {
+  it('maps Okabe-Ito barrier-free colors when colorblind palette is active', () => {
+    const fixture = TestBed.createComponent(FieldComponent);
+    fixture.componentRef.setInput('palette', 'colorblind');
+    const field = fixture.componentInstance;
+
+    const event: BallEvent = {
+      id: 'e1',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      schemaVersion: 1,
+      teamId: 't1',
+      playerId: 'p1',
+      sessionId: 's1',
+      timestamp: new Date().toISOString(),
+      sequence: 1,
+      turnSequence: 1,
+      contactSequence: 1,
+      fieldX: 0.5,
+      fieldY: 0.5,
+      coordinateSystemVersion: 1,
+      pitcherHand: 'R',
+      batterSide: 'R',
+      contactType: 'line-drive',
+      result: 'home-run',
+      hardHit: 5,
+      notes: '',
+      playerName: 'Marcus',
+      jerseyNumber: '10',
+    };
+
+    // When colorBy === 'contactType', line-drive is vermilion (#d55e00) in Okabe-Ito
+    expect(field.eventColor(event)).toBe('#d55e00');
+
+    // When colorBy === 'result', home-run is reddish purple (#cc79a7) in Okabe-Ito
+    fixture.componentRef.setInput('colorBy', 'result');
+    expect(field.eventColor(event)).toBe('#cc79a7');
+
+    // When colorBy === 'hardHit', rating 5 is reddish purple (#cc79a7) in Okabe-Ito
+    fixture.componentRef.setInput('colorBy', 'hardHit');
+    expect(field.eventColor(event)).toBe('#cc79a7');
+  });
+
+  it('assigns multi-shape glyphs to contact types and results when shapeMarkers is enabled', () => {
+    const fixture = TestBed.createComponent(FieldComponent);
+    fixture.componentRef.setInput('shapeMarkers', true);
+    const field = fixture.componentInstance;
+
+    const baseEvent: BallEvent = {
+      id: 'e1',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      schemaVersion: 1,
+      teamId: 't1',
+      playerId: 'p1',
+      sessionId: 's1',
+      timestamp: new Date().toISOString(),
+      sequence: 1,
+      turnSequence: 1,
+      contactSequence: 1,
+      fieldX: 0.5,
+      fieldY: 0.5,
+      coordinateSystemVersion: 1,
+      pitcherHand: 'R',
+      batterSide: 'R',
+      contactType: 'line-drive',
+      result: 'out',
+      hardHit: 3,
+      notes: '',
+      playerName: 'Marcus',
+      jerseyNumber: '10',
+    };
+
+    // By contactType
+    expect(field.markerShape({ ...baseEvent, contactType: 'line-drive' })).toBe('diamond');
+    expect(field.markerShape({ ...baseEvent, contactType: 'fly-ball' })).toBe('triangle-up');
+    expect(field.markerShape({ ...baseEvent, contactType: 'pop-up' })).toBe('triangle-down');
+    expect(field.markerShape({ ...baseEvent, contactType: 'ground-ball' })).toBe('circle');
+
+    // By result
+    fixture.componentRef.setInput('colorBy', 'result');
+    expect(field.markerShape({ ...baseEvent, result: 'out' })).toBe('cross');
+    expect(field.markerShape({ ...baseEvent, result: 'double' })).toBe('diamond');
+    expect(field.markerShape({ ...baseEvent, result: 'home-run' })).toBe('star');
+    expect(field.markerShape({ ...baseEvent, result: 'single' })).toBe('circle');
+
+    // By hardHit
+    fixture.componentRef.setInput('colorBy', 'hardHit');
+    expect(field.markerShape({ ...baseEvent, hardHit: 3 })).toBe('triangle-up');
+    expect(field.markerShape({ ...baseEvent, hardHit: 4 })).toBe('diamond');
+    expect(field.markerShape({ ...baseEvent, hardHit: 5 })).toBe('square');
+
+    // Disabling shapeMarkers reverts all to circle
+    fixture.componentRef.setInput('shapeMarkers', false);
+    expect(field.markerShape({ ...baseEvent, hardHit: 5 })).toBe('circle');
+  });
+
+  it('adjusts marker stroke and field styling under high contrast theme', () => {
+    const fixture = TestBed.createComponent(FieldComponent);
+    fixture.componentRef.setInput('theme', 'high_contrast');
+    fixture.detectChanges();
+    const field = fixture.componentInstance;
+
+    const baseEvent: BallEvent = {
+      id: 'e1',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      schemaVersion: 1,
+      teamId: 't1',
+      playerId: 'p1',
+      sessionId: 's1',
+      timestamp: new Date().toISOString(),
+      sequence: 1,
+      turnSequence: 1,
+      contactSequence: 1,
+      fieldX: 0.5,
+      fieldY: 0.5,
+      coordinateSystemVersion: 1,
+      pitcherHand: 'R',
+      batterSide: 'R',
+      contactType: 'line-drive',
+      result: 'out',
+      hardHit: 0,
+      notes: '',
+      playerName: 'Marcus',
+      jerseyNumber: '10',
+    };
+
+    // Dark elements (out, whiff) get white border on dark slate field
+    expect(field.markerStroke(baseEvent)).toBe('#ffffff');
+    // Normal colored hits get black border for high contrast
+    expect(field.markerStroke({ ...baseEvent, hardHit: 4, result: 'single' })).toBe('#000000');
+
+    const svg = fixture.nativeElement.querySelector('svg');
+    expect(svg.classList.contains('high-contrast-field')).toBe(true);
+  });
+});

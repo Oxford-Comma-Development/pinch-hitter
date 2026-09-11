@@ -122,12 +122,19 @@ export interface CoachNote extends Entity {
   timestamp: string;
   text: string;
 }
+export type ColorPaletteMode = 'standard' | 'colorblind' | 'high_contrast';
+export type FieldThemeMode = 'classic' | 'high_contrast';
+
 export interface AppSettings {
   id: 'preferences';
   activeTeamId: string | null;
   defaultPitcherHand: 'L' | 'R';
   rotationCount: number | null;
   haptics: boolean;
+  leftHandedMode?: boolean;
+  colorPalette?: ColorPaletteMode;
+  fieldTheme?: FieldThemeMode;
+  shapeMarkers?: boolean;
   updatedAt: string;
 }
 export interface BackupData {
@@ -179,5 +186,9 @@ export const defaultSettings = (): AppSettings => ({
   defaultPitcherHand: 'R',
   rotationCount: null,
   haptics: true,
+  leftHandedMode: false,
+  colorPalette: 'standard',
+  fieldTheme: 'classic',
+  shapeMarkers: false,
   updatedAt: new Date().toISOString(),
 });
