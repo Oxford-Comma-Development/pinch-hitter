@@ -124,6 +124,7 @@ export interface CoachNote extends Entity {
 }
 export type ColorPaletteMode = 'standard' | 'colorblind' | 'high_contrast';
 export type FieldThemeMode = 'classic' | 'high_contrast';
+export type AppLanguage = 'en' | 'es';
 
 export interface AppSettings {
   id: 'preferences';
@@ -135,6 +136,7 @@ export interface AppSettings {
   colorPalette?: ColorPaletteMode;
   fieldTheme?: FieldThemeMode;
   shapeMarkers?: boolean;
+  language?: AppLanguage;
   updatedAt: string;
 }
 export interface BackupData {
@@ -190,5 +192,6 @@ export const defaultSettings = (): AppSettings => ({
   colorPalette: 'standard',
   fieldTheme: 'classic',
   shapeMarkers: false,
+  language: 'en',
   updatedAt: new Date().toISOString(),
 });

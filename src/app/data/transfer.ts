@@ -222,6 +222,10 @@ function parseSettings(row: JsonObject): AppSettings {
         ? (row['fieldTheme'] as AppSettings['fieldTheme'])
         : 'classic',
     shapeMarkers: typeof row['shapeMarkers'] === 'boolean' ? row['shapeMarkers'] : false,
+    language:
+      typeof row['language'] === 'string' && ['en', 'es'].includes(row['language'])
+        ? (row['language'] as AppSettings['language'])
+        : 'en',
     updatedAt: date(row['updatedAt'], 'Settings update'),
   };
 }

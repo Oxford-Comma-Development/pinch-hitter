@@ -142,7 +142,8 @@
             type="submit"
             [disabled]="busy() || !selectedIds().length"
           >
-            {{ busy() ? 'Starting…' : 'Start practice' }} <span aria-hidden="true">→</span>
+            {{ busy() ? ('practice.starting' | t) : ('practice.startPractice' | t) }}
+            <span aria-hidden="true">→</span>
           </button>
           <p class="small muted ownership">
             Every contact saves on this device. Ready without a connection.
@@ -315,8 +316,11 @@
           <span class="error">{{ failure() }}</span>
         } @else if (latest(); as event) {
           <span
-            ><b>✓ {{ event.hardHit === 0 ? 'Swing & miss saved' : 'Contact saved' }}</b> ·
-            {{ playerName(event.playerId) }}</span
+            ><b
+              >✓
+              {{ event.hardHit === 0 ? ('baseball.miss' | t) : ('practice.contactSaved' | t) }}</b
+            >
+            · {{ playerName(event.playerId) }}</span
           ><span class="optional-label">{{
             event.hardHit === 0 ? 'Recorded at plate' : 'Details optional'
           }}</span>
@@ -332,7 +336,7 @@
             [attr.aria-pressed]="latest()?.contactType === type"
             (click)="classify('contactType', type)"
           >
-            {{ contactLabels[type] }}
+            {{ contactLabels()[type] }}
           </button>
         }
       </div>
@@ -344,7 +348,7 @@
             [attr.aria-pressed]="latest()?.result === result"
             (click)="classify('result', result)"
           >
-            {{ resultLabels[result] }}
+            {{ resultLabels()[result] }}
           </button>
         }
       </div>
@@ -358,9 +362,9 @@
               [class.selected]="latest()?.hardHit === 0"
               [attr.aria-pressed]="latest()?.hardHit === 0"
               (click)="recordWhiff()"
-              aria-label="Record swing and miss (0)"
+              [attr.aria-label]="'practice.recordWhiffAria' | t"
             >
-              {{ hardHitShortLabels[0] }}
+              {{ hardHitShortLabels()[0] }}
             </button>
           } @else {
             <button
@@ -370,7 +374,7 @@
               [attr.aria-pressed]="latest()?.hardHit === level"
               (click)="classifyHardHit(level)"
             >
-              {{ hardHitShortLabels[level] }}
+              {{ hardHitShortLabels()[level] }}
             </button>
           }
         }
@@ -379,22 +383,22 @@
     <footer class="practice-actions">
       <button class="undo-button" [disabled]="!session.undoStack.length || busy()" (click)="undo()">
         @if (store.settings().leftHandedMode) {
-          Undo last <span aria-hidden="true">↷</span>
+          {{ 'practice.undoLast' | t }} <span aria-hidden="true">↷</span>
         } @else {
-          <span aria-hidden="true">↶</span> Undo last
+          <span aria-hidden="true">↶</span> {{ 'practice.undoLast' | t }}
         }</button
       ><button
         class="defer-button"
         [disabled]="session.queue.length < 2 || busy()"
         (click)="defer()"
-        aria-label="Defer current hitter"
+        [attr.aria-label]="'practice.deferHitter' | t"
       >
-        Skip</button
+        {{ 'practice.skip' | t }}</button
       ><button class="primary next-button" [disabled]="!current() || busy()" (click)="next()">
         @if (store.settings().leftHandedMode) {
-          <span aria-hidden="true">←</span> Next batter
+          <span aria-hidden="true">←</span> {{ 'practice.nextBatter' | t }}
         } @else {
-          Next batter <span aria-hidden="true">→</span>
+          {{ 'practice.nextBatter' | t }} <span aria-hidden="true">→</span>
         }
       </button>
     </footer>

@@ -1,13 +1,13 @@
-<a class="skip-link" href="#main-content">Skip to content</a>
+<a class="skip-link" href="#main-content">{{ 'nav.skipLink' | t }}</a>
 <div class="app-shell" [class.in-practice]="inPractice()">
   <header class="app-header">
-    <a routerLink="/" class="brand" aria-label="Pinch Hitter home"
+    <a routerLink="/" class="brand" [attr.aria-label]="'nav.brand' | t"
       ><img src="icons/mark.svg" alt="" width="40" height="40" /><span
         >PINCH<span class="brand-sub">HITTER</span></span
       ></a
     ><span class="connection"
       ><span class="status-dot"></span
-      >{{ online() ? 'Your field. Your notebook.' : 'Offline · ready to coach' }}</span
+      >{{ online() ? ('nav.onlineStatus' | t) : ('nav.offlineStatus' | t) }}</span
     >
   </header>
   @if (store.error()) {
@@ -18,8 +18,9 @@
   }
   @if (updateReady()) {
     <div class="update-banner">
-      An update is ready. Your saved practice will resume.<button (click)="applyUpdate()">
-        Update app
+      {{ 'nav.updateReady' | t
+      }}<button (click)="applyUpdate()">
+        {{ 'nav.updateApp' | t }}
       </button>
     </div>
   }
@@ -27,16 +28,18 @@
     @if (store.ready()) {
       <router-outlet />
     } @else {
-      <div class="loading">Opening Pinch Hitter…</div>
+      <div class="loading">{{ 'nav.loading' | t }}</div>
     }
   </main>
   <nav class="main-nav" aria-label="Main navigation">
     <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
-      ><span aria-hidden="true">⌂</span>Practice</a
-    ><a routerLink="/roster" routerLinkActive="active"><span aria-hidden="true">♙</span>Roster</a
-    ><a routerLink="/reports" routerLinkActive="active"><span aria-hidden="true">▥</span>Reports</a
+      ><span aria-hidden="true">⌂</span>{{ 'nav.practice' | t }}</a
+    ><a routerLink="/roster" routerLinkActive="active"
+      ><span aria-hidden="true">♙</span>{{ 'nav.roster' | t }}</a
+    ><a routerLink="/reports" routerLinkActive="active"
+      ><span aria-hidden="true">▥</span>{{ 'nav.reports' | t }}</a
     ><a routerLink="/settings" routerLinkActive="active"
-      ><span aria-hidden="true">⚙</span>Settings</a
+      ><span aria-hidden="true">⚙</span>{{ 'nav.settings' | t }}</a
     >
   </nav>
 </div>

@@ -4,9 +4,10 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CoachStore } from '../data/coach-store';
 import { ImportPreview } from '../data/models';
+import { TranslatePipe } from '../i18n/translate.pipe';
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, DatePipe, FormsModule],
+  imports: [RouterLink, DatePipe, FormsModule, TranslatePipe],
   template: ` <div class="page">
     @if (!store.activeTeam()) {
       <div class="welcome">
@@ -16,42 +17,48 @@ import { ImportPreview } from '../data/models';
         </div>
         <div class="welcome-panels">
           <section class="setup card">
-            <p class="eyebrow">YOUR BASEBALL NOTEBOOK</p>
-            <h1>Let's get to the field.</h1>
+            <p class="eyebrow">{{ 'home.welcomeEyebrow' | t }}</p>
+            <h1>{{ 'home.welcomeHeading' | t }}</h1>
             <p class="muted">
-              A team, a roster, and you're ready. Keep every contact, coaching note, and spray chart
-              in your pocket.
+              {{ 'home.welcomeText' | t }}
             </p>
             <form class="stack" (ngSubmit)="createTeam()">
               <label
-                >Team name<input
+                >{{ 'home.teamName' | t
+                }}<input
                   name="teamName"
                   [(ngModel)]="name"
                   required
                   maxlength="100"
-                  placeholder="e.g. Westfield Wildcats"
+                  [placeholder]="'home.teamNamePlaceholder' | t"
                   autocomplete="organization"
               /></label>
               <div class="form-grid">
                 <label
-                  ><span>Short name <span class="muted small">(optional)</span></span
+                  ><span
+                    >{{ 'home.shortName' | t }}
+                    <span class="muted small">{{ 'home.optional' | t }}</span></span
                   ><input
                     name="shortName"
                     [(ngModel)]="shortName"
                     maxlength="20"
-                    placeholder="WILDCATS" /></label
+                    [placeholder]="'home.shortNamePlaceholder' | t" /></label
                 ><label
-                  ><span>Season</span
-                  ><input name="season" [(ngModel)]="season" maxlength="40" placeholder="2026"
+                  ><span>{{ 'home.season' | t }}</span
+                  ><input
+                    name="season"
+                    [(ngModel)]="season"
+                    maxlength="40"
+                    [placeholder]="'home.seasonPlaceholder' | t"
                 /></label>
               </div>
               <button class="primary" [disabled]="busy() || !name.trim()">
-                Create team & add players <span aria-hidden="true">→</span>
+                {{ 'home.createTeamBtn' | t }} <span aria-hidden="true">→</span>
               </button>
             </form>
             <p class="privacy small">
-              No account. No subscriptions. Your notebook stays on this device, and you can export
-              it anytime. · <a routerLink="/privacy">Privacy Policy</a>
+              {{ 'home.privacyNote' | t }}
+              <a routerLink="/privacy">{{ 'home.privacyPolicy' | t }}</a>
             </p>
           </section>
 
@@ -147,15 +154,15 @@ We’ll keep the notebook.'
           </p>
           @if (store.activeSession()) {
             <a class="button accent" routerLink="/practice"
-              >Resume Practice <span aria-hidden="true">→</span></a
+              >{{ 'home.resumePracticeBtn' | t }} <span aria-hidden="true">→</span></a
             >
           } @else if (store.roster().length) {
             <a class="button accent" routerLink="/practice"
-              >Start Practice <span aria-hidden="true">→</span></a
+              >{{ 'home.startPracticeBtn' | t }} <span aria-hidden="true">→</span></a
             >
           } @else {
             <a class="button accent" routerLink="/roster" [queryParams]="{ setup: 1 }"
-              >Add your players <span aria-hidden="true">→</span></a
+              >{{ 'home.addPlayersBtn' | t }} <span aria-hidden="true">→</span></a
             >
           }
         </div>

@@ -18,15 +18,13 @@ import {
   HitResult,
   Player,
   CONTACT_TYPES,
-  CONTACT_LABELS,
-  HARD_HIT_LABELS,
   HARD_HIT_RATINGS,
-  HARD_HIT_SHORT_LABELS,
   HardHitRating,
   HIT_RESULTS,
-  RESULT_LABELS,
 } from '../data/models';
 import { FieldComponent, FieldPoint } from '../shared/field.component';
+import { I18nService } from '../i18n/i18n.service';
+import { TranslatePipe } from '../i18n/translate.pipe';
 
 interface SpeechResultEvent {
   results: Record<number, Record<number, { transcript: string; confidence: number }>>;
@@ -98,12 +96,13 @@ export function findSpokenPlayers(players: Player[], transcript: string): Player
 
 @Component({
   selector: 'app-practice',
-  imports: [FormsModule, RouterLink, FieldComponent],
+  imports: [FormsModule, RouterLink, FieldComponent, TranslatePipe],
   templateUrl: './practice.component.html',
   styleUrl: './practice.component.scss',
 })
 export class PracticeComponent implements OnDestroy {
   readonly store = inject(CoachStore);
+  readonly i18n = inject(I18nService);
   private readonly router = inject(Router);
   readonly dialog = viewChild<ElementRef<HTMLDialogElement>>('sheet');
   readonly busy = signal(false);
@@ -119,12 +118,12 @@ export class PracticeComponent implements OnDestroy {
   readonly query = signal('');
   readonly switchSides = signal<Record<string, 'L' | 'R'>>({});
   readonly contactTypes = CONTACT_TYPES;
-  readonly contactLabels = CONTACT_LABELS;
+  readonly contactLabels = this.i18n.contactLabels;
   readonly results = HIT_RESULTS;
-  readonly resultLabels = RESULT_LABELS;
+  readonly resultLabels = this.i18n.resultLabels;
   readonly hardHitRatings = HARD_HIT_RATINGS;
-  readonly hardHitLabels = HARD_HIT_LABELS;
-  readonly hardHitShortLabels = HARD_HIT_SHORT_LABELS;
+  readonly hardHitLabels = this.i18n.hardHitLabels;
+  readonly hardHitShortLabels = this.i18n.hardHitShortLabels;
   title = '';
   location = '';
   sessionNote = '';
@@ -500,7 +499,7 @@ export class PracticeComponent implements OnDestroy {
       return;
     }
     this.speech = new Recognition();
-    this.speech.lang = navigator.language || 'en-US';
+    this.speech.lang = this.i18n.currentLang() === 'es' ? 'es-419' : navigator.language || 'en-US';
     this.speech.interimResults = false;
     this.speech.continuous = false;
     this.speech.onresult = (event) => {

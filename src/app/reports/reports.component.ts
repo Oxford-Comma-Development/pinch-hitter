@@ -7,21 +7,18 @@ import { CoachStore } from '../data/coach-store';
 import { filterEvents, summarizeEvents } from '../data/domain';
 import {
   BallEvent,
-  CONTACT_LABELS,
   CONTACT_TYPES,
   ContactType,
-  HARD_HIT_LABELS,
   HARD_HIT_RATINGS,
-  HARD_HIT_SHORT_LABELS,
-  HIT_RESULTS,
   HardHitRating,
+  HIT_RESULTS,
   HitResult,
   Player,
   PracticeSession,
-  RESULT_LABELS,
 } from '../data/models';
 import { eventsCsv } from '../data/transfer';
 import { FieldComponent } from '../shared/field.component';
+import { I18nService } from '../i18n/i18n.service';
 import {
   dateBoundaries,
   localDate,
@@ -56,16 +53,17 @@ const initialSelection = (): ReportSelection => ({
 
 @Component({
   selector: 'app-reports',
-  standalone: true,
   imports: [CommonModule, FormsModule, RouterLink, FieldComponent],
   templateUrl: './reports.component.html',
   styleUrl: './reports.component.scss',
 })
 export class ReportsComponent {
   readonly store = inject(CoachStore);
+  readonly i18n = inject(I18nService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   readonly editor = viewChild<ElementRef<HTMLDialogElement>>('editor');
+  readonly printArea = viewChild<ElementRef<HTMLElement>>('printArea');
   readonly filters = signal<ReportSelection>(initialSelection());
   readonly view = signal<'spray' | 'heat' | 'history'>('spray');
   readonly colorBy = signal<'contactType' | 'result' | 'hardHit'>('contactType');
@@ -76,11 +74,19 @@ export class ReportsComponent {
   readonly error = signal('');
   readonly contactTypes = CONTACT_TYPES;
   readonly results = HIT_RESULTS;
-  readonly contactLabels = CONTACT_LABELS;
-  readonly resultLabels = RESULT_LABELS;
+  get contactLabels(): Record<ContactType, string> {
+    return this.i18n.contactLabels();
+  }
+  get resultLabels(): Record<HitResult, string> {
+    return this.i18n.resultLabels();
+  }
   readonly hardHitRatings = HARD_HIT_RATINGS;
-  readonly hardHitLabels = HARD_HIT_LABELS;
-  readonly hardHitShortLabels = HARD_HIT_SHORT_LABELS;
+  get hardHitLabels(): Record<HardHitRating, string> {
+    return this.i18n.hardHitLabels();
+  }
+  get hardHitShortLabels(): Record<HardHitRating, string> {
+    return this.i18n.hardHitShortLabels();
+  }
   readonly percent = percent;
   editDraft: BallEvent | null = null;
   editAssociatedNotes: { id: string; timestamp: string; text: string; originalText: string }[] = [];
@@ -228,15 +234,15 @@ export class ReportsComponent {
       parts.push(f.pitcherHand === 'unknown' ? 'Unknown pitcher hand' : `${f.pitcherHand}HP`);
     if (f.contactType)
       parts.push(
-        f.contactType === 'unknown' ? 'Unclassified contact' : CONTACT_LABELS[f.contactType],
+        f.contactType === 'unknown' ? 'Unclassified contact' : this.contactLabels[f.contactType],
       );
     if (f.result)
-      parts.push(f.result === 'unknown' ? 'Unclassified result' : RESULT_LABELS[f.result]);
+      parts.push(f.result === 'unknown' ? 'Unclassified result' : this.resultLabels[f.result]);
     if (f.hardHit !== '')
       parts.push(
         f.hardHit === 'unknown'
           ? 'Unclassified hard hit'
-          : HARD_HIT_LABELS[Number(f.hardHit) as HardHitRating],
+          : this.hardHitLabels[Number(f.hardHit) as HardHitRating],
       );
     return parts.join(' · ');
   });
@@ -274,22 +280,22 @@ export class ReportsComponent {
   readonly contactDistribution = computed(() =>
     this.contactTypes.map((type) => ({
       type,
-      label: CONTACT_LABELS[type],
+      label: this.contactLabels[type],
       count: this.summary().contacts[type] || 0,
     })),
   );
   readonly resultDistribution = computed(() =>
     this.results.map((type) => ({
       type,
-      label: RESULT_LABELS[type],
+      label: this.resultLabels[type],
       count: this.summary().results[type] || 0,
     })),
   );
   readonly hardHitDistribution = computed(() =>
     this.hardHitRatings.map((rating) => ({
       rating,
-      label: HARD_HIT_LABELS[rating],
-      shortLabel: HARD_HIT_SHORT_LABELS[rating],
+      label: this.hardHitLabels[rating],
+      shortLabel: this.hardHitShortLabels[rating],
       count: this.summary().hardHits[rating] || 0,
     })),
   );

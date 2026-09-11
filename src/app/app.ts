@@ -3,9 +3,10 @@ import { RouterOutlet, RouterLink, RouterLinkActive, Router, NavigationEnd } fro
 import { SwUpdate } from '@angular/service-worker';
 import { InstallService } from './shared/install.service';
 import { CoachStore } from './data/coach-store';
+import { TranslatePipe } from './i18n/translate.pipe';
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, TranslatePipe],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

@@ -527,8 +527,10 @@ summary .muted {
   gap: 6px;
   padding-bottom: env(safe-area-inset-bottom, 0px);
   min-height: 0;
+  min-width: 0;
 }
 .practice-actions button {
+  min-width: 0;
   min-height: 50px;
   border-radius: 9px;
   font-size: 0.87rem;
@@ -538,8 +540,8 @@ summary .muted {
   background: #fdfbf4;
   border: 1px solid #cad1c3;
   flex: 1;
-  padding: 8px;
-  gap: 7px;
+  padding: 8px 6px;
+  gap: 6px;
   white-space: nowrap;
 }
 .undo-button span {
@@ -549,12 +551,13 @@ summary .muted {
 .defer-button {
   background: transparent;
   border: 1px solid #cad1c3;
-  padding: 8px 12px;
+  padding: 8px 10px;
+  white-space: nowrap;
 }
 .next-button {
-  flex: 1.5;
-  padding: 8px 13px;
-  gap: 14px;
+  flex: 1.4;
+  padding: 8px 10px;
+  gap: 8px;
   background: #d95d2b;
   color: #fffaf3;
   border: 1px solid #c84e22;

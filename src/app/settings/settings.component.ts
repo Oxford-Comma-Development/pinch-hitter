@@ -9,24 +9,42 @@ import { ImportPreview, Team } from '../data/models';
 import { eventsCsv, backupJson } from '../data/transfer';
 import { RouterLink } from '@angular/router';
 import { backupFileName, canShareFiles, downloadFile, shareFile } from '../shared/files';
+import { TranslatePipe } from '../i18n/translate.pipe';
 @Component({
   selector: 'app-settings',
-  imports: [FormsModule, ModalDirective, DatePipe, RouterLink],
+  imports: [FormsModule, ModalDirective, DatePipe, RouterLink, TranslatePipe],
   template: `
     <div class="page">
-      <p class="eyebrow">YOUR NOTEBOOK, YOUR WAY</p>
-      <h1>Settings.</h1>
-      <p class="muted">Ready for your team. Owned by you.</p>
+      <p class="eyebrow">{{ 'settings.eyebrow' | t }}</p>
+      <h1>{{ 'settings.title' | t }}.</h1>
+      <p class="muted">{{ 'settings.subtitle' | t }}</p>
       @if (message()) {
         <p class="notice" role="status">{{ message() }}</p>
       }
       <div class="settings-grid">
+        <section class="card language-card">
+          <p class="eyebrow">IDIOMA / REGIONAL</p>
+          <h2>{{ 'settings.language' | t }}</h2>
+          <label
+            >{{ 'settings.language' | t
+            }}<select
+              aria-label="Language / Idioma"
+              [ngModel]="store.settings().language || 'en'"
+              (ngModelChange)="store.updateSettings({ language: $event })"
+            >
+              <option value="en">{{ 'settings.langEn' | t }}</option>
+              <option value="es">{{ 'settings.langEs' | t }}</option>
+            </select></label
+          >
+          <p class="muted small">{{ 'settings.languageDesc' | t }}</p>
+        </section>
         <section class="card">
-          <p class="eyebrow">THE DUGOUT</p>
-          <h2>Team</h2>
+          <p class="eyebrow">{{ 'settings.dugoutEyebrow' | t }}</p>
+          <h2>{{ 'settings.teamSection' | t }}</h2>
           @if (store.teams().length) {
             <label
-              >Active team<select
+              >{{ 'settings.activeTeam' | t
+              }}<select
                 aria-label="Active team"
                 [ngModel]="store.settings().activeTeamId"
                 (ngModelChange)="switchTeam($event)"
@@ -36,39 +54,41 @@ import { backupFileName, canShareFiles, downloadFile, shareFile } from '../share
                 }
               </select></label
             >
-            <p class="muted small">Each team keeps its own roster, practices, and history.</p>
+            <p class="muted small">{{ 'settings.teamHelp' | t }}</p>
           }
           <div class="row">
             @if (store.activeTeam()) {
-              <button (click)="editTeam(store.activeTeam()!)">Edit team</button>
+              <button (click)="editTeam(store.activeTeam()!)">{{ 'settings.editTeam' | t }}</button>
             }
-            <button (click)="editTeam()">+ Add team</button>
+            <button (click)="editTeam()">{{ 'settings.addTeam' | t }}</button>
           </div>
         </section>
         <section class="card">
-          <p class="eyebrow">NEXT TIME AT THE FIELD</p>
-          <h2>Practice defaults</h2>
+          <p class="eyebrow">{{ 'settings.nextTimeEyebrow' | t }}</p>
+          <h2>{{ 'settings.practiceDefaults' | t }}</h2>
           <div class="form-grid">
             <label
-              >Pitcher handedness<select
+              >{{ 'settings.pitcherHand' | t
+              }}<select
                 aria-label="Pitcher handedness"
                 [ngModel]="store.settings().defaultPitcherHand"
                 (ngModelChange)="store.updateSettings({ defaultPitcherHand: $event })"
               >
-                <option value="R">RHP</option>
-                <option value="L">LHP</option>
+                <option value="R">{{ 'baseball.rhp' | t }}</option>
+                <option value="L">{{ 'baseball.lhp' | t }}</option>
               </select></label
             ><label
-              >Rotation<select
+              >{{ 'settings.rotation' | t
+              }}<select
                 aria-label="Rotation"
                 [ngModel]="rotationChoice()"
                 (ngModelChange)="changeRotation($event)"
               >
-                <option value="manual">Manual Advance</option>
-                <option value="1">After 1 recorded contact</option>
-                <option value="3">After 3 recorded contacts</option>
-                <option value="5">After 5 recorded contacts</option>
-                <option value="custom">Custom count</option>
+                <option value="manual">{{ 'settings.rotationManual' | t }}</option>
+                <option value="1">{{ 'settings.rotation1' | t }}</option>
+                <option value="3">{{ 'settings.rotation3' | t }}</option>
+                <option value="5">{{ 'settings.rotation5' | t }}</option>
+                <option value="custom">{{ 'settings.rotationCustom' | t }}</option>
               </select></label
             >
             @if (rotationChoice() === 'custom') {
@@ -91,10 +111,10 @@ import { backupFileName, canShareFiles, downloadFile, shareFile } from '../share
               [ngModel]="store.settings().leftHandedMode"
               (ngModelChange)="store.updateSettings({ leftHandedMode: $event })"
             />
-            Left-handed dugout mode (mirrors primary controls for left-thumb reach)
+            {{ 'settings.leftHandedMode' | t }}
           </label>
           <p class="muted small">
-            Defaults apply to new practices. You can change them during a session.
+            {{ 'settings.defaultsNote' | t }}
           </p>
         </section>
         <section class="card visual-card">
