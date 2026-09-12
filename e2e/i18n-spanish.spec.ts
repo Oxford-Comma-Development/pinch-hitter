@@ -56,7 +56,7 @@ test('Spanish internationalization (i18n) end-to-end coaching workflow', async (
   // Check authentic baseball terms
   await page.getByRole('button', { name: 'Línea', exact: true }).click();
   await page.getByRole('button', { name: 'Sencillo', exact: true }).click();
-  await page.getByRole('button', { name: '5 Plákata', exact: true }).click();
+  await page.getByRole('button', { name: '6 Plákata', exact: true }).click();
 
   // Record a swing and miss (whiff)
   const whiffBtn = page.locator('.whiff-scale-button');

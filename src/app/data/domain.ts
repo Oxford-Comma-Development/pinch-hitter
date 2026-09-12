@@ -226,7 +226,9 @@ export function summarizeEvents(events: readonly BallEvent[]) {
   const classifiedHardHits = events.filter(
     (e) => e.hardHit !== null && e.hardHit !== undefined,
   ).length;
-  const hardHitCount = events.filter((e) => e.hardHit === 4 || e.hardHit === 5).length;
+  const hardHitCount = events.filter(
+    (e) => e.hardHit === 4 || e.hardHit === 5 || e.hardHit === 6,
+  ).length;
   const swingsAndMisses = events.filter((e) => e.hardHit === 0).length;
   const contactHits = events.length - swingsAndMisses;
   return {

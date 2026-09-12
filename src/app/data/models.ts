@@ -27,7 +27,7 @@ export const RESULT_LABELS: Record<HitResult, string> = {
   triple: 'Triple',
   'home-run': 'Home run',
 };
-export const HARD_HIT_RATINGS = [0, 1, 2, 3, 4, 5] as const;
+export const HARD_HIT_RATINGS = [0, 1, 2, 3, 4, 5, 6] as const;
 export type HardHitRating = (typeof HARD_HIT_RATINGS)[number];
 export const HARD_HIT_LABELS: Record<HardHitRating, string> = {
   0: 'Swing & miss',
@@ -35,7 +35,8 @@ export const HARD_HIT_LABELS: Record<HardHitRating, string> = {
   2: 'Soft',
   3: 'Medium',
   4: 'Hard hit',
-  5: 'Plákata',
+  5: 'Crushed',
+  6: 'Plákata',
 };
 export const HARD_HIT_SHORT_LABELS: Record<HardHitRating, string> = {
   0: '0 Miss',
@@ -43,7 +44,8 @@ export const HARD_HIT_SHORT_LABELS: Record<HardHitRating, string> = {
   2: '2 Soft',
   3: '3 Med',
   4: '4 Hard',
-  5: '5 Plákata',
+  5: '5 Crushed',
+  6: '6 Plákata',
 };
 
 export interface Entity {

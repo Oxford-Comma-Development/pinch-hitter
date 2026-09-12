@@ -56,7 +56,8 @@ export class I18nService {
     2: this.t('baseball.soft'),
     3: this.t('baseball.medium'),
     4: this.t('baseball.hard'),
-    5: this.t('baseball.plakata'),
+    5: this.t('baseball.crushed'),
+    6: this.t('baseball.plakata'),
   }));
 
   readonly hardHitShortLabels: Signal<Record<HardHitRating, string>> = computed(() => ({
@@ -65,7 +66,8 @@ export class I18nService {
     2: this.t('baseball.shortSoft'),
     3: this.t('baseball.shortMed'),
     4: this.t('baseball.shortHard'),
-    5: this.t('baseball.shortPlakata'),
+    5: this.t('baseball.shortCrushed'),
+    6: this.t('baseball.shortPlakata'),
   }));
 
   readonly handLabels: Signal<Record<Hand, string>> = computed(() => ({

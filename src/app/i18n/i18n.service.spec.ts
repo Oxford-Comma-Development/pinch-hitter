@@ -40,7 +40,8 @@ describe('I18nService & Dictionaries', () => {
     expect(service.currentLang()).toBe('en');
     expect(service.t('practice.nextBatter')).toBe('Next batter');
     expect(service.contactLabels()['ground-ball']).toBe('Ground ball');
-    expect(service.hardHitShortLabels()[5]).toBe('5 Plákata');
+    expect(service.hardHitShortLabels()[5]).toBe('5 Crushed');
+    expect(service.hardHitShortLabels()[6]).toBe('6 Plákata');
 
     // Switch to Spanish via store settings signal
     store.settings.update((s) => ({ ...s, language: 'es' }));
@@ -52,7 +53,8 @@ describe('I18nService & Dictionaries', () => {
     expect(service.contactLabels()['fly-ball']).toBe('Elevado');
     expect(service.resultLabels()['home-run']).toBe('Jonrón');
     expect(service.hardHitShortLabels()[0]).toBe('0 Fallo');
-    expect(service.hardHitShortLabels()[5]).toBe('5 Plákata');
+    expect(service.hardHitShortLabels()[5]).toBe('5 Palazo');
+    expect(service.hardHitShortLabels()[6]).toBe('6 Plákata');
     expect(service.directionLabels().pull).toBe('A su banda');
   });
 });

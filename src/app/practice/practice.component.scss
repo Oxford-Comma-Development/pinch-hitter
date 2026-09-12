@@ -498,12 +498,13 @@ summary .muted {
   border-color: #bd491e;
 }
 .classify-row.hard-hit {
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
 }
 .classify-row.hard-hit button {
   background: #f4f3ea;
   font-weight: 600;
-  font-size: 0.63rem;
+  font-size: 0.6rem;
+  padding: 0 1px;
 }
 .classify-row.hard-hit button.selected {
   background: #6c4ebb;

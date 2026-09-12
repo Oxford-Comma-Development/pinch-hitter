@@ -151,18 +151,19 @@ Batting practice isn't just about balls in play; knowing when a hitter is swingi
 
 ---
 
-### Hit Power & Contact Quality (1–5 Scale)
+### Hit Power & Contact Quality (0–6 Scale)
 
-Right below the field, Pinch Hitter gives you an optional 5-point contact quality scale:
+Right below the field, Pinch Hitter gives you an optional contact quality scale:
 
-| Rating | Short Label   | Description                                                            |
-| :----: | :------------ | :--------------------------------------------------------------------- |
-| **0**  | **0 Miss**    | Swing and miss / whiff at the plate.                                   |
-| **1**  | **1 Soft**    | Weak contact, jammed, off the end of the bat, dribbler.                |
-| **2**  | **2 Med**     | Routine contact, caught easily by an infielder or shallow outfielder.  |
-| **3**  | **3 Solid**   | Crisp contact, driven with purpose into gaps or cleanly through holes. |
-| **4**  | **4 Hard**    | Hard-hit ball; sharp exit velocity, deep outfield drive.               |
-| **5**  | **5 Crushed** | Barrel of the bat, absolute best contact, home run territory.          |
+| Rating | Short Label   | Description                                                           |
+| :----: | :------------ | :-------------------------------------------------------------------- |
+| **0**  | **0 Miss**    | Swing and miss / whiff at the plate.                                  |
+| **1**  | **1 Weak**    | Weak contact, jammed, off the end of the bat, dribbler.               |
+| **2**  | **2 Soft**    | Routine contact, caught easily by an infielder or shallow outfielder. |
+| **3**  | **3 Med**     | Medium contact, driven into gaps or through infield holes.            |
+| **4**  | **4 Hard**    | Hard-hit ball; sharp exit velocity, deep outfield drive.              |
+| **5**  | **5 Crushed** | Smoked / barrel contact, warning-track or gap power.                  |
+| **6**  | **6 Plákata** | Absolute peak contact, no-doubt home run power.                       |
 
 > **Coaching Tip:** Adding hit quality is completely optional! If you have a fast pitcher or machine running, simply tapping the landing location is enough. You can tap a rating afterward whenever you have a split-second between pitches.
 

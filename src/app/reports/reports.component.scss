@@ -445,6 +445,9 @@ input[type='date'] {
   background: #e63946;
 }
 .hard-hit-5 {
+  background: #b53471;
+}
+.hard-hit-6 {
   background: #7b2cbf;
 }
 .palette-colorblind {
@@ -458,7 +461,8 @@ input[type='date'] {
   .hard-hit-2 {
     background: #e69f00;
   }
-  .line-drive {
+  .line-drive,
+  .hard-hit-5 {
     background: #d55e00;
   }
   .pop-up,
@@ -468,7 +472,7 @@ input[type='date'] {
   }
   .fly-ball,
   .home-run,
-  .hard-hit-5 {
+  .hard-hit-6 {
     background: #cc79a7;
   }
   .out {
@@ -492,7 +496,8 @@ input[type='date'] {
   .hard-hit-2 {
     background: #ff9800;
   }
-  .line-drive {
+  .line-drive,
+  .hard-hit-5 {
     background: #ff3d00;
   }
   .pop-up,
@@ -502,7 +507,7 @@ input[type='date'] {
   }
   .fly-ball,
   .home-run,
-  .hard-hit-5 {
+  .hard-hit-6 {
     background: #e040fb;
   }
   .out {
@@ -640,6 +645,9 @@ input[type='date'] {
   background: #c72c39;
 }
 .bar-fill.hard-hit-5 {
+  background: #9d1b55;
+}
+.bar-fill.hard-hit-6 {
   background: #6a24a6;
 }
 .classification-note {

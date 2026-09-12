@@ -249,22 +249,33 @@ describe('coordinates and reporting', () => {
       contactType: 'line-drive' as const,
       result: 'single' as const,
     };
-    const events = [normal, whiff, crushed, medium];
+    const plakata = {
+      ...normal,
+      id: 'e5',
+      fieldX: 0.5,
+      fieldY: 0.1,
+      hardHit: 6 as const,
+      contactType: 'fly-ball' as const,
+      result: 'home-run' as const,
+    };
+    const events = [normal, whiff, crushed, medium, plakata];
 
     expect(filterEvents(events, { hardHit: 0 })).toEqual([whiff]);
     expect(filterEvents(events, { hardHit: 5 })).toEqual([crushed]);
+    expect(filterEvents(events, { hardHit: 6 })).toEqual([plakata]);
     expect(filterEvents(events, { hardHit: null })).toEqual([normal]);
 
     const summary = summarizeEvents(events);
-    expect(summary.total).toBe(4);
-    expect(summary.classifiedHardHits).toBe(3);
+    expect(summary.total).toBe(5);
+    expect(summary.classifiedHardHits).toBe(4);
     expect(summary.swingsAndMisses).toBe(1);
-    expect(summary.contactHits).toBe(3);
-    expect(summary.hardHitCount).toBe(1); // rating 4 or 5
+    expect(summary.contactHits).toBe(4);
+    expect(summary.hardHitCount).toBe(2); // rating 4, 5, or 6
     expect(summary.hardHits).toEqual({
       0: 1,
       3: 1,
       5: 1,
+      6: 1,
       unclassified: 1,
     });
   });

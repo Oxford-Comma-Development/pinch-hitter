@@ -224,9 +224,10 @@ describe('Visual accessibility and field display', () => {
     fixture.componentRef.setInput('colorBy', 'result');
     expect(field.eventColor(event)).toBe('#cc79a7');
 
-    // When colorBy === 'hardHit', rating 5 is reddish purple (#cc79a7) in Okabe-Ito
+    // When colorBy === 'hardHit', rating 6 (Plákata) is reddish purple (#cc79a7) in Okabe-Ito, rating 5 is vermilion (#d55e00)
     fixture.componentRef.setInput('colorBy', 'hardHit');
-    expect(field.eventColor(event)).toBe('#cc79a7');
+    expect(field.eventColor({ ...event, hardHit: 6 })).toBe('#cc79a7');
+    expect(field.eventColor(event)).toBe('#d55e00');
   });
 
   it('assigns multi-shape glyphs to contact types and results when shapeMarkers is enabled', () => {
@@ -277,10 +278,11 @@ describe('Visual accessibility and field display', () => {
     expect(field.markerShape({ ...baseEvent, hardHit: 3 })).toBe('triangle-up');
     expect(field.markerShape({ ...baseEvent, hardHit: 4 })).toBe('diamond');
     expect(field.markerShape({ ...baseEvent, hardHit: 5 })).toBe('square');
+    expect(field.markerShape({ ...baseEvent, hardHit: 6 })).toBe('star');
 
     // Disabling shapeMarkers reverts all to circle
     fixture.componentRef.setInput('shapeMarkers', false);
-    expect(field.markerShape({ ...baseEvent, hardHit: 5 })).toBe('circle');
+    expect(field.markerShape({ ...baseEvent, hardHit: 6 })).toBe('circle');
   });
 
   it('adjusts marker stroke and field styling under high contrast theme', () => {

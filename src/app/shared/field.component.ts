@@ -42,7 +42,8 @@ export const HARD_HIT_COLORS: Record<string, string> = {
   '2': '#fed368',
   '3': '#ff9f43',
   '4': '#ee5253',
-  '5': '#d980fa',
+  '5': '#b53471',
+  '6': '#d980fa',
   unclassified: '#ffffff',
 };
 
@@ -69,7 +70,8 @@ export const OKABE_ITO_HARD_HIT_COLORS: Record<string, string> = {
   '2': '#e69f00', // Orange
   '3': '#56b4e9', // Sky Blue
   '4': '#0072b2', // Deep Blue
-  '5': '#cc79a7', // Reddish Purple
+  '5': '#d55e00', // Vermilion
+  '6': '#cc79a7', // Reddish Purple
   unclassified: '#ffffff',
 };
 
@@ -96,7 +98,8 @@ export const HIGH_CONTRAST_HARD_HIT_COLORS: Record<string, string> = {
   '2': '#ff9800',
   '3': '#00e5ff',
   '4': '#2979ff',
-  '5': '#e040fb',
+  '5': '#ff3d00',
+  '6': '#e040fb',
   unclassified: '#ffffff',
 };
 
@@ -575,6 +578,8 @@ export class FieldComponent {
           return 'diamond';
         case 5:
           return 'square';
+        case 6:
+          return 'star';
         default:
           return 'circle';
       }

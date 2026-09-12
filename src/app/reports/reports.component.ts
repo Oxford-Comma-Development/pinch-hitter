@@ -136,6 +136,8 @@ export class ReportsComponent {
           return 'shape-diamond';
         case 5:
           return 'shape-square';
+        case 6:
+          return 'shape-star';
         default:
           return 'shape-circle';
       }
