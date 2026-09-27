@@ -5,7 +5,13 @@ import { ModalDirective } from '../shared/modal.directive';
 import { InstallService } from '../shared/install.service';
 import { CoachStore } from '../data/coach-store';
 import { EntitlementService, CoachTier } from '../data/entitlement.service';
-import { ImportPreview, Team } from '../data/models';
+import {
+  FieldPresetKey,
+  ImportPreview,
+  OutfieldFenceConfig,
+  STANDARD_FENCE_PRESETS,
+  Team,
+} from '../data/models';
 import { eventsCsv, backupJson } from '../data/transfer';
 import { RouterLink } from '@angular/router';
 import { backupFileName, canShareFiles, downloadFile, shareFile } from '../shared/files';
@@ -115,6 +121,48 @@ import { TranslatePipe } from '../i18n/translate.pipe';
           </label>
           <p class="muted small">
             {{ 'settings.defaultsNote' | t }}
+          </p>
+        </section>
+        <section class="card fence-card">
+          <p class="eyebrow">BALLPARK &amp; OUTFIELD FENCE</p>
+          <h2>Home field dimensions</h2>
+          <p class="muted small">
+            Set the default outfield wall distances for your home ballpark. Used in spray chart
+            analytics and warning track detection.
+          </p>
+          <label
+            >Ballpark preset
+            <select
+              aria-label="Ballpark outfield fence preset"
+              [ngModel]="store.settings().defaultFencePreset || 'high_school'"
+              (ngModelChange)="setFencePreset($event)"
+            >
+              <option value="high_school">High School Varsity (315' - 390' - 315')</option>
+              <option value="college">College / Pro Standard (330' - 400' - 330')</option>
+              <option value="little_league">Little League / Youth (200' - 200' - 200')</option>
+              <option value="softball">Fastpitch Softball (220' - 220' - 220')</option>
+            </select>
+          </label>
+          <div class="fence-summary-pills">
+            <div class="fence-marker-pill">
+              <span>LF</span><strong>{{ currentFencePreset.leftLineFeet }}'</strong>
+            </div>
+            <div class="fence-marker-pill">
+              <span>LCF</span><strong>{{ currentFencePreset.leftCenterFeet }}'</strong>
+            </div>
+            <div class="fence-marker-pill">
+              <span>CF</span><strong>{{ currentFencePreset.centerFeet }}'</strong>
+            </div>
+            <div class="fence-marker-pill">
+              <span>RCF</span><strong>{{ currentFencePreset.rightCenterFeet }}'</strong>
+            </div>
+            <div class="fence-marker-pill">
+              <span>RF</span><strong>{{ currentFencePreset.rightLineFeet }}'</strong>
+            </div>
+          </div>
+          <p class="muted small" style="margin-top: 12px;">
+            Custom fence wall dimensions can also be previewed and analyzed on any spray chart in
+            Reports.
           </p>
         </section>
         <section class="card visual-card">
@@ -782,6 +830,35 @@ import { TranslatePipe } from '../i18n/translate.pipe';
       background: #fff;
       padding: 4px;
     }
+    .fence-summary-pills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+    .fence-marker-pill {
+      flex: 1;
+      min-width: 48px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 6px;
+      text-align: center;
+    }
+    .fence-marker-pill span {
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .fence-marker-pill strong {
+      display: block;
+      font-size: 14px;
+      color: var(--ink);
+      margin-top: 2px;
+    }
     @media (max-width: 760px) {
       .settings-grid {
         grid-template-columns: 1fr;
@@ -807,6 +884,7 @@ export class SettingsComponent {
   readonly installPrompt = this.installer.prompt;
   readonly storageStatus = signal('');
   readonly canShare = signal(canShareFiles());
+  readonly fencePresets = STANDARD_FENCE_PRESETS;
   csvScope = 'team';
   deleteText = '';
   teamId = '';
@@ -828,6 +906,22 @@ export class SettingsComponent {
         : [1, 3, 5].includes(n)
           ? String(n)
           : 'custom';
+  }
+
+  get currentFencePreset(): OutfieldFenceConfig {
+    const presetKey = this.store.settings().defaultFencePreset;
+    if (presetKey && presetKey in this.fencePresets) {
+      return this.fencePresets[presetKey as keyof typeof this.fencePresets];
+    }
+    return this.fencePresets.high_school;
+  }
+
+  async setFencePreset(preset: FieldPresetKey) {
+    if (preset in this.fencePresets) {
+      const validKey = preset as keyof typeof this.fencePresets;
+      await this.store.updateSettings({ defaultFencePreset: validKey });
+      this.message.set(`Default ballpark fence set to ${this.fencePresets[validKey].label}.`);
+    }
   }
   async changeRotation(value: string) {
     this.custom = value === 'custom';

@@ -128,6 +128,65 @@ export type ColorPaletteMode = 'standard' | 'colorblind' | 'high_contrast';
 export type FieldThemeMode = 'classic' | 'high_contrast';
 export type AppLanguage = 'en' | 'es';
 
+export type FieldPresetKey = 'high_school' | 'college' | 'little_league' | 'softball' | 'custom';
+
+export interface OutfieldFenceConfig {
+  preset: FieldPresetKey;
+  label: string;
+  leftLineFeet: number;
+  leftCenterFeet: number;
+  centerFeet: number;
+  rightCenterFeet: number;
+  rightLineFeet: number;
+  warningTrackDepthFeet: number;
+}
+
+export const STANDARD_FENCE_PRESETS: Record<
+  Exclude<FieldPresetKey, 'custom'>,
+  OutfieldFenceConfig
+> = {
+  high_school: {
+    preset: 'high_school',
+    label: "High School / Travel (390' CF)",
+    leftLineFeet: 315,
+    leftCenterFeet: 365,
+    centerFeet: 390,
+    rightCenterFeet: 365,
+    rightLineFeet: 315,
+    warningTrackDepthFeet: 15,
+  },
+  college: {
+    preset: 'college',
+    label: "College / Pro (405' CF)",
+    leftLineFeet: 330,
+    leftCenterFeet: 375,
+    centerFeet: 405,
+    rightCenterFeet: 375,
+    rightLineFeet: 330,
+    warningTrackDepthFeet: 15,
+  },
+  little_league: {
+    preset: 'little_league',
+    label: "Little League / 12U (200' uniform)",
+    leftLineFeet: 200,
+    leftCenterFeet: 200,
+    centerFeet: 200,
+    rightCenterFeet: 200,
+    rightLineFeet: 200,
+    warningTrackDepthFeet: 12,
+  },
+  softball: {
+    preset: 'softball',
+    label: "Fastpitch Softball (220' uniform)",
+    leftLineFeet: 220,
+    leftCenterFeet: 220,
+    centerFeet: 220,
+    rightCenterFeet: 220,
+    rightLineFeet: 220,
+    warningTrackDepthFeet: 12,
+  },
+};
+
 export interface AppSettings {
   id: 'preferences';
   activeTeamId: string | null;
@@ -139,6 +198,8 @@ export interface AppSettings {
   fieldTheme?: FieldThemeMode;
   shapeMarkers?: boolean;
   language?: AppLanguage;
+  defaultFencePreset?: FieldPresetKey;
+  customFenceConfig?: OutfieldFenceConfig;
   updatedAt: string;
 }
 export interface BackupData {
@@ -195,5 +256,6 @@ export const defaultSettings = (): AppSettings => ({
   fieldTheme: 'classic',
   shapeMarkers: false,
   language: 'en',
+  defaultFencePreset: 'high_school',
   updatedAt: new Date().toISOString(),
 });

@@ -1398,3 +1398,213 @@ input[type='date'] {
   font-size: 13px;
   color: #721c24;
 }
+
+.fence-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  margin-bottom: 10px;
+}
+
+.fence-toolbar-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.fence-preset-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.fence-pill {
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  &:hover {
+    border-color: var(--line-strong, #94a3b8);
+    background: var(--surface-subtle, #f8fafc);
+  }
+
+  &.selected {
+    background: var(--text);
+    color: var(--background, #ffffff);
+    border-color: var(--text);
+  }
+
+  .pro-tag {
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 10px;
+    background: #0284c7;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+  }
+}
+
+.fence-analytics-strip {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.fence-metric-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--text);
+
+  b {
+    font-weight: 700;
+  }
+
+  .chip-dot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    font-size: 11px;
+  }
+
+  &.warning-track-chip {
+    border-color: #f59e0b;
+    background: rgba(245, 158, 11, 0.08);
+
+    .warning-track-dot {
+      background: #f59e0b;
+      color: #fff;
+    }
+  }
+
+  &.homerun-chip {
+    border-color: #8b5cf6;
+    background: rgba(139, 92, 246, 0.08);
+
+    .homerun-dot {
+      background: #8b5cf6;
+      color: #fff;
+    }
+  }
+}
+
+.custom-fence-editor {
+  margin-bottom: 14px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+
+  .custom-fence-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 14px;
+
+    .preview-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 12px;
+      background: #e0f2fe;
+      color: #0369a1;
+    }
+  }
+
+  .custom-fence-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 10px;
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+
+      input {
+        width: 100%;
+        padding: 6px 8px;
+        border-radius: 6px;
+        border: 1px solid var(--line);
+        background: var(--background);
+        color: var(--text);
+        font-size: 14px;
+        font-weight: 700;
+        text-align: center;
+      }
+    }
+  }
+}
+
+.pro-preview-card {
+  margin-bottom: 14px;
+  padding: 16px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.05), rgba(99, 102, 241, 0.08));
+  border: 1px solid rgba(2, 132, 199, 0.25);
+
+  .pro-preview-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+
+    .pro-badge {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 10px;
+      background: #0284c7;
+      color: #ffffff;
+      letter-spacing: 0.5px;
+    }
+
+    h4 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 700;
+    }
+  }
+
+  p {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--muted);
+    margin: 0 0 12px;
+  }
+
+  .pro-preview-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+}

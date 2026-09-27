@@ -4,18 +4,28 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CoachStore } from '../data/coach-store';
-import { filterEvents, summarizeEvents } from '../data/domain';
+import {
+  calculateDistanceFeet,
+  filterEvents,
+  isOverTheFence,
+  isWarningTrack,
+  summarizeEvents,
+} from '../data/domain';
 import {
   BallEvent,
   CONTACT_TYPES,
   ContactType,
+  FieldPresetKey,
   HARD_HIT_RATINGS,
   HardHitRating,
   HIT_RESULTS,
   HitResult,
+  OutfieldFenceConfig,
   Player,
   PracticeSession,
+  STANDARD_FENCE_PRESETS,
 } from '../data/models';
+import { EntitlementService } from '../data/entitlement.service';
 import { eventsCsv } from '../data/transfer';
 import { FieldComponent } from '../shared/field.component';
 import { I18nService } from '../i18n/i18n.service';
@@ -202,6 +212,77 @@ export class ReportsComponent {
     });
   });
   readonly summary = computed(() => summarizeEvents(this.observations()));
+  readonly entitlement = inject(EntitlementService);
+  readonly selectedFencePreset = signal<FieldPresetKey>('high_school');
+  readonly customFence = signal<OutfieldFenceConfig>({
+    preset: 'custom',
+    label: 'Custom Home Field',
+    leftLineFeet: 315,
+    leftCenterFeet: 360,
+    centerFeet: 385,
+    rightCenterFeet: 360,
+    rightLineFeet: 315,
+    warningTrackDepthFeet: 15,
+  });
+  readonly customPreviewMode = signal(false);
+
+  readonly canAccessCustomFence = computed(() =>
+    this.entitlement.canAccess('custom_field_dimensions'),
+  );
+
+  readonly activeFenceConfig = computed<OutfieldFenceConfig>(() => {
+    const preset = this.selectedFencePreset();
+    if (preset === 'custom') {
+      return this.customFence();
+    }
+    return STANDARD_FENCE_PRESETS[preset] ?? STANDARD_FENCE_PRESETS.high_school;
+  });
+
+  readonly fenceStats = computed(() => {
+    const obs = this.observations();
+    const fence = this.activeFenceConfig();
+    let homeRuns = 0;
+    let warningTrack = 0;
+    let infield = 0;
+    let outfield = 0;
+
+    for (const e of obs) {
+      if (e.hardHit === 0) continue;
+      if (isOverTheFence(e, fence)) {
+        homeRuns++;
+      } else if (isWarningTrack(e, fence)) {
+        warningTrack++;
+      } else {
+        const dist = calculateDistanceFeet(e.fieldX, e.fieldY);
+        if (dist < 120) {
+          infield++;
+        } else {
+          outfield++;
+        }
+      }
+    }
+
+    return {
+      homeRuns,
+      warningTrack,
+      infield,
+      outfield,
+    };
+  });
+
+  selectFencePreset(preset: FieldPresetKey) {
+    this.selectedFencePreset.set(preset);
+  }
+
+  updateCustomFence(field: keyof OutfieldFenceConfig, value: number) {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric) || numeric < 100 || numeric > 550) return;
+    this.customFence.update((curr) => ({
+      ...curr,
+      [field]: numeric,
+    }));
+  }
+
   readonly comparison = computed(() => recentComparison(this.scopeEvents()));
   readonly selectedEvent = computed(() =>
     this.observations().find((event) => event.id === this.selectedId()),

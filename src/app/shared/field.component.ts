@@ -1,5 +1,10 @@
 import { Component, computed, input, output, signal } from '@angular/core';
-import { BallEvent, ColorPaletteMode, FieldThemeMode } from '../data/models';
+import { BallEvent, ColorPaletteMode, FieldThemeMode, OutfieldFenceConfig } from '../data/models';
+import {
+  generateFenceSvgPath,
+  generateWarningTrackSvgPath,
+  getFenceDistanceMarkers,
+} from '../data/domain';
 
 export interface FieldPoint {
   x: number;
@@ -162,18 +167,57 @@ export const HIGH_CONTRAST_HARD_HIT_COLORS: Record<string, string> = {
       >
         <path d="M0 80H1000V180H0z M0 280H1000V380H0z M0 480H1000V580H0z M0 680H1000V780H0z" />
       </g>
-      <path
-        d="M64 444 C131 -44 869 -44 936 444"
-        fill="none"
-        [attr.stroke]="theme() === 'high_contrast' ? '#334155' : '#c7b78c'"
-        stroke-width="20"
-      />
-      <path
-        d="M64 444 C131 -44 869 -44 936 444"
-        fill="none"
-        [attr.stroke]="theme() === 'high_contrast' ? '#38bdf8' : '#fff4d3'"
-        [attr.stroke-width]="theme() === 'high_contrast' ? '4' : '3'"
-      />
+      @if (fenceConfig(); as fence) {
+        <path
+          [attr.d]="warningTrackPath()"
+          fill="#cda478"
+          [attr.opacity]="theme() === 'high_contrast' ? '.20' : '.30'"
+          pointer-events="none"
+        />
+        <path
+          [attr.d]="fencePath()"
+          fill="none"
+          [attr.stroke]="theme() === 'high_contrast' ? '#334155' : '#c7b78c'"
+          stroke-width="16"
+          stroke-linecap="round"
+          pointer-events="none"
+        />
+        <path
+          [attr.d]="fencePath()"
+          fill="none"
+          [attr.stroke]="theme() === 'high_contrast' ? '#38bdf8' : '#fff4d3'"
+          [attr.stroke-width]="theme() === 'high_contrast' ? '4' : '3'"
+          stroke-linecap="round"
+          pointer-events="none"
+        />
+        <g
+          class="fence-markers"
+          [attr.fill]="theme() === 'high_contrast' ? '#38bdf8' : '#fff9db'"
+          [attr.opacity]="theme() === 'high_contrast' ? '1' : '.95'"
+          font-family="system-ui, sans-serif"
+          font-size="17"
+          font-weight="700"
+          text-anchor="middle"
+          pointer-events="none"
+        >
+          @for (marker of fenceMarkers(); track marker.label + marker.angle) {
+            <text [attr.x]="marker.x" [attr.y]="marker.y">{{ marker.label }}</text>
+          }
+        </g>
+      } @else {
+        <path
+          d="M64 444 C131 -44 869 -44 936 444"
+          fill="none"
+          [attr.stroke]="theme() === 'high_contrast' ? '#334155' : '#c7b78c'"
+          stroke-width="20"
+        />
+        <path
+          d="M64 444 C131 -44 869 -44 936 444"
+          fill="none"
+          [attr.stroke]="theme() === 'high_contrast' ? '#38bdf8' : '#fff4d3'"
+          [attr.stroke-width]="theme() === 'high_contrast' ? '4' : '3'"
+        />
+      }
       <path
         d="M 500 880 L 277 657 Q 500 383 723 657 Z"
         [attr.fill]="theme() === 'high_contrast' ? '#1e293b' : '#bf9769'"
@@ -469,6 +513,7 @@ export class FieldComponent {
   readonly palette = input<ColorPaletteMode>('standard');
   readonly theme = input<FieldThemeMode>('classic');
   readonly shapeMarkers = input(false);
+  readonly fenceConfig = input<OutfieldFenceConfig | null>(null);
   readonly label = input('Baseball spray chart');
   // This chart output carries coordinates; it does not refer to window.location.
   // eslint-disable-next-line @angular-eslint/no-output-native
@@ -479,6 +524,21 @@ export class FieldComponent {
   private static nextId = 0;
   readonly clipId = `field-clip-${FieldComponent.nextId++}`;
   readonly heatId = `field-heat-${FieldComponent.nextId++}`;
+
+  readonly fencePath = computed(() => {
+    const config = this.fenceConfig();
+    return config ? generateFenceSvgPath(config) : '';
+  });
+
+  readonly warningTrackPath = computed(() => {
+    const config = this.fenceConfig();
+    return config ? generateWarningTrackSvgPath(config) : '';
+  });
+
+  readonly fenceMarkers = computed(() => {
+    const config = this.fenceConfig();
+    return config ? getFenceDistanceMarkers(config) : [];
+  });
   private pointerStart: { x: number; y: number; id: number } | null = null;
   private lastCapture: { x: number; y: number; time: number } | null = null;
 

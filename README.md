@@ -26,11 +26,14 @@ Browser storage is tied to a browser profile and site address. Use Settings to r
 - **Sharing:** native file sharing where supported, ordinary download everywhere else.
 - **Print / PDF:** player, team, and session reports include the chart, filter context, and summaries. Use the browser print dialog to print or save a PDF.
 
-See [the data format and migration guide](docs/data-format.md) for IndexedDB stores, entity relationships, JSON, CSV columns, merge rules, and coordinates. Additional documentation:
+See [the data format and migration guide](docs/data-format.md) for IndexedDB stores, entity relationships, JSON, CSV columns, merge rules, and coordinates. Comprehensive architecture, decision records, and roadmaps:
 
-- [Technical Architecture & Project Overview](docs/project-overview.md)
+- [System Architecture](docs/ARCHITECTURE.md) & [Project Overview](docs/project-overview.md)
+- [Architectural Decision Records (ADRs)](docs/DECISIONS.md)
+- [Project Delivery Roadmap](docs/ROADMAP.md)
 - [Coach's Field Manual & User Guide](docs/user-manual.md)
-- [Pro Tier Strategy, Feature Gating & Analytics Roadmap](docs/pro-tier-strategy.md)
+- [Pro Tier Strategy & Feature Gating](docs/pro-tier-strategy.md)
+- [Agent Guidelines (AGENTS.md)](AGENTS.md) & [Coding Rules (GEMINI.md)](GEMINI.md)
 
 ## Install and use offline
 

@@ -1,30 +1,35 @@
-# Pinch Hitter: implementation principles
+# Agent Instructions
 
-Read the workspace `GEMINI.md` when present. Prefer native platform features and existing dependencies; avoid abstraction layers that do not serve an actual product need.
+This repository is **Pinch Hitter**, an offline-first baseball and softball batting-practice coaching notebook and spray chart built as an Angular Progressive Web Application (PWA) optimized for hosting on **GitHub Pages**.
 
-## Product
+> **Note**: Comprehensive agent guidelines, architectural specifications, and implementation roadmaps are maintained in:
+>
+> - [AGENTS.md](AGENTS.md): Repository role, code map, development commands, quality gates, and guardrails.
+> - [GEMINI.md](GEMINI.md): Operational coding rules, the simplicity ladder, and development constraints.
+> - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): System architecture, technology stack, directory boundaries, state management, coordinate math, and offline storage.
+> - [docs/DECISIONS.md](docs/DECISIONS.md): Architectural Decision Records (ADRs).
+> - [docs/ROADMAP.md](docs/ROADMAP.md): Master product roadmap, Pro tier milestones, and technical debt backlog.
+> - [docs/exec-plans/active/](docs/exec-plans/active/README.md): Active execution plans for non-trivial tasks.
+> - [docs/exec-plans/completed/](docs/exec-plans/completed/README.md): Archived, verified execution plans.
+> - [docs/data-format.md](docs/data-format.md): IndexedDB schema, migration mechanics, JSON backup specification, and CSV formats.
+> - [docs/pro-tier-strategy.md](docs/pro-tier-strategy.md): Method-agnostic entitlement architecture, feature gating analysis, and analytics roadmap.
+> - [docs/user-manual.md](docs/user-manual.md): Coach's Field Manual, workflows, and accessibility guide.
 
-This is a coach’s local baseball notebook and batting-practice capture tool. Phone portrait is the primary experience. **Store data richly; ask for data sparingly.** A location tap must create a valid observation without a modal or Save step. Classifications are optional and must not silently carry to the next observation. Manual hitter advance is the default. Call the unit a **recorded contact**, never a swing.
+---
 
-The coach normally has one active team; team switching belongs in Settings. During active practice, hide ordinary navigation and prioritize hitter, upcoming line, field, optional classification, Undo, and Next batter. Maintain the field-left/control-right landscape layout and touch queue dragging with accessible alternatives.
+## Core Product Principles
 
-## Data integrity
+- **Store data richly; ask for data sparingly**: A single field tap creates a valid observation without modal confirmation. Classifications are optional and never carry over to subsequent hits. Manual hitter advance is the default.
+- **Terminology**: The unit of capture is a **recorded contact**, never an inferred swing, at-bat, or official plate appearance.
+- **Local-First Data Sovereignty**: All data lives in native IndexedDB on the device. No accounts, no cloud backend, no third-party tracking.
+- **Single-Transaction Atomic Capture**: Event records, session turn state, batting queue rotation, and revision tokens commit in a single IndexedDB transaction before UI signals update or success is acknowledged.
+- **Dugout Ergonomics & Universal Design**: Designed for one-handed operation on phone portrait, field-left/control-right phone landscape, with Okabe-Ito barrier-free color mapping, WCAG 1.4.1 multi-shape SVG marker glyphs, obsidian slate sunlight field, and Left-Handed Dugout Mode.
 
-Use stable IDs and explicit domain types. Application data belongs in native IndexedDB, not localStorage. Event capture and session/queue state must commit in one transaction. Show saved confirmation only after commit; preserve old state on failure. Serialize same-tab mutations, coordinate cross-tab writes, and retain revision checks for platforms without Web Locks.
+---
 
-Preserve original normalized coordinates and event-time handedness. SVG/report/export coordinates must follow the documented versioned square system. Do not turn a nullable classification into an implied result. Keep derived analytics separate from source observations and expose their denominators.
+## Quality Gate Verification
 
-Undo must remove the latest capture and correctly reverse any automatic advancement while respecting later deliberate queue changes. Migrations must extend existing data without recreating populated stores. Validate backup schemas, references, numeric bounds, enumerations, and IDs before import, preview counts, then apply a non-destructive atomic merge. Document format changes in [docs/data-format.md](docs/data-format.md).
-
-## UX and PWA
-
-Use readable contrast, semantic buttons, visible keyboard focus, native dialogs or focus-managed sheets, screen-reader labels, at least 44px important touch targets, safe-area padding, reduced motion, and no horizontal overflow. Reports require text equivalents to plotted observations. Keep normal operation useful offline; speech and Web Share are progressive enhancements.
-
-Preserve Angular service worker, repository-relative manifest/assets, and GitHub Pages SPA fallback. Never replace the product identity with infrastructure diagnostics. New versions must not disrupt an ongoing practice or lose local data.
-
-## Verification and delivery
-
-Run formatting, lint, full unit suite, production build, Playwright workflows, and production offline tests before delivering substantial changes:
+Before delivering substantial changes or completing an execution plan, run the complete verification suite:
 
 ```sh
 npm run format:check
@@ -35,4 +40,4 @@ npm run e2e
 npm run e2e:pwa
 ```
 
-Use realistic tests for queue transitions, persistence, imports, reports, and corrections. Visually inspect phone portrait/landscape and tablet layouts and interact with the real application. Keep README and the focused data guide accurate. Workflows must pass before considering a deployment complete. Do not introduce new dependencies unless the platform and installed stack cannot reasonably cover the need.
+When working in this repository, adhere strictly to the principles, guardrails, and validation commands outlined in [AGENTS.md](AGENTS.md) and [GEMINI.md](GEMINI.md).

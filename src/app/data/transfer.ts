@@ -226,6 +226,13 @@ function parseSettings(row: JsonObject): AppSettings {
       typeof row['language'] === 'string' && ['en', 'es'].includes(row['language'])
         ? (row['language'] as AppSettings['language'])
         : 'en',
+    defaultFencePreset:
+      typeof row['defaultFencePreset'] === 'string' &&
+      ['high_school', 'college', 'little_league', 'softball', 'custom'].includes(
+        row['defaultFencePreset'] as string,
+      )
+        ? (row['defaultFencePreset'] as AppSettings['defaultFencePreset'])
+        : 'high_school',
     updatedAt: date(row['updatedAt'], 'Settings update'),
   };
 }

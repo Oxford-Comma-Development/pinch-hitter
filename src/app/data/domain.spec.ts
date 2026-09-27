@@ -12,8 +12,15 @@ import {
   rotateQueue,
   summarizeEvents,
   undoContact,
+  calculateDistanceFeet,
+  generateFenceSvgPath,
+  generateWarningTrackSvgPath,
+  getFenceDistanceAtAngle,
+  getFenceDistanceMarkers,
+  isOverTheFence,
+  isWarningTrack,
 } from './domain';
-import { Player, PracticeSession } from './models';
+import { Player, PracticeSession, STANDARD_FENCE_PRESETS } from './models';
 
 const now = '2026-05-04T18:30:00.000Z';
 const player: Player = {
@@ -288,5 +295,129 @@ describe('coordinates and reporting', () => {
     expect(bins.find((bin) => bin.count === 2)?.intensity).toBe(1);
     expect(bins.find((bin) => bin.count === 1)).toMatchObject({ x: 0.95, y: 0.95, intensity: 0.5 });
     expect(b.fieldX).toBe(1);
+  });
+});
+
+describe('outfield fence mathematics and geometry', () => {
+  const hsFence = STANDARD_FENCE_PRESETS.high_school;
+  const llFence = STANDARD_FENCE_PRESETS.little_league;
+
+  it('calculates fence distance at key angles for standard presets', () => {
+    // High School: 315 LF, 365 LCF, 390 CF, 365 RCF, 315 RF
+    expect(getFenceDistanceAtAngle(-45, hsFence)).toBe(315);
+    expect(getFenceDistanceAtAngle(-22.5, hsFence)).toBe(365);
+    expect(getFenceDistanceAtAngle(0, hsFence)).toBe(390);
+    expect(getFenceDistanceAtAngle(22.5, hsFence)).toBe(365);
+    expect(getFenceDistanceAtAngle(45, hsFence)).toBe(315);
+
+    // Little League: 200 uniform
+    expect(getFenceDistanceAtAngle(-45, llFence)).toBe(200);
+    expect(getFenceDistanceAtAngle(0, llFence)).toBe(200);
+    expect(getFenceDistanceAtAngle(45, llFence)).toBe(200);
+  });
+
+  it('calculates physical distance in feet from home plate', () => {
+    // Home plate itself (0.50, 0.88)
+    expect(calculateDistanceFeet(0.5, 0.88)).toBe(0);
+
+    // Center field apex (0.50, 0.08) should be 390 feet on standard diamond
+    const cfDist = calculateDistanceFeet(0.5, 0.08);
+    expect(Math.round(cfDist)).toBe(390);
+
+    // Halfway to center field (0.50, 0.48) should be approximately 195 feet
+    const midDist = calculateDistanceFeet(0.5, 0.48);
+    expect(Math.round(midDist)).toBe(195);
+
+    // Left foul line at 436 units away (0.50 - 0.436 = 0.064, 0.88 - 0.436 = 0.444)
+    const lfPoleDist = calculateDistanceFeet(0.064, 0.444);
+    expect(Math.round(lfPoleDist)).toBe(315);
+  });
+
+  it('accurately classifies over-the-fence home runs versus field hits', () => {
+    // Fly ball hit 400 ft to dead center (fieldX: 0.50, fieldY: 0.06)
+    const deepFly = {
+      fieldX: 0.5,
+      fieldY: 0.05,
+      contactType: 'fly-ball' as const,
+      hardHit: 5 as const,
+    };
+    expect(isOverTheFence(deepFly, hsFence)).toBe(true);
+
+    // Shallow fly ball 250 ft to center (fieldX: 0.50, fieldY: 0.35)
+    const shallowFly = {
+      fieldX: 0.5,
+      fieldY: 0.35,
+      contactType: 'fly-ball' as const,
+      hardHit: 3 as const,
+    };
+    expect(isOverTheFence(shallowFly, hsFence)).toBe(false);
+
+    // The same 250 ft fly ball is OVER the fence on a Little League diamond (200 ft)!
+    expect(isOverTheFence(shallowFly, llFence)).toBe(true);
+
+    // Ground balls and swings/misses are never over the fence regardless of landing coordinates
+    const groundBall = {
+      fieldX: 0.5,
+      fieldY: 0.05,
+      contactType: 'ground-ball' as const,
+      hardHit: 4 as const,
+    };
+    expect(isOverTheFence(groundBall, hsFence)).toBe(false);
+
+    const whiff = {
+      fieldX: 0.5,
+      fieldY: 0.88,
+      contactType: null,
+      hardHit: 0 as const,
+    };
+    expect(isOverTheFence(whiff, hsFence)).toBe(false);
+  });
+
+  it('accurately identifies warning track balls', () => {
+    // High School center field is 390 ft with 15 ft warning track (375-389 ft)
+    // 380 ft fly ball in center field
+    // dNorm = 380 / (390 / 0.80) = 0.7794 => fieldY = 0.88 - 0.7794 = 0.1006
+    const warningTrackFly = {
+      fieldX: 0.5,
+      fieldY: 0.101,
+      contactType: 'fly-ball' as const,
+      hardHit: 4 as const,
+    };
+    expect(isWarningTrack(warningTrackFly, hsFence)).toBe(true);
+    expect(isOverTheFence(warningTrackFly, hsFence)).toBe(false);
+
+    // Deeper ball (400 ft) is a home run, not warning track
+    const homeRunFly = {
+      fieldX: 0.5,
+      fieldY: 0.05,
+      contactType: 'fly-ball' as const,
+      hardHit: 5 as const,
+    };
+    expect(isWarningTrack(homeRunFly, hsFence)).toBe(false);
+
+    // Infield/shallow ball is neither
+    const infieldPop = {
+      fieldX: 0.5,
+      fieldY: 0.65,
+      contactType: 'pop-up' as const,
+      hardHit: 2 as const,
+    };
+    expect(isWarningTrack(infieldPop, hsFence)).toBe(false);
+  });
+
+  it('generates valid SVG path strings for fence and warning track', () => {
+    const fencePath = generateFenceSvgPath(hsFence);
+    expect(fencePath.startsWith('M')).toBe(true);
+    expect(fencePath.includes('L')).toBe(true);
+
+    const trackPath = generateWarningTrackSvgPath(hsFence);
+    expect(trackPath.startsWith('M')).toBe(true);
+    expect(trackPath.endsWith('Z')).toBe(true);
+
+    const markers = getFenceDistanceMarkers(hsFence);
+    expect(markers).toHaveLength(5);
+    expect(markers[0].label).toBe("315'");
+    expect(markers[2].label).toBe("390'");
+    expect(markers[4].label).toBe("315'");
   });
 });

@@ -462,6 +462,163 @@
               >
             }
           </div>
+
+          @if (view() !== 'history') {
+            <div class="fence-toolbar no-print" aria-label="Outfield fence presets">
+              <span class="fence-toolbar-title">Outfield wall:</span>
+              <div class="fence-preset-pills">
+                <button
+                  type="button"
+                  class="fence-pill"
+                  [class.selected]="selectedFencePreset() === 'high_school'"
+                  (click)="selectFencePreset('high_school')"
+                >
+                  High School (390')
+                </button>
+                <button
+                  type="button"
+                  class="fence-pill"
+                  [class.selected]="selectedFencePreset() === 'college'"
+                  (click)="selectFencePreset('college')"
+                >
+                  College (405')
+                </button>
+                <button
+                  type="button"
+                  class="fence-pill"
+                  [class.selected]="selectedFencePreset() === 'little_league'"
+                  (click)="selectFencePreset('little_league')"
+                >
+                  Little League (200')
+                </button>
+                <button
+                  type="button"
+                  class="fence-pill"
+                  [class.selected]="selectedFencePreset() === 'softball'"
+                  (click)="selectFencePreset('softball')"
+                >
+                  Softball (220')
+                </button>
+                <button
+                  type="button"
+                  class="fence-pill custom-fence-pill"
+                  [class.selected]="selectedFencePreset() === 'custom'"
+                  (click)="selectFencePreset('custom')"
+                >
+                  Custom wall
+                  @if (!canAccessCustomFence()) {
+                    <span class="pro-tag">✦ PRO</span>
+                  }
+                </button>
+              </div>
+            </div>
+
+            @if (selectedFencePreset() === 'custom') {
+              @if (canAccessCustomFence() || customPreviewMode()) {
+                <div class="custom-fence-editor no-print">
+                  <div class="custom-fence-header">
+                    <strong>Custom Wall Distances (feet)</strong>
+                    @if (!canAccessCustomFence()) {
+                      <span class="preview-badge">Interactive Demo Mode</span>
+                    }
+                  </div>
+                  <div class="custom-fence-grid">
+                    <label
+                      >LF Line (ft)
+                      <input
+                        type="number"
+                        min="150"
+                        max="480"
+                        [ngModel]="customFence().leftLineFeet"
+                        (ngModelChange)="updateCustomFence('leftLineFeet', $event)"
+                      />
+                    </label>
+                    <label
+                      >LC Alley (ft)
+                      <input
+                        type="number"
+                        min="180"
+                        max="500"
+                        [ngModel]="customFence().leftCenterFeet"
+                        (ngModelChange)="updateCustomFence('leftCenterFeet', $event)"
+                      />
+                    </label>
+                    <label
+                      >Center (ft)
+                      <input
+                        type="number"
+                        min="200"
+                        max="520"
+                        [ngModel]="customFence().centerFeet"
+                        (ngModelChange)="updateCustomFence('centerFeet', $event)"
+                      />
+                    </label>
+                    <label
+                      >RC Alley (ft)
+                      <input
+                        type="number"
+                        min="180"
+                        max="500"
+                        [ngModel]="customFence().rightCenterFeet"
+                        (ngModelChange)="updateCustomFence('rightCenterFeet', $event)"
+                      />
+                    </label>
+                    <label
+                      >RF Line (ft)
+                      <input
+                        type="number"
+                        min="150"
+                        max="480"
+                        [ngModel]="customFence().rightLineFeet"
+                        (ngModelChange)="updateCustomFence('rightLineFeet', $event)"
+                      />
+                    </label>
+                  </div>
+                </div>
+              } @else {
+                <div class="pro-preview-card no-print">
+                  <div class="pro-preview-header">
+                    <span class="pro-badge">✦ PRO FEATURE</span>
+                    <h4>Custom Outfield Fence & Wall Lines</h4>
+                  </div>
+                  <p>
+                    Tailor the outfield fence to your home ballpark's exact dimensions (e.g. 315'
+                    LF, 380' CF) to see which fly balls clear your real wall.
+                  </p>
+                  <div class="pro-preview-actions">
+                    <button
+                      type="button"
+                      class="button secondary small"
+                      (click)="customPreviewMode.set(true)"
+                    >
+                      Preview with demo dimensions
+                    </button>
+                    <a routerLink="/settings" class="button primary small"
+                      >Open Pro Settings Simulator →</a
+                    >
+                  </div>
+                </div>
+              }
+            }
+
+            <div class="fence-analytics-strip no-print">
+              <span
+                class="fence-metric-chip warning-track-chip"
+                title="Fly balls landing within 15 ft of the fence"
+              >
+                <span class="chip-dot warning-track-dot"></span>
+                <b>{{ fenceStats().warningTrack }}</b> Warning track
+              </span>
+              <span
+                class="fence-metric-chip homerun-chip"
+                title="Balls that clear the selected outfield wall"
+              >
+                <span class="chip-dot homerun-dot">★</span>
+                <b>{{ fenceStats().homeRuns }}</b> Over {{ activeFenceConfig().centerFeet }}' fence
+              </span>
+            </div>
+          }
+
           <div class="report-field" [class.history-hidden]="view() === 'history'">
             <app-field
               [events]="observations()"
@@ -471,6 +628,7 @@
               [palette]="store.settings().colorPalette || 'standard'"
               [theme]="store.settings().fieldTheme || 'classic'"
               [shapeMarkers]="store.settings().shapeMarkers ?? false"
+              [fenceConfig]="activeFenceConfig()"
               (selectEvent)="selectObservation($event)"
               label="Spray chart of the filtered observations. Select a recorded contact to inspect or edit it."
             />
