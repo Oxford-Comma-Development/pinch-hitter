@@ -1145,8 +1145,86 @@
           <div class="notes-list">
             @for (note of reportNotes(); track note.id) {
               <article>
-                <time>{{ note.timestamp | date: 'MMM d, y · h:mm a' }}</time>
-                <p>{{ note.text }}</p>
+                <div class="note-header">
+                  <time>{{ note.timestamp | date: 'MMM d, y · h:mm a' }}</time>
+                  <div class="note-actions inline-actions no-print">
+                    <button
+                      type="button"
+                      class="text-button"
+                      (click)="startEditNote(note)"
+                      [attr.aria-label]="
+                        'Edit note from ' + (note.timestamp | date: 'MMM d, y · h:mm a')
+                      "
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      class="text-button danger-text"
+                      (click)="promptDeleteNote(note.id)"
+                      [attr.aria-label]="
+                        'Delete note from ' + (note.timestamp | date: 'MMM d, y · h:mm a')
+                      "
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+
+                @if (editingNoteId === note.id) {
+                  <form class="note-edit-form no-print" (ngSubmit)="saveNoteEdit(note.id)">
+                    <label [for]="'edit-note-' + note.id" class="visually-hidden"
+                      >Edit coaching note</label
+                    >
+                    <textarea
+                      [id]="'edit-note-' + note.id"
+                      name="editNoteText"
+                      [(ngModel)]="editNoteText"
+                      rows="3"
+                      maxlength="10000"
+                      placeholder="What did you notice?"
+                      required
+                    ></textarea>
+                    <div class="inline-actions">
+                      <button
+                        type="submit"
+                        class="button secondary small-button"
+                        [disabled]="!editNoteText.trim() || busy()"
+                      >
+                        Save
+                      </button>
+                      <button type="button" class="text-button" (click)="cancelEditNote()">
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                } @else {
+                  <p>{{ note.text }}</p>
+                }
+
+                @if (deleteNotePendingId === note.id) {
+                  <div class="delete-confirm note-delete-confirm no-print" role="alert">
+                    <strong>Delete this coaching note?</strong>
+                    <p>This note will be permanently removed. It cannot be undone.</p>
+                    <div class="inline-actions">
+                      <button
+                        type="button"
+                        class="button secondary small-button"
+                        (click)="cancelDeleteNote()"
+                      >
+                        Keep note
+                      </button>
+                      <button
+                        type="button"
+                        class="button danger small-button"
+                        (click)="deleteNote(note.id)"
+                        [disabled]="busy()"
+                      >
+                        Delete permanently
+                      </button>
+                    </div>
+                  </div>
+                }
               </article>
             } @empty {
               <p class="muted">

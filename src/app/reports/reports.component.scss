@@ -536,6 +536,7 @@ input[type='date'] {
   .shape-square {
     border-radius: 2px;
   }
+  .shape-triangle,
   .shape-triangle-up {
     clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
     border-radius: 0;
@@ -793,6 +794,39 @@ input[type='date'] {
   margin: 6px 0 0;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+.notes-list .note-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.notes-list .note-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.notes-list .note-actions .text-button {
+  font-size: 11px;
+  cursor: pointer;
+}
+.notes-list .note-edit-form {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+.notes-list .note-edit-form textarea {
+  font-size: 13px;
+  min-height: 70px;
+}
+.notes-list .note-delete-confirm {
+  margin-top: 10px;
+  padding: 12px;
+}
+.notes-list .small-button {
+  font-size: 12px;
+  padding: 6px 12px;
+  min-height: 32px;
 }
 .note-form {
   display: grid;

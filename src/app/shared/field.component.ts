@@ -371,6 +371,17 @@ export const HIGH_CONTRAST_HARD_HIT_COLORS: Record<string, string> = {
                     stroke-width="3"
                   />
                 }
+                @case ('triangle') {
+                  <polygon
+                    [attr.transform]="
+                      'translate(' + event.fieldX * 1000 + ',' + event.fieldY * 1000 + ')'
+                    "
+                    points="0,-15 13,10 -13,10"
+                    [attr.fill]="eventColor(event)"
+                    [attr.stroke]="markerStroke(event)"
+                    stroke-width="3"
+                  />
+                }
                 @case ('triangle-up') {
                   <polygon
                     [attr.transform]="
@@ -605,6 +616,7 @@ export class FieldComponent {
     | 'circle'
     | 'small-circle'
     | 'diamond'
+    | 'triangle'
     | 'triangle-up'
     | 'triangle-down'
     | 'cross'
@@ -646,15 +658,13 @@ export class FieldComponent {
     }
     switch (event.contactType) {
       case 'dribbler':
-        return 'small-circle';
       case 'ground-ball':
+        return 'square';
+      case 'fly-ball':
+      case 'pop-up':
         return 'circle';
       case 'line-drive':
-        return 'diamond';
-      case 'fly-ball':
-        return 'triangle-up';
-      case 'pop-up':
-        return 'triangle-down';
+        return 'triangle';
       default:
         return 'circle';
     }

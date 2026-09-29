@@ -13,6 +13,7 @@ import {
 } from '../data/domain';
 import {
   BallEvent,
+  CoachNote,
   CONTACT_TYPES,
   ContactType,
   FieldPresetKey,
@@ -108,6 +109,9 @@ export class ReportsComponent {
   sessionLocation = '';
   sessionNotes = '';
   noteText = '';
+  editingNoteId = '';
+  editNoteText = '';
+  deleteNotePendingId = '';
   selectedEventIds = signal<Set<string>>(new Set());
   bulkTargetPlayerId = '';
   bulkDeletePending = false;
@@ -154,15 +158,13 @@ export class ReportsComponent {
     }
     switch (typeOrRating) {
       case 'dribbler':
-        return 'shape-small-circle';
       case 'ground-ball':
+        return 'shape-square';
+      case 'fly-ball':
+      case 'pop-up':
         return 'shape-circle';
       case 'line-drive':
-        return 'shape-diamond';
-      case 'fly-ball':
-        return 'shape-triangle-up';
-      case 'pop-up':
-        return 'shape-triangle-down';
+        return 'shape-triangle';
       default:
         return 'shape-circle';
     }
@@ -747,6 +749,62 @@ export class ReportsComponent {
       this.message.set('Coaching note saved.');
     } catch (error) {
       this.error.set(error instanceof Error ? error.message : 'Could not save this note.');
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  startEditNote(note: CoachNote): void {
+    this.editingNoteId = note.id;
+    this.editNoteText = note.text;
+    this.deleteNotePendingId = '';
+  }
+
+  cancelEditNote(): void {
+    this.editingNoteId = '';
+    this.editNoteText = '';
+  }
+
+  async saveNoteEdit(id: string): Promise<void> {
+    if (!this.editNoteText.trim() || this.busy()) return;
+    this.busy.set(true);
+    try {
+      await this.store.updateNote(id, this.editNoteText.trim());
+      this.editingNoteId = '';
+      this.editNoteText = '';
+      this.message.set('Coaching note updated.');
+    } catch (error) {
+      this.error.set(error instanceof Error ? error.message : 'Could not update this note.');
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  promptDeleteNote(id: string): void {
+    this.deleteNotePendingId = id;
+    if (this.editingNoteId === id) {
+      this.editingNoteId = '';
+      this.editNoteText = '';
+    }
+  }
+
+  cancelDeleteNote(): void {
+    this.deleteNotePendingId = '';
+  }
+
+  async deleteNote(id: string): Promise<void> {
+    if (this.busy()) return;
+    this.busy.set(true);
+    try {
+      await this.store.deleteNote(id);
+      this.deleteNotePendingId = '';
+      if (this.editingNoteId === id) {
+        this.editingNoteId = '';
+        this.editNoteText = '';
+      }
+      this.message.set('Coaching note deleted.');
+    } catch (error) {
+      this.error.set(error instanceof Error ? error.message : 'Could not delete this note.');
     } finally {
       this.busy.set(false);
     }

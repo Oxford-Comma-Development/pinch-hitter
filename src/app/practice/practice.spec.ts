@@ -261,10 +261,11 @@ describe('Visual accessibility and field display', () => {
     };
 
     // By contactType
-    expect(field.markerShape({ ...baseEvent, contactType: 'line-drive' })).toBe('diamond');
-    expect(field.markerShape({ ...baseEvent, contactType: 'fly-ball' })).toBe('triangle-up');
-    expect(field.markerShape({ ...baseEvent, contactType: 'pop-up' })).toBe('triangle-down');
-    expect(field.markerShape({ ...baseEvent, contactType: 'ground-ball' })).toBe('circle');
+    expect(field.markerShape({ ...baseEvent, contactType: 'line-drive' })).toBe('triangle');
+    expect(field.markerShape({ ...baseEvent, contactType: 'fly-ball' })).toBe('circle');
+    expect(field.markerShape({ ...baseEvent, contactType: 'pop-up' })).toBe('circle');
+    expect(field.markerShape({ ...baseEvent, contactType: 'ground-ball' })).toBe('square');
+    expect(field.markerShape({ ...baseEvent, contactType: 'dribbler' })).toBe('square');
 
     // By result
     fixture.componentRef.setInput('colorBy', 'result');

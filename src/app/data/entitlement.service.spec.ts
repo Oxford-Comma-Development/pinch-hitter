@@ -4,7 +4,30 @@ import { EntitlementService, FeatureId } from './entitlement.service';
 describe('EntitlementService', () => {
   let service: EntitlementService;
 
+  const storageMock = (() => {
+    let store: Record<string, string> = {};
+    return {
+      getItem: (key: string) => store[key] ?? null,
+      setItem: (key: string, val: string) => {
+        store[key] = String(val);
+      },
+      removeItem: (key: string) => {
+        delete store[key];
+      },
+      clear: () => {
+        store = {};
+      },
+    };
+  })();
+
   beforeEach(() => {
+    if (typeof globalThis.localStorage === 'undefined' || !globalThis.localStorage?.clear) {
+      Object.defineProperty(globalThis, 'localStorage', {
+        value: storageMock,
+        writable: true,
+        configurable: true,
+      });
+    }
     localStorage.clear();
     service = new EntitlementService();
   });
