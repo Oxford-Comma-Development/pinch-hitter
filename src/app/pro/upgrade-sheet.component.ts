@@ -1,4 +1,13 @@
-import { Component, OnDestroy, computed, effect, inject, signal } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  HostListener,
+  OnDestroy,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { EntitlementService, SHIPPED_PRO_FEATURES } from '../data/entitlement.service';
 import { PRO_PRICE_LABEL } from '../data/license-config';
 import { ModalDirective } from '../shared/modal.directive';
@@ -220,6 +229,7 @@ import { UnlockCodeFormComponent } from './unlock-code-form.component';
 export class UpgradeSheetComponent implements OnDestroy {
   readonly upsell = inject(ProUpsellService);
   readonly entitlement = inject(EntitlementService);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   readonly features = SHIPPED_PRO_FEATURES;
   readonly price = PRO_PRICE_LABEL;
   readonly online = signal(navigator.onLine);
@@ -244,6 +254,12 @@ export class UpgradeSheetComponent implements OnDestroy {
 
   private readonly onPageShow = () => this.redirecting.set(false);
 
+  /** Works even when focus has fallen to <body> (e.g. after a disabled button). */
+  @HostListener('document:keydown.escape')
+  escape() {
+    if (this.isOpen()) this.upsell.close();
+  }
+
   backdropClick(event: MouseEvent) {
     if (event.target === event.currentTarget) this.upsell.close();
   }
@@ -259,6 +275,10 @@ export class UpgradeSheetComponent implements OnDestroy {
     }
     this.redirecting.set(false);
     this.failure.set(result.reason);
+    // The button was disabled while waiting, which drops focus; put it back for keyboard users.
+    queueMicrotask(() =>
+      this.host.nativeElement.querySelector<HTMLButtonElement>('button.checkout')?.focus(),
+    );
   }
 
   ngOnDestroy() {

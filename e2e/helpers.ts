@@ -78,3 +78,35 @@ export async function activatePro(page: Page, name?: string) {
   await page.goto(`./activate#code=${await devUnlockCode(name)}`);
   await expect(page.getByRole('heading', { name: "You're Pro, Coach." })).toBeVisible();
 }
+
+/**
+ * Stands in for the license function and Stripe's hosted page so tests never touch live Stripe.
+ * `/checkout` answers with a fake Stripe URL that immediately "pays" and redirects back to
+ * `/activate?session_id=…`; `/activate` answers with a dev-signed code (or the given status).
+ */
+export async function mockLicenseService(
+  page: Page,
+  options: { checkoutStatus?: number; activateStatus?: number; name?: string } = {},
+) {
+  const requests: { path: string; body: unknown }[] = [];
+  const sessionId = 'cs_test_e2eMockSession123';
+  await page.route(/pinch-hitter-license-.*\.run\.app\/(checkout|activate)$/, async (route) => {
+    const path = new URL(route.request().url()).pathname;
+    requests.push({ path, body: route.request().postDataJSON() });
+    const status = path === '/checkout' ? options.checkoutStatus : options.activateStatus;
+    if (status && status !== 200) {
+      await route.fulfill({ status, json: { error: 'mocked' } });
+    } else if (path === '/checkout') {
+      await route.fulfill({ json: { url: 'https://checkout.stripe.com/c/pay/mock' } });
+    } else {
+      await route.fulfill({ json: { code: await devUnlockCode(options.name) } });
+    }
+  });
+  await page.route('https://checkout.stripe.com/**', (route) =>
+    route.fulfill({
+      contentType: 'text/html',
+      body: `<script>location.replace('http://127.0.0.1:4200/activate?session_id=${sessionId}')</script>`,
+    }),
+  );
+  return requests;
+}

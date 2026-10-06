@@ -17,7 +17,7 @@ export const APP_URL = 'https://oxford-comma-development.github.io/pinch-hitter/
  * `https://us-central1-<project>.cloudfunctions.net/pinch-hitter-license`. Empty until deployed:
  * the upgrade sheet then explains that checkout is not open yet, and unlock codes still work.
  */
-export const LICENSE_FUNCTION_URL = '';
+export const LICENSE_FUNCTION_URL = 'https://pinch-hitter-license-w4kqn2kdza-uc.a.run.app';
 
 /**
  * Display price for the upgrade sheet, e.g. `'$39'`. `null` hides the line, and checkout shows the

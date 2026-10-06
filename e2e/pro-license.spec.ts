@@ -1,9 +1,17 @@
 import { expect, test } from '@playwright/test';
-import { activatePro, assertNoOverflow, devUnlockCode, readData, setupTeam } from './helpers';
+import {
+  activatePro,
+  assertNoOverflow,
+  devUnlockCode,
+  mockLicenseService,
+  readData,
+  setupTeam,
+} from './helpers';
 
 test('free coaches meet a respectful upgrade sheet and keep every existing team', async ({
   page,
 }) => {
+  await mockLicenseService(page, { checkoutStatus: 503 });
   await setupTeam(page);
   await page.getByRole('link', { name: 'Settings', exact: true }).click();
   await expect(page.getByText('FREE COACH', { exact: true })).toBeVisible();
@@ -16,10 +24,10 @@ test('free coaches meet a respectful upgrade sheet and keep every existing team'
   await expect(sheet.getByText('Unlimited teams & seasons').first()).toBeVisible();
   await assertNoOverflow(page);
 
-  // Before launch the checkout button says so and reveals the paste box; nothing breaks.
+  // If the license service is unreachable, the coach is told plainly that nothing was charged.
+  await expect(sheet).toContainText('$39');
   await sheet.getByRole('button', { name: 'Continue to secure checkout' }).click();
-  await expect(sheet.getByRole('alert')).toContainText('Checkout opens soon');
-  await expect(sheet.getByLabel('Unlock code or link')).toBeVisible();
+  await expect(sheet.getByRole('alert')).toContainText('Nothing was charged');
 
   await page.keyboard.press('Escape');
   await expect(sheet).toHaveCount(0);
@@ -71,11 +79,31 @@ test('activation links land on a celebration with ways to keep the code', async 
   await assertNoOverflow(page);
 });
 
-test('a Stripe return before checkout is configured explains and offers the paste box', async ({
+test('buying Pro: sheet to Stripe and back to an unlocked app with no typing', async ({ page }) => {
+  const requests = await mockLicenseService(page, { name: 'Coach Rivera' });
+  await setupTeam(page);
+  await page.getByRole('link', { name: 'Settings', exact: true }).click();
+  await page.getByRole('button', { name: /Unlock Pro/ }).click();
+  await page
+    .getByRole('dialog')
+    .getByRole('button', { name: 'Continue to secure checkout' })
+    .click();
+
+  await expect(page.getByRole('heading', { name: "You're Pro, Coach." })).toBeVisible();
+  await expect(page.getByText('Licensed to Coach Rivera')).toBeVisible();
+  expect(requests.map((r) => r.path)).toEqual(['/checkout', '/activate']);
+  expect(requests[0].body).toEqual({ appUrl: 'http://127.0.0.1:4200/' });
+  expect(requests[1].body).toEqual({ sessionId: 'cs_test_e2eMockSession123' });
+});
+
+test('a Stripe return the service cannot confirm explains and offers the paste box', async ({
   page,
 }) => {
+  await mockLicenseService(page, { activateStatus: 402 });
   await setupTeam(page);
   await page.goto('./activate?session_id=cs_test_a1B2c3D4e5F6g7H8');
   await expect(page.getByRole('heading', { name: 'Almost there' })).toBeVisible();
+  await expect(page.getByText("Stripe hasn't confirmed this payment yet")).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Try again' })).toBeVisible();
   await expect(page.getByLabel('Unlock code or link')).toBeVisible();
 });
