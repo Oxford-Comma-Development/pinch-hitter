@@ -23,7 +23,7 @@ export const LICENSE_FUNCTION_URL = '';
  * Display price for the upgrade sheet, e.g. `'$39'`. `null` hides the line, and checkout shows the
  * price. Keep it in sync with the Stripe price.
  */
-export const PRO_PRICE_LABEL: string | null = null;
+export const PRO_PRICE_LABEL: string | null = '$39';
 
 /**
  * Ed25519 public keys by `kid`, raw 32 bytes base64url. Generate with `npm run license-keygen`.
