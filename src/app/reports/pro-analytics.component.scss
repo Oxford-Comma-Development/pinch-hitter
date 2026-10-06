@@ -27,6 +27,7 @@
 
 .view-switch {
   display: inline-flex;
+  max-width: 100%;
   border: 1px solid var(--line);
   border-radius: 10px;
   overflow: hidden;
@@ -34,7 +35,12 @@
   button {
     border: 0;
     border-radius: 0;
-    padding: 0 14px;
+    padding: 4px 12px;
+    // Longer translations (e.g. Spanish) shrink and wrap instead of widening the page.
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: normal;
+    line-height: 1.15;
   }
 
   button + button {
@@ -311,6 +317,13 @@
 @media (max-width: 760px) {
   .compare-body {
     grid-template-columns: 1fr;
+  }
+
+  .pro-heading .view-switch,
+  .mode-switch {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
   }
 }
 
