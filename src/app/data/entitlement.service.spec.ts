@@ -18,6 +18,7 @@ const ALL_FEATURES: FeatureId[] = [
   'advanced_time_series',
   'scout_pdf_export',
   'enriched_csv_metrics',
+  'defensive_alignment',
 ];
 
 async function devCode(overrides: Partial<UnlockCodePayload> = {}): Promise<string> {

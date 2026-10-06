@@ -411,12 +411,13 @@ Everything you need at the cage is free, and always will be: live capture, the w
 
 - **Compare hitters**: Two hitters on one spray chart, or both sides of a switch-hitter. Group A is blue circles and group B is orange diamonds. A side-by-side table shows hard-hit rate, whiff rate, line drives, pull/center/oppo, and average distance, each with its count (for example _9 of 20_).
 - **Development trends**: Rolling 14-, 30-, or 60-day hard-hit and whiff curves, one point per practice day. Pick a hitter in the report filters to focus on one player. Open **Show the numbers** for the full table.
+- **Defensive alignments**: The **Defense** tab compares Standard, Pull shift, Opposite shift, Infield in, and No doubles against a hitter's real spray. It shows how many of their ground balls, line drives, and fly balls each alignment would cover, with dashed circles marking every fielder's range. It's a planning estimate based on where balls landed, not a play-by-play result.
 - **Custom outfield fences**: Your home field's real wall distances.
 - **Unlimited teams & seasons**: Free includes one team. Teams you already have always stay fully usable.
 - **Enriched CSV**: Exports add estimated distance, spray angle, direction, and field zone for every recorded contact.
 - **Scout cards**: Pick a hitter in Reports, then tap **Scout card**. Print it or save it as a PDF from your browser's print dialog.
 
-Free coaches can try **Compare** and **Trends** on sample data in Reports before buying.
+Free coaches can try **Compare**, **Trends**, and **Defense** on sample data in Reports before buying. Pro analysis and scout cards are available in English and Spanish.
 
 ### Buying Pro
 

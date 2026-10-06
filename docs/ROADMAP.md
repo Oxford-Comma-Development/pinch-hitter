@@ -31,7 +31,7 @@ Universal design enhancements tailored for one-handed dugout operation under bri
 
 ---
 
-## Part 3: "Beefy" Pro Analytics & Visualizations (Phase B - B1–B3 Completed, B4 Planned)
+## Part 3: "Beefy" Pro Analytics & Visualizations (Phase B - Completed)
 
 Advanced analytical capabilities designed for serious coaches, travel programs, high schools, and academies:
 
@@ -58,8 +58,8 @@ Advanced analytical capabilities designed for serious coaches, travel programs, 
 
 ### Milestone 3.4: Defensive Shift & Coverage Zones (TODO-B4)
 
-- [ ] **Defensive Positioning Overlays**: Shaded polygonal zones for standard infield depth, pull-side shifts, and outfield gap coverage.
-- [ ] **Spray Vulnerability Insights**: Calculate the percentage of ground balls and line drives intercepted by specific defensive alignments.
+- [x] **Defensive Positioning Overlays**: "Defense" tab in Pro analysis draws fielder range circles for Standard, Pull shift, Opposite shift, Infield in, and No doubles. Positions are mirrored for left-handed hitters and scaled to the selected fence (`src/app/data/defense.ts`).
+- [x] **Spray Vulnerability Insights**: Coverage of ground balls, line drives, and fly balls per alignment, with explicit denominators, the best alignment marked per column, and a plain-language insight. Presented as a planning estimate, not a play-by-play result.
 
 ---
 

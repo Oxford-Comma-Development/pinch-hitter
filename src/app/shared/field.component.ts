@@ -1,5 +1,6 @@
 import { Component, computed, input, output, signal } from '@angular/core';
 import { BallEvent, ColorPaletteMode, FieldThemeMode, OutfieldFenceConfig } from '../data/models';
+import { ZoneCircle } from '../data/defense';
 import {
   generateFenceSvgPath,
   generateWarningTrackSvgPath,
@@ -127,7 +128,7 @@ export const SERIES_COLORS = { a: '#0072B2', b: '#E69F00' } as const;
       (keydown)="onKey($event)"
       (blur)="keyboardActive.set(false)"
     >
-      <title>{{ label() }}</title>
+      <title [textContent]="label()"></title>
       <desc>
         View from behind home plate. Left field is on the left, center field at the top, right field
         on the right.
@@ -277,11 +278,43 @@ export const SERIES_COLORS = { a: '#0072B2', b: '#E69F00' } as const;
         text-anchor="middle"
         letter-spacing="4"
       >
-        <text x="238" y="357">LF</text>
-        <text x="500" y="236">CF</text>
-        <text x="762" y="357">RF</text>
+        @if (!zones().length) {
+          <!-- Defensive zones carry their own position labels. -->
+          <text x="238" y="357">LF</text>
+          <text x="500" y="236">CF</text>
+          <text x="762" y="357">RF</text>
+        }
         <text x="500" y="962" font-size="21" letter-spacing="3">HOME</text>
       </g>
+      @if (zones().length) {
+        <g class="defense-zones" aria-hidden="true">
+          @for (zone of zones(); track zone.label) {
+            <circle
+              [attr.cx]="zone.x * 1000"
+              [attr.cy]="zone.y * 1000"
+              [attr.r]="zone.r * 1000"
+              [attr.fill]="theme() === 'high_contrast' ? '#38bdf8' : '#fff9db'"
+              fill-opacity="0.16"
+              [attr.stroke]="theme() === 'high_contrast' ? '#38bdf8' : '#fff9db'"
+              stroke-width="3"
+              stroke-dasharray="10 7"
+            />
+            <text
+              [attr.x]="zone.x * 1000"
+              [attr.y]="zone.y * 1000 + 8"
+              text-anchor="middle"
+              font-size="24"
+              font-weight="800"
+              [attr.fill]="theme() === 'high_contrast' ? '#ffffff' : '#fff9db'"
+              stroke="#0b2a22"
+              stroke-width="4"
+              paint-order="stroke"
+            >
+              {{ zone.label }}
+            </text>
+          }
+        </g>
+      }
       @if (heat()) {
         @for (cell of density(); track cell.key) {
           <circle
@@ -451,13 +484,14 @@ export const SERIES_COLORS = { a: '#0072B2', b: '#E69F00' } as const;
               r="23"
               fill="transparent"
             >
-              <title>
-                {{
+              <!-- Angular treats <title> as raw text, so bind textContent instead of {{ }}. -->
+              <title
+                [textContent]="
                   event.hardHit === 0
                     ? 'Swing & miss (0)'
                     : (event.contactType || 'Location only') + ' · ' + (event.result || 'No result')
-                }}
-              </title>
+                "
+              ></title>
             </circle>
           </g>
         }
@@ -534,6 +568,8 @@ export class FieldComponent {
    * well as colour (WCAG 1.4.1), whatever the shape-marker setting.
    */
   readonly compareSeries = input<ReadonlyMap<string, 'a' | 'b'> | null>(null);
+  /** Pro defensive alignment: fielder range circles in normalized coordinates. Decorative. */
+  readonly zones = input<readonly ZoneCircle[]>([]);
   // This chart output carries coordinates; it does not refer to window.location.
   // eslint-disable-next-line @angular-eslint/no-output-native
   readonly location = output<FieldPoint>();

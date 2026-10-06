@@ -29,6 +29,7 @@ import {
 import { EntitlementService } from '../data/entitlement.service';
 import { ProUpsellService } from '../pro/pro-upsell.service';
 import { ProAnalyticsComponent } from './pro-analytics.component';
+import { TranslatePipe } from '../i18n/translate.pipe';
 import { eventsCsv } from '../data/transfer';
 import { FieldComponent } from '../shared/field.component';
 import { I18nService } from '../i18n/i18n.service';
@@ -66,7 +67,14 @@ const initialSelection = (): ReportSelection => ({
 
 @Component({
   selector: 'app-reports',
-  imports: [CommonModule, FormsModule, RouterLink, FieldComponent, ProAnalyticsComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    FieldComponent,
+    ProAnalyticsComponent,
+    TranslatePipe,
+  ],
   templateUrl: './reports.component.html',
   styleUrl: './reports.component.scss',
 })

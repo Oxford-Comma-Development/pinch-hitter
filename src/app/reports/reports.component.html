@@ -21,7 +21,7 @@
       </button>
       @if (player(); as p) {
         <button class="button secondary" (click)="openScoutCard(p.id)">
-          Scout card
+          {{ 'scout.cardLabel' | t }}
           @if (!entitlement.canAccess('scout_pdf_export')) {
             <span class="pro-tag">✦ PRO</span>
           }
@@ -606,7 +606,7 @@
                       class="button primary small"
                       (click)="upsell.open('custom_field_dimensions')"
                     >
-                      Unlock Pro Coach →
+                      {{ 'proa.unlock' | t }}
                     </button>
                   </div>
                 </div>

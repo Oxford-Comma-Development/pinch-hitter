@@ -100,3 +100,66 @@ async function downloadCsv(page: import('@playwright/test').Page): Promise<strin
   const path = await download.path();
   return readFileSync(path!, 'utf8');
 }
+
+test('defensive alignments compare coverage for a Pro coach, in English and Spanish', async ({
+  page,
+}, testInfo) => {
+  await setupTeam(page);
+  await page.getByRole('link', { name: 'Pinch Hitter home' }).click();
+  await startPractice(page);
+  // Grounders through the left side and one up the middle, each classified.
+  // Spread out: a tap on an existing mark selects it rather than recording a new contact.
+  for (const [x, y] of [
+    [0.34, 0.64],
+    [0.41, 0.59],
+    [0.35, 0.54],
+    [0.5, 0.52],
+  ]) {
+    await capture(page, x, y);
+    const groundBall = page.getByRole('button', { name: 'Ground ball', exact: true });
+    // A new contact starts unclassified (nothing carries over); wait for it before tapping.
+    await expect(groundBall).toHaveAttribute('aria-pressed', 'false');
+    await groundBall.click();
+    await expect(groundBall).toHaveAttribute('aria-pressed', 'true');
+  }
+  // Let the last classification finish saving before a full page load.
+  await expect
+    .poll(
+      async () =>
+        ((await readData(page))['events'] as { contactType: string | null }[]).filter(
+          (e) => e.contactType === 'ground-ball',
+        ).length,
+    )
+    .toBe(4);
+  await activatePro(page);
+  await page.goto('./reports');
+
+  const card = page.locator('app-pro-analytics');
+  await card.getByRole('button', { name: 'Defense', exact: true }).click();
+  await expect(card.getByRole('heading', { name: 'Defensive alignment' })).toBeVisible();
+  const table = card.locator('table.coverage-table');
+  await expect(table.getByRole('row')).toHaveCount(6);
+  await expect(table.getByRole('row', { name: /Standard/ })).toContainText('of 4');
+  await expect(table).toContainText('★ Best');
+  await card.getByRole('radio', { name: 'Pull shift' }).click();
+  await expect(card.getByRole('radio', { name: 'Pull shift' })).toHaveAttribute(
+    'aria-checked',
+    'true',
+  );
+  await expect(card.locator('app-field .defense-zones circle')).toHaveCount(8);
+  await assertNoOverflow(page);
+  await card.screenshot({ path: testInfo.outputPath('defense.png') });
+
+  await page.goto('./settings');
+  await page.getByLabel('Language / Idioma').selectOption('es');
+  await page.goto('./reports');
+  await card.getByRole('button', { name: 'Defensa', exact: true }).click();
+  await expect(card.getByRole('heading', { name: 'Alineación defensiva' })).toBeVisible();
+  await expect(card.locator('table.coverage-table')).toContainText('Rodados');
+  await expect(card.locator('table.coverage-table')).toContainText('de 4');
+  await card.getByRole('button', { name: 'Comparar', exact: true }).click();
+  // One hitter on the team: the Spanish empty state, not template source.
+  await expect(card).toContainText('Registra contactos de al menos dos bateadores');
+  await expect(page.locator('app-pro-analytics')).not.toContainText('{{');
+  await card.screenshot({ path: testInfo.outputPath('compare-es.png') });
+});

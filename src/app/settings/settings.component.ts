@@ -391,19 +391,17 @@ import { TranslatePipe } from '../i18n/translate.pipe';
           </p>
           @if (entitlement.canAccess('enriched_csv_metrics')) {
             <p class="small pro-export-note">
-              <span class="pro-tag">✦ PRO</span> Exports include estimated distance, spray angle,
-              direction, and field zone for every contact.
+              <span class="pro-tag">✦ PRO</span> {{ 'pro.csv.included' | t }}
             </p>
           } @else {
             <p class="small pro-export-note">
-              <span class="pro-tag">✦ PRO</span> adds estimated distance, spray angle, direction,
-              and field-zone columns.
+              <span class="pro-tag">✦ PRO</span> {{ 'pro.csv.adds' | t }}
               <button
                 type="button"
                 class="text-button"
                 (click)="upsell.open('enriched_csv_metrics')"
               >
-                See Pro
+                {{ 'pro.csv.see' | t }}
               </button>
             </p>
           }

@@ -14,7 +14,8 @@ export type FeatureId =
   | 'multi_player_comparison'
   | 'advanced_time_series'
   | 'scout_pdf_export'
-  | 'enriched_csv_metrics';
+  | 'enriched_csv_metrics'
+  | 'defensive_alignment';
 
 export type CoachTier = 'free' | 'pro' | 'organization';
 
@@ -40,6 +41,7 @@ const PRO_FEATURES: readonly FeatureId[] = [
   'advanced_time_series',
   'scout_pdf_export',
   'enriched_csv_metrics',
+  'defensive_alignment',
 ];
 
 export const FEATURE_DESCRIPTIONS: Record<FeatureId, { name: string; description: string }> = {
@@ -67,7 +69,11 @@ export const FEATURE_DESCRIPTIONS: Record<FeatureId, { name: string; description
   enriched_csv_metrics: {
     name: 'Enriched Analytics Export',
     description:
-      'Export flat CSVs with derived launch angles, exit bands, and directional vectors.',
+      'Export flat CSVs with estimated distance, spray angle, direction, and field zone.',
+  },
+  defensive_alignment: {
+    name: 'Defensive Alignments',
+    description: 'See how standard, shifted, and deep alignments would cover a hitter’s spray.',
   },
 };
 
@@ -75,6 +81,7 @@ export const FEATURE_DESCRIPTIONS: Record<FeatureId, { name: string; description
 export const SHIPPED_PRO_FEATURES: readonly FeatureId[] = [
   'multi_player_comparison',
   'advanced_time_series',
+  'defensive_alignment',
   'custom_field_dimensions',
   'multi_team',
   'enriched_csv_metrics',

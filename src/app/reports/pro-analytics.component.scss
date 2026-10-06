@@ -313,3 +313,48 @@
     grid-template-columns: 1fr;
   }
 }
+
+.alignment-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  button {
+    padding: 0 14px;
+    border-radius: 999px;
+  }
+
+  .selected {
+    background: var(--green);
+    border-color: var(--green);
+    color: #fff;
+  }
+}
+
+.insight {
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border-left: 4px solid var(--green);
+  border-radius: 6px;
+  background: #e6eee2;
+  font-weight: 600;
+}
+
+.coverage-table {
+  tr.current th {
+    color: var(--green);
+  }
+
+  tr.current {
+    background: #f0f5ea;
+  }
+}
+
+.best-tag {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--green);
+  white-space: nowrap;
+}

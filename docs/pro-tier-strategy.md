@@ -332,7 +332,7 @@ This checklist serves as the authoritative implementation tracker across future 
   - Support switch-hitter L vs R comparative overlay on the same diamond.
 - [x] **TODO-B3: Rolling Development Trend Curves**:
   - Create time-series line chart component tracking 30/60-day moving averages of hard-hit rate and whiff percentage across practices.
-- [ ] **TODO-B4: Defensive Shift & Coverage Zones**:
+- [x] **TODO-B4: Defensive Shift & Coverage Zones**:
   - Add visual polygon overlays representing standard vs shifted defensive positions.
 
 ### Phase C: In-App Gating UI & Previews
