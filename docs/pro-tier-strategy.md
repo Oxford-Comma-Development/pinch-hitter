@@ -87,13 +87,15 @@ Because Pinch Hitter is an offline-capable PWA used on baseball fields without r
    - The token is cached in IndexedDB with an `offlineValidUntil` timestamp (e.g., 30–60 days).
    - The coach can coach offline uninterrupted; Pinch Hitter refreshes validity whenever an internet connection is available.
 
-### 1.3 Current Implementation: Zero-Config Unlocked with In-App Tier Simulator
+### 1.3 Current Implementation: Lifetime Pro via Signed Unlock Codes (ADR-011)
 
-The foundation of the entitlement engine is implemented in [`EntitlementService`](file:///c:/Users/chris/OneDrive/Documents/GitHub/pinch-hitter/src/app/data/entitlement.service.ts):
-
-- **Zero-Config Default**: Operates out-of-the-box in `pro` mode (`canAccess()` returns `true` for all capabilities). No external API keys, license files, or environment variables are required.
-- **In-App Simulator**: Coaches and developers can simulate either `Pro Coach` or `Free Coach` tiers via interactive radio selectors in `Settings → Coach License & Pro Features`.
-- **Clean Storage Separation**: The simulated tier is persisted in browser `localStorage` (`pinch_hitter_simulated_tier`) rather than IndexedDB, ensuring simulation flags never leak into team notebook backup exports.
+- **Pricing**: One-time **Lifetime Pro**, sold by Oxford Comma Development LLC. It covers every current and future Pro Coach feature. A separate Organization product may come later.
+- **Free by default**: Every coach starts on the free tier. Nothing already created is ever hidden or locked. Creating a _second_ team is Pro, and existing teams stay fully usable.
+- **Purchase**: The upgrade sheet calls the stateless GCP license function (private repo `pinch-hitter-license`). The function creates a Stripe-hosted Checkout Session. Stripe redirects to `/activate?session_id=…`, the function verifies the paid session, and it returns a deterministic Ed25519-signed **unlock code**.
+- **Verification**: `src/app/data/license.ts` checks codes offline against public keys in `license-config.ts`. The verified code is stored in the IndexedDB `metadata` store, which is never included in backups.
+- **Portability**: Licenses are per coach, not per device. The code carries the licensee name (shown in Settings) and can be copied, emailed to oneself (`mailto:`), or shared. Activation links carry the code in the URL fragment.
+- **Developer simulator**: Available only in Angular dev mode. Production builds ignore it and reject the dev signing key (`e2e-pwa/licensing.spec.ts`).
+- **Rollback**: `LICENSING_ENFORCED = false` restores everyone-is-Pro without touching stored licenses.
 
 ---
 
@@ -320,31 +322,31 @@ This checklist serves as the authoritative implementation tracker across future 
 
 ### Phase B: "Beefy" Pro Analytics & Visualizations
 
-- [ ] **TODO-B1: Custom Outfield Fence Distances**:
+- [x] **TODO-B1: Custom Outfield Fence Distances**:
   - Overlay outfield fence distance arcs onto the SVG diamond (`field.component.ts`).
   - Add presets: Little League (200'), High School (320'–390'), College (330'–405'), Softball (220'), and Custom distance points.
   - Calculate distance vectors from home plate `(0.50, 0.88)` and annotate warning-track/homerun balls.
-- [ ] **TODO-B2: Multi-Player & Switch Split Spray Overlay**:
+- [x] **TODO-B2: Multi-Player & Switch Split Spray Overlay**:
   - Add "Compare Hitters" view in `ReportsComponent`.
   - Superimpose two hitters with dual-color palette (e.g. Electric Blue vs Sunburst Gold).
   - Support switch-hitter L vs R comparative overlay on the same diamond.
-- [ ] **TODO-B3: Rolling Development Trend Curves**:
+- [x] **TODO-B3: Rolling Development Trend Curves**:
   - Create time-series line chart component tracking 30/60-day moving averages of hard-hit rate and whiff percentage across practices.
 - [ ] **TODO-B4: Defensive Shift & Coverage Zones**:
   - Add visual polygon overlays representing standard vs shifted defensive positions.
 
 ### Phase C: In-App Gating UI & Previews
 
-- [ ] **TODO-C1: Subtle `✦ PRO` UI Badges**:
+- [x] **TODO-C1: Subtle `✦ PRO` UI Badges**:
   - Add non-intrusive badge components to Pro features in Reports and Settings.
-- [ ] **TODO-C2: Interactive Pro Preview Modes**:
+- [x] **TODO-C2: Interactive Pro Preview Modes**:
   - Allow free coaches to preview custom fence overlays and multi-player comparisons using sample/demo data without hard errors.
-- [ ] **TODO-C3: Upgrade & License Modal / Sheet**:
+- [x] **TODO-C3: Upgrade & License Modal / Sheet**:
   - Add an accessible dialog explaining Pro Coach features, with "Enter License Key" and "Upgrade" actions.
 
 ### Phase D: Payment & Licensing Integrations
 
-- [ ] **TODO-D1: Cryptographic Offline License Key Provider**:
+- [x] **TODO-D1: Cryptographic Offline License Key Provider**:
   - Implement client-side Ed25519/HMAC signature verification for offline PWA license keys.
 - [ ] **TODO-D2: Stripe Checkout / Webhook Integration**:
   - Set up Stripe Customer Portal link and webhook-driven license key generator.
@@ -353,7 +355,7 @@ This checklist serves as the authoritative implementation tracker across future 
 
 ### Phase E: Export & Scouting Enhancements
 
-- [ ] **TODO-E1: Executive Branded Scout Cards (PDF)**:
+- [x] **TODO-E1: Executive Branded Scout Cards (PDF)**:
   - High-res one-page player evaluation sheet with team crest, spray chart, heat zone, radar tendencies, and coach notes.
-- [ ] **TODO-E2: Enriched Analytics CSV Export**:
+- [x] **TODO-E2: Enriched Analytics CSV Export**:
   - Flat CSV with calculated distance, launch angles, and exit velocity bands.

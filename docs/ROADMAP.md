@@ -27,11 +27,11 @@ Universal design enhancements tailored for one-handed dugout operation under bri
 - [x] **WCAG 1.4.1 Multi-Shape Glyph Markers**: Redundant visual encoding rendering ball outcomes as distinct geometric SVG glyphs (circles, diamonds, triangles, stars, crosses, squares).
 - [x] **High-Contrast Slate Field Canvas**: `#0f172a` canvas with 6px solid pure white chalk foul lines to eliminate midday outdoor glare.
 - [x] **Left-Handed Dugout Mode**: Bottom action bar mirroring placing primary "Next batter" directly under the left thumb (`flex: 1.5`), with mirrored queue and pitcher controls.
-- [x] **Method-Agnostic Entitlement Gateway**: `EntitlementService` defaulting to unlocked `pro` mode with in-app tier simulator in Settings.
+- [x] **Method-Agnostic Entitlement Gateway**: `EntitlementService` backed by verified unlock codes; every coach starts free; tier simulator in dev builds only.
 
 ---
 
-## Part 3: "Beefy" Pro Analytics & Visualizations (Phase B - In Progress)
+## Part 3: "Beefy" Pro Analytics & Visualizations (Phase B - B1–B3 Completed, B4 Planned)
 
 Advanced analytical capabilities designed for serious coaches, travel programs, high schools, and academies:
 
@@ -45,16 +45,16 @@ Advanced analytical capabilities designed for serious coaches, travel programs, 
 
 ### Milestone 3.2: Multi-Player & Switch Split Spray Overlay (TODO-B2)
 
-- [ ] **Hitter Comparison View**: Add "Compare Hitters" overlay mode in `ReportsComponent`.
-- [ ] **Superimposed Spray Charts**: Plot two hitters simultaneously using dual-color encoding (e.g. Electric Blue vs Sunburst Gold).
-- [ ] **Switch-Hitter Split Overlay**: Superimpose left-handed batting events over right-handed batting events for a single switch-hitter on one diamond.
-- [ ] **Comparative Distribution Breakdown**: Side-by-side pull/center/oppo and contact quality comparison tables.
+- [x] **Hitter Comparison View**: "Compare" tab in the Pro analysis card on Reports (`pro-analytics.component.ts`).
+- [x] **Superimposed Spray Charts**: Two hitters on one field, Okabe-Ito blue circles vs orange diamonds (shape + colour, WCAG 1.4.1).
+- [x] **Switch-Hitter Split Overlay**: Superimpose left-handed batting events over right-handed batting events for a single switch-hitter on one diamond.
+- [x] **Comparative Distribution Breakdown**: Side-by-side contacts, hard-hit, whiff, line-drive, pull/center/oppo, and distance with explicit denominators.
 
 ### Milestone 3.3: Rolling Development Trend Curves (TODO-B3)
 
-- [ ] **Time-Series Line Chart**: Native SVG rolling trend curve component tracking 30/60-day moving averages of hard-hit rate (ratings 3–5) and whiff rate (rating 0).
-- [ ] **Date Range Selectors**: Flexible rolling windows (14 days, 30 days, 60 days, full season).
-- [ ] **Player Development Velocity**: Visual indicators showing positive mechanical improvements across practice blocks.
+- [x] **Time-Series Line Chart**: Native SVG rolling curves of hard-hit rate (ratings 4–6, matching report summaries) and whiff rate (rating 0), one point per practice day, with an accessible data table.
+- [x] **Date Range Selectors**: Rolling windows of 14, 30, and 60 days; the report date filters bound the season.
+- [x] **Player Development Velocity**: Change in percentage points from first to latest practice for both rates.
 
 ### Milestone 3.4: Defensive Shift & Coverage Zones (TODO-B4)
 
@@ -63,22 +63,22 @@ Advanced analytical capabilities designed for serious coaches, travel programs, 
 
 ---
 
-## Part 4: In-App Gating UI & Previews (Phase C - In Progress)
+## Part 4: In-App Gating UI & Previews (Phase C - Completed)
 
 Refined, non-intrusive upgrade touchpoints that preserve the free practice experience:
 
 - [x] **Milestone 4.1: Subtle `✦ PRO` UI Badges (TODO-C1)**: Elegant badge indicators on Pro features in Reports and Settings without blocking free navigation.
 - [x] **Milestone 4.2: Interactive Pro Previews (TODO-C2)**: Allow free coaches to test-drive custom fence overlays and multi-player comparisons using demo data.
-- [ ] **Milestone 4.3: Upgrade & License Sheet (TODO-C3)**: Accessible dialog explaining Pro Coach capabilities with license key activation and checkout links.
+- [x] **Milestone 4.3: Upgrade & License Sheet (TODO-C3)**: Bottom sheet (dialog on desktop) explaining Pro, handing off to Stripe-hosted checkout, and accepting pasted unlock codes or links (`src/app/pro/`).
 
 ---
 
 ## Part 5: Licensing Integrations & Export Enhancements (Phases D & E)
 
-- [ ] **Milestone 5.1: Cryptographic Offline License Key Provider (TODO-D1)**: Client-side Ed25519/HMAC signature verification for offline PWA license keys.
-- [ ] **Milestone 5.2: Stripe Checkout / Webhook Integration (TODO-D2)**: Automated customer portal and license generation pipeline.
-- [ ] **Milestone 5.3: Executive Branded Scout Cards PDF (TODO-E1)**: High-resolution one-page player evaluation sheet with team crest, spray chart, density heatmap, radar tendencies, and coach scouting notes.
-- [ ] **Milestone 5.4: Enriched Analytics CSV Export (TODO-E2)**: Flat CSV export containing pre-calculated distance, estimated launch angles, and exit velocity bands.
+- [x] **Milestone 5.1: Cryptographic Offline License Key Provider (TODO-D1)**: Ed25519 unlock codes verified offline with Web Crypto (ADR-011, `license.ts`).
+- [ ] **Milestone 5.2: Stripe Checkout Integration (TODO-D2)**: Code complete. A stateless GCP function in the private `pinch-hitter-license` repo creates hosted Checkout Sessions and mints codes on return, with no webhook. **Remaining:** deploy the function, set `LICENSE_FUNCTION_URL`, then go live (see that repo's `STRIPE_INTEGRATION_TODO.md`).
+- [x] **Milestone 5.3: Scout Cards (TODO-E1)**: Print-ready one-page card (`/scout/:playerId`) with team crest, spray chart, key rates, direction bars, 30-day trend, and coach notes. Saved as a PDF through the browser print dialog. _Density heatmap and radar chart deferred._
+- [x] **Milestone 5.4: Enriched Analytics CSV Export (TODO-E2)**: Pro exports append estimated distance, spray angle, direction, field zone, and fence columns after the raw columns. _Launch-angle and exit-velocity bands are deferred: they can't be derived honestly without radar data._
 
 ---
 

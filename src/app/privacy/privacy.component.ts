@@ -12,7 +12,7 @@ import { RouterLink } from '@angular/router';
           <h1>Privacy Policy.</h1>
           <p class="muted">
             Your field. Your notebook. Your data.<br />
-            Last updated: September 2026
+            Last updated: October 2026
           </p>
         </div>
         <div class="header-actions">
@@ -95,6 +95,40 @@ import { RouterLink } from '@angular/router';
         </section>
 
         <section class="card">
+          <p class="eyebrow">PINCH HITTER PRO</p>
+          <h2>Buying and Activating Pro</h2>
+          <p>
+            Pro is optional, and nothing about it touches your notebook. It's sold by Oxford Comma
+            Development LLC as a one-time purchase.
+          </p>
+          <ul class="policy-list">
+            <li>
+              <strong>Checkout is Stripe's page:</strong> When you choose to upgrade, you leave
+              Pinch Hitter for Stripe's secure checkout. Stripe collects your payment details,
+              email, and billing name under
+              <a href="https://stripe.com/privacy" rel="noopener" target="_blank"
+                >Stripe's privacy policy</a
+              >. Pinch Hitter never sees your card.
+            </li>
+            <li>
+              <strong>A small license service:</strong> After checkout, Pinch Hitter asks our
+              license service to confirm the payment with Stripe and return your unlock code. That
+              request contains only the checkout session id. The service stores nothing and never
+              receives teams, players, or practice data.
+            </li>
+            <li>
+              <strong>Your unlock code:</strong> It contains the name from your payment, a license
+              id, and the date. It's checked on your device, works offline, and is kept apart from
+              your notebook, so backups you share never include it.
+            </li>
+            <li>
+              <strong>Nothing loads until you ask:</strong> No payment scripts run in Pinch Hitter
+              itself, and nothing contacts Stripe unless you tap the checkout button.
+            </li>
+          </ul>
+        </section>
+
+        <section class="card">
           <p class="eyebrow">DEVICE PERMISSIONS</p>
           <h2>Microphone & Voice Input</h2>
           <p>
@@ -165,8 +199,10 @@ import { RouterLink } from '@angular/router';
             browser or home screen, the entire app functions without an active internet connection.
           </p>
           <p>
-            Network access is used solely to fetch static application updates (via a service worker)
-            and verify that you are running the latest version of the application code.
+            Network access is used to fetch static application updates (via a service worker) and
+            verify that you are running the latest version of the application code. Only if you
+            choose to buy or activate Pro does Pinch Hitter contact Stripe and our license service,
+            as described above.
           </p>
         </section>
 

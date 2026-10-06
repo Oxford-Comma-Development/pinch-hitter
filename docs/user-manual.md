@@ -40,6 +40,11 @@ Pinch Hitter was designed specifically for the coach standing behind the batting
    - [Multi-Shape Marker Glyphs](#multi-shape-marker-glyphs)
    - [High-Contrast Slate Field for Direct Sunlight](#high-contrast-slate-field-for-direct-sunlight)
    - [One-Handed Mobile Ergonomics](#one-handed-mobile-ergonomics)
+8. [Pinch Hitter Pro](#8-pinch-hitter-pro)
+   - [What Pro Adds](#what-pro-adds)
+   - [Buying Pro](#buying-pro)
+   - [Keep Your Unlock Code](#keep-your-unlock-code)
+   - [Lost Your Code?](#lost-your-code)
 
 ---
 
@@ -395,3 +400,40 @@ Pinch Hitter's mobile layout is engineered for single-thumb reach:
 - **Protected Secondary Actions**: The **Undo** button is positioned safely on the opposite corner to eliminate accidental taps when reaching for rotation controls.
 - **Single-Thumb Toggles**: Pitcher handedness (`RHP / LHP`), switch-hitter sides, and the lineup sheet button all adapt to your active hand rail.
 - **Mid-Session Practice Options**: Tap the gear (`⚙`) icon at the top of the practice screen to switch handedness, field theme, or rotation counts in two taps without losing your active round or queue state.
+
+---
+
+## 8. Pinch Hitter Pro
+
+Everything you need at the cage is free, and always will be: live capture, the whiff scale, undo, spray charts, heatmaps, backups, and CSV export. **Pro** adds deeper analysis for coaches who want it. It's a single purchase that's yours for good, including every Pro feature added later.
+
+### What Pro Adds
+
+- **Compare hitters**: Two hitters on one spray chart, or both sides of a switch-hitter. Group A is blue circles and group B is orange diamonds. A side-by-side table shows hard-hit rate, whiff rate, line drives, pull/center/oppo, and average distance, each with its count (for example _9 of 20_).
+- **Development trends**: Rolling 14-, 30-, or 60-day hard-hit and whiff curves, one point per practice day. Pick a hitter in the report filters to focus on one player. Open **Show the numbers** for the full table.
+- **Custom outfield fences**: Your home field's real wall distances.
+- **Unlimited teams & seasons**: Free includes one team. Teams you already have always stay fully usable.
+- **Enriched CSV**: Exports add estimated distance, spray angle, direction, and field zone for every recorded contact.
+- **Scout cards**: Pick a hitter in Reports, then tap **Scout card**. Print it or save it as a PDF from your browser's print dialog.
+
+Free coaches can try **Compare** and **Trends** on sample data in Reports before buying.
+
+### Buying Pro
+
+1. Tap **✦ Unlock Pro** in Settings, or any **Unlock Pro Coach →** button.
+2. Tap **Continue to secure checkout**. Stripe handles payment: Apple Pay, Google Pay, Link, or card. Pinch Hitter never sees your card.
+3. You land back in Pinch Hitter with Pro already on. There's nothing to type.
+
+Checkout needs an internet connection. Once activated, Pro works offline for good.
+
+### Keep Your Unlock Code
+
+Right after buying, and any time in **Settings → Pinch Hitter Pro**, you can **Copy unlock link**, **Email it to myself**, or **Share** it. That link turns on Pro on any device: your laptop, a tablet, or a new phone. No account is needed. Your license is yours as a coach; it isn't tied to one device.
+
+**Using Pinch Hitter from your iPhone Home Screen?** iOS sends you back from checkout in Safari, which keeps separate storage from your Home Screen app. Tap **Copy unlock link** in Safari, open Pinch Hitter from your Home Screen, and paste it under **Settings → Pinch Hitter Pro → Already have an unlock code?**
+
+Your unlock code is never part of your notebook backups, so sharing a backup with another coach never shares your license.
+
+### Lost Your Code?
+
+Reopen the link from your "Email it to myself" message, or the activation page in your browser history; it keeps working. If neither is available, reply to your Stripe receipt and we'll re-send it.

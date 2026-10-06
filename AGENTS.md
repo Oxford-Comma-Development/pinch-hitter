@@ -43,7 +43,10 @@ pinch-hitter/
 │   │   ├── data/            # Core domain and persistence layer
 │   │   │   ├── coach-store.ts        # Centralized Signal state store and serialized transactions
 │   │   │   ├── domain.ts             # Pure functions: queue math, undo, coordinates, summaries, filters
-│   │   │   ├── entitlement.service.ts # Method-agnostic feature authorization & local simulator
+│   │   │   ├── entitlement.service.ts # Feature authorization backed by verified unlock codes
+│   │   │   ├── license.ts            # Unlock-code format and offline Ed25519 verification (ADR-011)
+│   │   │   ├── license-config.ts     # Public keys, function URL, price label, LICENSING_ENFORCED
+│   │   │   ├── pro-analytics.ts      # Pure comparison, rolling-trend, and enriched-export metrics
 │   │   │   ├── models.ts             # Entity interfaces, stable ID schemas, and type definitions
 │   │   │   ├── repository.ts         # Native IndexedDB driver, migrations, revision tokens, transactions
 │   │   │   └── transfer.ts           # JSON backup validation/merge, roster CSV parsing, and event export
@@ -51,6 +54,7 @@ pinch-hitter/
 │   │   ├── i18n/            # Internationalization dictionaries and translation service
 │   │   ├── practice/        # Batting practice live capture workspace, queue strip, Dugout modes
 │   │   ├── privacy/         # Privacy policy documentation (local-first data sovereignty)
+│   │   ├── pro/             # Upgrade sheet, /activate page, Pro license card, checkout client
 │   │   ├── reports/         # Analytics, spray charts, heatmaps, 14-day trends, event management
 │   │   ├── roster/          # Roster management, player cards, lineup ordering, CSV import
 │   │   ├── settings/        # Active team switcher, defaults, visual accessibility, storage, tier switch
@@ -139,7 +143,16 @@ All agents and contributors must preserve the following principles:
 - **Reversible Undo**: The 100-step undo stack must delete the latest event and revert turn state atomically, reversing automatic advancement while respecting subsequent deliberate queue adjustments.
 - **Non-Destructive Backups & Merges**: Validates schema, references, bounds, and IDs before import, previews counts, then applies a non-destructive atomic merge where matching IDs use the newer `updatedAt`.
 
-### 3. Mobile-First, Dugout Ergonomics & Universal Accessibility
+### 3. Licensing & Payments (ADR-011)
+
+- **No Secrets in the Client or Repo**: Stripe secret and restricted keys and the Ed25519 signing key live only in GCP Secret Manager (and an offline LLC backup). Anything in `license-config.ts` or an Angular environment ships to every browser.
+- **Purchase-Time Only**: The license function (private repo `Oxford-Comma-Development/pinch-hitter-license`) is contacted only to start checkout or activate a purchase. Never send coaching data to it, and never make daily use depend on it.
+- **Codes Stay Out of Backups**: The unlock code lives in the IndexedDB `metadata` store. Never add it to `BackupData` or CSV exports.
+- **Byte Compatibility**: `src/app/data/license.ts` and the function's `src/unlock-code.js` must stay byte-compatible.
+- **Never Lock Data**: Pro gates new capabilities, never existing data. Free coaches keep full use of every team and record they already have, and exports stay free.
+- **No Upsells in Live Practice**: Upgrade prompts belong only in Reports, exports, Settings, and team management.
+
+### 4. Mobile-First, Dugout Ergonomics & Universal Accessibility
 
 - **Field-Ready Usability**: Phone portrait is the primary experience. One-handed operation is paramount: **store data richly; ask for data sparingly**. A field tap must create a valid observation without modal confirmation. Classifications are optional and must not silently carry over to the next event. Manual hitter advance is the default.
 - **Recorded Contact Terminology**: Call the recorded unit a **recorded contact**, never an inferred swing, at-bat, or official plate appearance.
@@ -149,14 +162,14 @@ All agents and contributors must preserve the following principles:
 - **Zero Horizontal Scroll**: Prevent accidental horizontal layout overflow across phone portrait, phone landscape, tablet, and desktop viewports.
 - **Universal Design**: Maintain the Okabe-Ito barrier-free color palette, multi-shape SVG marker glyphs (WCAG 1.4.1), high-contrast slate field (`#0f172a`) for direct outdoor sunlight, and Left-Handed Dugout Mode action rail mirroring.
 
-### 4. Normalized SVG Coordinate System (Version 1)
+### 5. Normalized SVG Coordinate System (Version 1)
 
 - **Square Coordinate Surface**: The field coordinate surface is a normalized square with origin `(0, 0)` at the top-left, X increasing rightward to `1.0`, Y increasing downward to `1.0`.
 - **Home Plate Anchor**: Home plate is anchored at `(0.50, 0.88)`.
 - **Coordinate Immutability**: Stored coordinates must always remain the original normalized floating point values `[0.0, 1.0]`. Never mutate or round coordinates to fit a screen, viewport, or heatmap bin.
 - **Separation of Analytics**: Derived metrics (density grids, directional tendencies, spray charts) must remain separate from raw observations and always expose their explicit denominators.
 
-### 5. YAGNI & Minimal Complexity
+### 6. YAGNI & Minimal Complexity
 
 - **Native Standards First**: Use native browser Web APIs, standard HTML elements, native SVG, and CSS custom properties before adding third-party libraries.
 - **Angular Built-in Primitives**: Prefer Angular Signals (`signal()`, `computed()`) for reactive state and native control flow (`@if`, `@for`) over heavyweight state management libraries or unnecessary RxJS ceremony.

@@ -87,15 +87,19 @@ pinch-hitter/
 │   │   │   ├── domain.ts     # Pure domain math: queue, undo, coordinates, summaries, filters
 │   │   │   ├── repository.ts # Native IndexedDB driver, schema upgrades, revision checks
 │   │   │   ├── coach-store.ts # Centralized Signal store and serialized writes
-│   │   │   ├── entitlement.service.ts # Method-agnostic feature authorization & simulator
+│   │   │   ├── entitlement.service.ts # Feature authorization backed by verified unlock codes
+│   │   │   ├── license.ts    # Unlock-code format and offline Ed25519 verification (ADR-011)
+│   │   │   ├── license-config.ts # Public keys, function URL, price label, rollback switch
+│   │   │   ├── pro-analytics.ts # Pure comparison, rolling-trend, and enriched-export metrics
 │   │   │   └── transfer.ts   # Canonical JSON backup/merge and CSV export/parsing
 │   │   ├── home/             # Dashboard landing view, active session hero, backup indicators
 │   │   ├── i18n/             # Multi-language dictionary files and localization service
 │   │   ├── practice/         # Batting practice live capture workspace and Dugout modes
 │   │   ├── privacy/          # Privacy policy and local-first data sovereignty statement
+│   │   ├── pro/              # Upgrade sheet, /activate page, license card, checkout client, sample data
 │   │   ├── reports/          # Analytics, spray charts, heatmaps, 14-day trends, event management
 │   │   ├── roster/           # Roster management, player cards, lineup ordering, CSV import
-│   │   ├── settings/         # Active team switcher, defaults, visual accessibility, storage, tier switch
+│   │   ├── settings/         # Active team switcher, defaults, visual accessibility, storage, Pro license
 │   │   ├── shared/           # Reusable UI components (FieldComponent SVG diamond, modal dialogs)
 │   │   ├── app.config.ts     # Global application providers
 │   │   ├── app.routes.ts     # Route table and lazy loading configurations
@@ -111,7 +115,7 @@ pinch-hitter/
 1. **Domain Layer (`src/app/data/domain.ts`, `models.ts`)**: Pure TypeScript functions and interfaces with **zero framework or DOM dependencies**. Contains queue rotation mathematics, 100-step reversible undo logic, coordinate clamping, directional trigonometry, and statistical distribution calculators. Fully testable in isolation.
 2. **Persistence Layer (`src/app/data/repository.ts`)**: Encapsulates raw browser IndexedDB access, transaction scopes, schema version migrations (v1 to v2), and revision comparison checks. Never exposes raw IDB handles to UI components.
 3. **Application State Store (`src/app/data/coach-store.ts`)**: Centralized Angular Signal-based state coordinator. Serializes same-tab write operations, coordinates cross-window writes via Web Locks, and ensures signals update only after IndexedDB transaction commits succeed.
-4. **Feature Authorization Layer (`src/app/data/entitlement.service.ts`)**: Method-agnostic entitlement gateway. Decouples UI feature guards from payment or license verification mechanisms.
+4. **Feature Authorization Layer (`src/app/data/entitlement.service.ts`)**: Method-agnostic entitlement gateway backed by offline-verified Ed25519 unlock codes (ADR-011). The only network dependency is at purchase time: a stateless GCP function in the private `pinch-hitter-license` repo creates Stripe-hosted Checkout Sessions and mints codes for paid sessions. It never receives coaching data.
 5. **Presentation & Feature Views (`src/app/practice/`, `reports/`, etc.)**: Standalone Angular components responsible for rendering UI, handling gestures, listening to coach inputs, and invoking store mutations.
 
 ---
@@ -184,7 +188,7 @@ Pinch Hitter uses a resolution-independent, normalized square coordinate system 
 - `events`: Individual recorded batted-ball observations, normalized coordinates, handedness snapshots, classifications, hit power rating (0–5).
 - `notes`: Timestamped coaching notes with team/player/session/event relational scope.
 - `settings`: Singleton preferences (`id: "preferences"`).
-- `metadata`: Internal revision token (`id: "revision"`) for optimistic concurrency checks.
+- `metadata`: Internal revision token (`id: "revision"`) for optimistic concurrency checks, and the verified Pro unlock code (`id: "license"`). It is never exported in backups and never bumps the notebook revision.
 
 ### 6.2 Concurrency & Transactional Integrity
 
