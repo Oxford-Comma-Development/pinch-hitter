@@ -27,6 +27,7 @@ import {
   STANDARD_FENCE_PRESETS,
 } from '../data/models';
 import { EntitlementService } from '../data/entitlement.service';
+import { ProUpsellService } from '../pro/pro-upsell.service';
 import { eventsCsv } from '../data/transfer';
 import { FieldComponent } from '../shared/field.component';
 import { I18nService } from '../i18n/i18n.service';
@@ -215,6 +216,7 @@ export class ReportsComponent {
   });
   readonly summary = computed(() => summarizeEvents(this.observations()));
   readonly entitlement = inject(EntitlementService);
+  readonly upsell = inject(ProUpsellService);
   readonly selectedFencePreset = signal<FieldPresetKey>('high_school');
   readonly customFence = signal<OutfieldFenceConfig>({
     preset: 'custom',

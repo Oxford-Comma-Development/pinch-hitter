@@ -19,6 +19,13 @@ export const DATABASE_NAME = 'pinch-hitter';
 export const LEGACY_DATABASE_NAME = 'baseball-coach-helper';
 export const DATABASE_VERSION = 2;
 const TABLES: TableName[] = ['teams', 'players', 'sessions', 'events', 'notes', 'settings'];
+const LICENSE_RECORD_ID = 'license';
+
+export interface StoredLicense {
+  id: typeof LICENSE_RECORD_ID;
+  code: string;
+  activatedAt: string;
+}
 
 export class ConcurrentWriteError extends Error {
   constructor() {
@@ -289,6 +296,34 @@ export class CoachRepository {
         );
     });
   }
+  /**
+   * The Pro unlock code lives in `metadata`, which backups never include (ADR-011), so sharing a
+   * notebook never shares a license. It deliberately does not bump the notebook revision.
+   */
+  async readLicense(): Promise<StoredLicense | null> {
+    await this.open();
+    return new Promise((resolve, reject) => {
+      const transaction = this.database!.transaction('metadata', 'readonly');
+      const request = transaction.objectStore('metadata').get(LICENSE_RECORD_ID);
+      transaction.oncomplete = () => resolve((request.result as StoredLicense | undefined) ?? null);
+      transaction.onerror = transaction.onabort = () =>
+        reject(transaction.error ?? new Error('The license could not be read.'));
+    });
+  }
+
+  async writeLicense(license: Omit<StoredLicense, 'id'> | null): Promise<void> {
+    await this.open();
+    await new Promise<void>((resolve, reject) => {
+      const transaction = this.database!.transaction('metadata', 'readwrite');
+      const store = transaction.objectStore('metadata');
+      if (license) store.put({ ...license, id: LICENSE_RECORD_ID });
+      else store.delete(LICENSE_RECORD_ID);
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = transaction.onabort = () =>
+        reject(transaction.error ?? new Error('The license could not be saved.'));
+    });
+  }
+
   close(): void {
     this.database?.close();
     this.database = null;

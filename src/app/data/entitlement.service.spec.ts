@@ -1,85 +1,142 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { EntitlementService, FeatureId } from './entitlement.service';
+import { UnlockCodePayload, encodeUnlockCode } from './license';
+import { CoachRepository, StoredLicense } from './repository';
+
+// Dev-only key (also in e2e/fixtures/dev.private.jwk). Trusted only in Angular dev mode.
+const DEV_PRIVATE_JWK: JsonWebKey = {
+  kty: 'OKP',
+  crv: 'Ed25519',
+  d: 'Tb0WzytbOabbJn3FscgvCqHtMEXTLFpCT00Y2i6hv74',
+  x: '3N0w7aViqz2OIygGnT09H_c2EjUADlCgpyrbENpcH3g',
+};
+
+const ALL_FEATURES: FeatureId[] = [
+  'multi_team',
+  'custom_field_dimensions',
+  'multi_player_comparison',
+  'advanced_time_series',
+  'scout_pdf_export',
+  'enriched_csv_metrics',
+];
+
+async function devCode(overrides: Partial<UnlockCodePayload> = {}): Promise<string> {
+  const key = await crypto.subtle.importKey('jwk', DEV_PRIVATE_JWK, { name: 'Ed25519' }, false, [
+    'sign',
+  ]);
+  return encodeUnlockCode(
+    {
+      v: 1,
+      kid: 'dev',
+      lic: 'comp-test',
+      tier: 'pro',
+      name: 'Coach Dana R.',
+      iat: 1,
+      ...overrides,
+    },
+    key,
+  );
+}
 
 describe('EntitlementService', () => {
-  let service: EntitlementService;
+  let stored: StoredLicense | null;
+  let failWrites: boolean;
 
-  const storageMock = (() => {
-    let store: Record<string, string> = {};
-    return {
-      getItem: (key: string) => store[key] ?? null,
-      setItem: (key: string, val: string) => {
-        store[key] = String(val);
-      },
-      removeItem: (key: string) => {
-        delete store[key];
-      },
-      clear: () => {
-        store = {};
-      },
-    };
-  })();
+  async function freshService(): Promise<EntitlementService> {
+    const service = new EntitlementService();
+    await vi.waitFor(() => expect(service.ready()).toBe(true));
+    return service;
+  }
 
   beforeEach(() => {
-    if (typeof globalThis.localStorage === 'undefined' || !globalThis.localStorage?.clear) {
-      Object.defineProperty(globalThis, 'localStorage', {
-        value: storageMock,
-        writable: true,
-        configurable: true,
-      });
-    }
-    localStorage.clear();
-    service = new EntitlementService();
-  });
-
-  it('initializes in Pro mode by default when unconfigured', () => {
-    expect(service.tier()).toBe('pro');
-    expect(service.isPro()).toBe(true);
-    expect(service.status().source).toBe('simulated');
-  });
-
-  it('allows access to all Pro features when tier is pro', () => {
-    const features: FeatureId[] = [
-      'multi_team',
-      'custom_field_dimensions',
-      'multi_player_comparison',
-      'advanced_time_series',
-      'scout_pdf_export',
-      'enriched_csv_metrics',
-    ];
-
-    for (const feature of features) {
-      expect(service.canAccess(feature)).toBe(true);
+    stored = null;
+    failWrites = false;
+    vi.spyOn(CoachRepository.prototype, 'readLicense').mockImplementation(async () => stored);
+    vi.spyOn(CoachRepository.prototype, 'writeLicense').mockImplementation(async (license) => {
+      if (failWrites) throw new Error('QuotaExceededError');
+      stored = license ? { ...license, id: 'license' } : null;
+    });
+    try {
+      localStorage.removeItem('pinch_hitter_simulated_tier');
+    } catch {
+      // ignore
     }
   });
 
-  it('restricts Pro features when switched to free tier', () => {
-    service.setSimulatedTier('free');
+  afterEach(() => vi.restoreAllMocks());
 
+  it('starts every coach on the free tier', async () => {
+    const service = await freshService();
     expect(service.tier()).toBe('free');
     expect(service.isPro()).toBe(false);
-
-    expect(service.canAccess('custom_field_dimensions')).toBe(false);
-    expect(service.canAccess('multi_team')).toBe(false);
-    expect(service.canAccess('multi_player_comparison')).toBe(false);
+    expect(service.status().source).toBe('free');
+    for (const feature of ALL_FEATURES) expect(service.canAccess(feature)).toBe(false);
   });
 
-  it('persists tier choice across service re-instantiations via localStorage', () => {
-    service.setSimulatedTier('free');
+  it('unlocks every Pro feature with a valid code and records the licensee', async () => {
+    const service = await freshService();
+    const code = await devCode();
 
-    // Create a new instance simulating a page reload
-    const reloadedService = new EntitlementService();
-    expect(reloadedService.tier()).toBe('free');
-    expect(reloadedService.isPro()).toBe(false);
-    expect(reloadedService.canAccess('multi_team')).toBe(false);
-  });
+    const result = await service.activate(`Your link: https://x.test/activate#code=${code}`);
 
-  it('resets to pro default via resetToDefault()', () => {
-    service.setSimulatedTier('free');
-    expect(service.isPro()).toBe(false);
-
-    service.resetToDefault();
-    expect(service.tier()).toBe('pro');
+    expect(result.ok).toBe(true);
     expect(service.isPro()).toBe(true);
+    expect(service.status()).toMatchObject({
+      source: 'unlock_code',
+      licenseeName: 'Coach Dana R.',
+      licenseId: 'comp-test',
+      code,
+    });
+    for (const feature of ALL_FEATURES) expect(service.canAccess(feature)).toBe(true);
+  });
+
+  it('keeps Pro after a reload by re-verifying the stored code', async () => {
+    await (await freshService()).activate(await devCode());
+
+    const reloaded = await freshService();
+    expect(reloaded.isPro()).toBe(true);
+    expect(reloaded.status().licenseeName).toBe('Coach Dana R.');
+  });
+
+  it('ignores a stored code that no longer verifies', async () => {
+    stored = { id: 'license', code: (await devCode()).replace(/.$/, 'A'), activatedAt: 'x' };
+    const service = await freshService();
+    expect(service.isPro()).toBe(false);
+  });
+
+  it('rejects invalid codes without changing anything', async () => {
+    const service = await freshService();
+    const result = await service.activate('not a code');
+    expect(result).toEqual({ ok: false, reason: 'not_found' });
+    expect(service.isPro()).toBe(false);
+    expect(stored).toBeNull();
+  });
+
+  it('stays free if the license cannot be saved', async () => {
+    const service = await freshService();
+    failWrites = true;
+    await expect(service.activate(await devCode())).rejects.toThrow();
+    expect(service.isPro()).toBe(false);
+  });
+
+  it('removes the license from this device', async () => {
+    const service = await freshService();
+    await service.activate(await devCode());
+    await service.deactivate();
+    expect(service.isPro()).toBe(false);
+    expect(stored).toBeNull();
+  });
+
+  it('lets developers simulate a tier without touching the real license', async () => {
+    const service = await freshService();
+    expect(service.simulatorAvailable).toBe(true);
+
+    service.setSimulatedTier('pro');
+    expect(service.isPro()).toBe(true);
+    expect(service.status().source).toBe('simulated');
+    expect(service.license().source).toBe('free');
+
+    service.setSimulatedTier(null);
+    expect(service.isPro()).toBe(false);
   });
 });

@@ -4,7 +4,9 @@ import { DatePipe } from '@angular/common';
 import { ModalDirective } from '../shared/modal.directive';
 import { InstallService } from '../shared/install.service';
 import { CoachStore } from '../data/coach-store';
-import { EntitlementService, CoachTier } from '../data/entitlement.service';
+import { EntitlementService } from '../data/entitlement.service';
+import { ProLicenseCardComponent } from '../pro/pro-license-card.component';
+import { ProUpsellService } from '../pro/pro-upsell.service';
 import {
   FieldPresetKey,
   ImportPreview,
@@ -18,7 +20,14 @@ import { backupFileName, canShareFiles, downloadFile, shareFile } from '../share
 import { TranslatePipe } from '../i18n/translate.pipe';
 @Component({
   selector: 'app-settings',
-  imports: [FormsModule, ModalDirective, DatePipe, RouterLink, TranslatePipe],
+  imports: [
+    FormsModule,
+    ModalDirective,
+    DatePipe,
+    RouterLink,
+    TranslatePipe,
+    ProLicenseCardComponent,
+  ],
   template: `
     <div class="page">
       <p class="eyebrow">{{ 'settings.eyebrow' | t }}</p>
@@ -66,7 +75,12 @@ import { TranslatePipe } from '../i18n/translate.pipe';
             @if (store.activeTeam()) {
               <button (click)="editTeam(store.activeTeam()!)">{{ 'settings.editTeam' | t }}</button>
             }
-            <button (click)="editTeam()">{{ 'settings.addTeam' | t }}</button>
+            <button (click)="addTeam()">
+              {{ 'settings.addTeam' | t }}
+              @if (!entitlement.canAccess('multi_team')) {
+                <span class="pro-tag">✦ PRO</span>
+              }
+            </button>
           </div>
         </section>
         <section class="card">
@@ -295,88 +309,7 @@ import { TranslatePipe } from '../i18n/translate.pipe';
             </p>
           </div>
         </section>
-        <section class="card license-card">
-          <p class="eyebrow">COACH LICENSE</p>
-          <div class="license-heading">
-            <h2>Pro features &amp; license</h2>
-            <span class="badge" [class.badge-pro]="entitlement.isPro()">
-              {{ entitlement.isPro() ? 'PRO COACH' : 'FREE COACH' }}
-            </span>
-          </div>
-          <p class="muted small">
-            Test and preview Pinch Hitter features. Choose between full Pro access or simulated Free
-            Coach tier.
-          </p>
-
-          <div class="license-simulator" role="radiogroup" aria-label="Simulated license tier">
-            <label class="simulator-option" [class.selected]="entitlement.tier() === 'pro'">
-              <input
-                type="radio"
-                name="simulatedTier"
-                value="pro"
-                [checked]="entitlement.tier() === 'pro'"
-                (change)="setTier('pro')"
-              />
-              <div>
-                <strong>Pro Coach (Unlocked)</strong>
-                <p class="small muted">
-                  All features unlocked: custom fences, multi-team, deep analytics.
-                </p>
-              </div>
-            </label>
-
-            <label class="simulator-option" [class.selected]="entitlement.tier() === 'free'">
-              <input
-                type="radio"
-                name="simulatedTier"
-                value="free"
-                [checked]="entitlement.tier() === 'free'"
-                (change)="setTier('free')"
-              />
-              <div>
-                <strong>Free Coach (Preview)</strong>
-                <p class="small muted">
-                  Core features only; preview how gating and pro badges appear.
-                </p>
-              </div>
-            </label>
-          </div>
-
-          <div class="license-features-summary">
-            <span class="small eyebrow">CAPABILITIES:</span>
-            <ul class="feature-bullets">
-              <li>Live BP capture, whiff scale &amp; undo: <strong>Always Free</strong></li>
-              <li>JSON backups &amp; CSV export: <strong>Always Free</strong></li>
-              <li>
-                Multi-team management:
-                <strong>{{ entitlement.canAccess('multi_team') ? 'Unlocked' : 'Pro Only' }}</strong>
-              </li>
-              <li>
-                Custom outfield fences:
-                <strong>{{
-                  entitlement.canAccess('custom_field_dimensions') ? 'Unlocked' : 'Pro Only'
-                }}</strong>
-              </li>
-              <li>
-                Multi-hitter comparisons:
-                <strong>{{
-                  entitlement.canAccess('multi_player_comparison') ? 'Unlocked' : 'Pro Only'
-                }}</strong>
-              </li>
-              <li>
-                Rolling trend curves:
-                <strong>{{
-                  entitlement.canAccess('advanced_time_series') ? 'Unlocked' : 'Pro Only'
-                }}</strong>
-              </li>
-            </ul>
-          </div>
-
-          <p class="small muted license-note">
-            Method-agnostic entitlement active. Payment integrations (Stripe / offline keys) plug
-            into this engine.
-          </p>
-        </section>
+        <app-pro-license-card />
         <section class="card data-card">
           <p class="eyebrow">TAKE YOUR NOTEBOOK WITH YOU</p>
           <h2>Take your notebook with you</h2>
@@ -641,33 +574,12 @@ import { TranslatePipe } from '../i18n/translate.pipe';
     .card .row {
       margin-top: 16px;
     }
-    .license-card {
-      border-color: #c9d8c5;
-      background: #fbfcf8;
-    }
-    .license-heading {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 8px;
-    }
-    .license-heading h2 {
-      margin-bottom: 0;
-    }
-    .badge-pro {
-      background: var(--green);
-      color: #fff8de;
-      letter-spacing: 0.5px;
-    }
-    .license-simulator,
     .visual-options {
       display: flex;
       flex-direction: column;
       gap: 10px;
       margin: 14px 0;
     }
-    .simulator-option,
     .visual-option {
       display: flex;
       align-items: flex-start;
@@ -681,44 +593,21 @@ import { TranslatePipe } from '../i18n/translate.pipe';
         border-color 0.15s ease,
         background 0.15s ease;
     }
-    .simulator-option.selected,
     .visual-option.selected {
       border-color: var(--green);
       background: #f4f7ee;
     }
-    .simulator-option input[type='radio'],
     .visual-option input[type='radio'] {
       margin-top: 3px;
       accent-color: var(--green);
     }
-    .simulator-option strong,
     .visual-option strong {
       display: block;
       font-size: 14px;
       color: var(--ink);
     }
-    .simulator-option p,
     .visual-option p {
       margin: 2px 0 0;
-      line-height: 1.35;
-    }
-    .license-features-summary {
-      background: var(--cream);
-      border-radius: 8px;
-      padding: 12px 14px;
-      margin-top: 14px;
-    }
-    .feature-bullets {
-      margin: 8px 0 0;
-      padding-left: 18px;
-      font-size: 12px;
-      line-height: 1.5;
-    }
-    .feature-bullets li {
-      margin-bottom: 3px;
-    }
-    .license-note {
-      margin-top: 12px;
       line-height: 1.35;
     }
     .data-card {
@@ -875,6 +764,7 @@ import { TranslatePipe } from '../i18n/translate.pipe';
 export class SettingsComponent {
   readonly store = inject(CoachStore);
   readonly entitlement = inject(EntitlementService);
+  private readonly upsell = inject(ProUpsellService);
   readonly message = signal('');
   readonly importError = signal('');
   readonly preview = signal<ImportPreview | null>(null);
@@ -938,13 +828,13 @@ export class SettingsComponent {
     await this.store.setActiveTeam(id);
     this.message.set('Active team changed. Your other teams and practices are saved.');
   }
-  setTier(tier: CoachTier) {
-    this.entitlement.setSimulatedTier(tier);
-    this.message.set(
-      tier === 'pro'
-        ? 'License switched to Pro Coach (all features unlocked).'
-        : 'License switched to Free Coach (gated preview mode).',
-    );
+  /** Free coaches keep every team they already have; creating another one is Pro. */
+  addTeam() {
+    if (this.store.teams().length >= 1 && !this.entitlement.canAccess('multi_team')) {
+      this.upsell.open('multi_team');
+      return;
+    }
+    this.editTeam();
   }
   editTeam(team?: Team) {
     this.teamId = team?.id || '';

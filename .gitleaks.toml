@@ -1,0 +1,9 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Dev-only Ed25519 license key, trusted only in Angular dev mode (ADR-011). Production keys never enter this repo."
+paths = [
+  '''e2e/fixtures/dev\.private\.jwk''',
+  '''src/app/data/entitlement\.service\.spec\.ts''',
+]

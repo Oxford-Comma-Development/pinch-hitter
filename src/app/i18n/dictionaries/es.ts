@@ -229,4 +229,118 @@ export const es: TranslationDictionary = {
   'baseball.switch': 'Ambidiestro',
   'baseball.rhp': 'Lanz. Derecho',
   'baseball.lhp': 'Lanz. Zurdo',
+
+  // Pinch Hitter Pro (ADR-011)
+  'pro.brand': 'Pinch Hitter Pro',
+  'pro.close': 'Cerrar',
+  'pro.licensedTo': 'Licencia de {name}',
+  'pro.success.title': 'Ya eres Pro, coach.',
+  'pro.success.body':
+    'Todas las funciones Pro están activas en este dispositivo y siguen funcionando sin conexión.',
+  'pro.success.continue': 'Volver a entrenar',
+  'pro.sheet.title': 'Ve más allá de la jaula.',
+  'pro.sheet.lede':
+    'Un solo pago, tuyo para siempre. Incluye todas las funciones Pro que creemos de aquí en adelante.',
+  'pro.sheet.unlocks': 'Esto desbloquea',
+  'pro.sheet.alwaysFree':
+    'La captura en vivo, deshacer, los gráficos de spray, las copias de seguridad y las exportaciones siempre serán gratis. Tu cuaderno nunca se bloquea.',
+  'pro.sheet.oneTime': 'pago único · sin suscripción',
+  'pro.sheet.checkout': 'Continuar al pago seguro',
+  'pro.sheet.opening': 'Abriendo el pago seguro…',
+  'pro.sheet.secure':
+    'El pago lo procesa Stripe: Apple Pay, Google Pay, Link o tarjeta. Pinch Hitter nunca ve tu tarjeta.',
+  'pro.sheet.haveCode': '¿Ya tienes un código de desbloqueo?',
+  'pro.feature.multi_team.name': 'Equipos y temporadas ilimitados',
+  'pro.feature.multi_team.description':
+    'Lleva equipos escolares, de viaje y de showcase a la vez. La versión gratis incluye un equipo.',
+  'pro.feature.custom_field_dimensions.name': 'Bardas personalizadas',
+  'pro.feature.custom_field_dimensions.description':
+    'Las distancias reales de tu campo. Mira qué elevados la superan.',
+  'pro.feature.multi_player_comparison.name': 'Comparar bateadores',
+  'pro.feature.multi_player_comparison.description':
+    'Superpón dos bateadores, o ambos lados de un ambidiestro, en un solo gráfico de spray.',
+  'pro.feature.advanced_time_series.name': 'Curvas de desarrollo',
+  'pro.feature.advanced_time_series.description':
+    'Tasas móviles de contacto fuerte y abanicadas por práctica, para ver el progreso.',
+  'pro.feature.scout_pdf_export.name': 'Fichas de scouting',
+  'pro.feature.scout_pdf_export.description':
+    'Evaluaciones de una página con el escudo de tu equipo y tus notas.',
+  'pro.feature.enriched_csv_metrics.name': 'Exportación analítica enriquecida',
+  'pro.feature.enriched_csv_metrics.description':
+    'CSV con distancia, ángulo de dirección y zona del campo para cada contacto registrado.',
+  'pro.checkout.offline':
+    'Estás sin conexión. El pago necesita internet; mientras tanto, tu cuaderno sigue funcionando.',
+  'pro.checkout.not_open':
+    'El pago abre pronto. Si ya tienes un código de desbloqueo, pégalo abajo.',
+  'pro.checkout.unavailable':
+    'No se pudo abrir el pago. No se hizo ningún cargo. Inténtalo de nuevo en un momento.',
+  'pro.activation.offline':
+    'Estás sin conexión. Tu compra está a salvo: reconéctate y toca Reintentar. Este enlace sigue funcionando.',
+  'pro.activation.not_open':
+    'La activación no está disponible ahora. Tu compra está a salvo. Vuelve a abrir este enlace más tarde.',
+  'pro.activation.not_paid':
+    'Stripe aún no confirma este pago. Si acabas de pagar, espera unos segundos e inténtalo de nuevo.',
+  'pro.activation.not_found':
+    'No encontramos esa compra. Si se te cobró, responde a tu recibo de Stripe y lo resolvemos.',
+  'pro.activation.unavailable':
+    'No se pudo contactar el servicio de licencias. Tu compra está a salvo. Inténtalo en un momento.',
+  'pro.code.label': 'Código o enlace de desbloqueo',
+  'pro.code.placeholder': 'Pega tu código (PH1…) o enlace de activación',
+  'pro.code.activate': 'Activar Pro',
+  'pro.code.checking': 'Verificando…',
+  'pro.code.error.not_found':
+    'Eso no parece un código de desbloqueo. Los códigos empiezan con PH1.',
+  'pro.code.error.malformed':
+    'El código está incompleto. Copia el código o el enlace completo e inténtalo de nuevo.',
+  'pro.code.error.unknown_key':
+    'Este código necesita una versión más nueva de Pinch Hitter. Actualiza la app e inténtalo de nuevo.',
+  'pro.code.error.bad_signature': 'El código no es válido. Asegúrate de copiarlo completo.',
+  'pro.code.error.revoked':
+    'Este código fue desactivado. Responde a tu recibo de Stripe si crees que es un error.',
+  'pro.code.error.unsupported':
+    'Este navegador es demasiado antiguo para verificar códigos. Actualízalo e inténtalo de nuevo.',
+  'pro.code.error.storage':
+    'No se pudo guardar Pro en este dispositivo. Libera espacio e inténtalo de nuevo.',
+  'pro.keep.title': 'Guarda tu código de desbloqueo',
+  'pro.keep.body':
+    'Úsalo para activar Pro en tu laptop, tableta o un teléfono nuevo. No necesitas cuenta.',
+  'pro.keep.copy': 'Copiar enlace de desbloqueo',
+  'pro.keep.email': 'Enviármelo por correo',
+  'pro.keep.share': 'Compartir…',
+  'pro.keep.copied': 'Copiado. Pégalo en Pinch Hitter en cualquier dispositivo.',
+  'pro.keep.copyFailed': 'No se pudo copiar. Usa Enviármelo por correo.',
+  'pro.keep.shared': 'Compartido.',
+  'pro.keep.emailSubject': 'Mi código de desbloqueo de Pinch Hitter Pro',
+  'pro.keep.emailIntro':
+    'Abre este enlace en cualquier dispositivo para activar Pinch Hitter Pro, o pega el código en Ajustes → Pinch Hitter Pro.',
+  'pro.activate.working': 'Desbloqueando Pro…',
+  'pro.activate.workingHint': 'Solo toma un segundo.',
+  'pro.activate.title': 'Ya eres Pro, coach.',
+  'pro.activate.body':
+    'Todas las funciones Pro están activas en este dispositivo y funcionan sin conexión para siempre.',
+  'pro.activate.openReports': 'Abrir reportes',
+  'pro.activate.openSettings': 'Volver a Ajustes',
+  'pro.activate.iosTip':
+    '¿Usas Pinch Hitter desde tu pantalla de inicio? Toca Copiar enlace de desbloqueo, abre Pinch Hitter desde la pantalla de inicio y pégalo en Ajustes → Pinch Hitter Pro.',
+  'pro.activate.problemTitle': 'Ya casi',
+  'pro.activate.retry': 'Reintentar',
+  'pro.activate.pasteTitle': 'Activa Pro en este dispositivo',
+  'pro.card.eyebrow': 'LICENCIA DEL COACH',
+  'pro.card.badgePro': '✦ COACH PRO',
+  'pro.card.badgeFree': 'COACH GRATIS',
+  'pro.card.cancelled': 'Pago cancelado. No se hizo ningún cargo.',
+  'pro.card.lifetime': 'Pro de por vida',
+  'pro.card.activatedOn': 'Activado en este dispositivo el {date}.',
+  'pro.card.lifetimeNote': 'De por vida: todas las funciones Pro actuales y futuras.',
+  'pro.card.remove': 'Quitar Pro de este dispositivo',
+  'pro.card.removeConfirm':
+    '¿Quitar Pro de este dispositivo? Tu cuaderno no se afecta y puedes reactivarlo cuando quieras con tu código.',
+  'pro.card.freeLede':
+    'Todo lo que necesitas en la jaula es gratis. Pro añade análisis más profundo para quien lo quiera.',
+  'pro.card.freeCapture': 'Captura en vivo, escala de abanicadas y deshacer:',
+  'pro.card.freeBackups': 'Copias de seguridad, CSV y gráficos de spray:',
+  'pro.card.alwaysFree': 'Siempre gratis',
+  'pro.card.unlocked': 'Desbloqueado',
+  'pro.card.proOnly': 'Pro',
+  'pro.card.unlock': 'Desbloquear Pro',
 };

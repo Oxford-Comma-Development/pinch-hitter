@@ -4,9 +4,10 @@ import { SwUpdate } from '@angular/service-worker';
 import { InstallService } from './shared/install.service';
 import { CoachStore } from './data/coach-store';
 import { TranslatePipe } from './i18n/translate.pipe';
+import { UpgradeSheetComponent } from './pro/upgrade-sheet.component';
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, TranslatePipe],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, TranslatePipe, UpgradeSheetComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

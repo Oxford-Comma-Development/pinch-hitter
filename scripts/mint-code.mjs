@@ -9,7 +9,11 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { encodeUnlockCode } from '../src/app/data/license.ts';
-import { APP_URL, LICENSE_PUBLIC_KEYS } from '../src/app/data/license-config.ts';
+import {
+  APP_URL,
+  DEV_LICENSE_PUBLIC_KEYS,
+  LICENSE_PUBLIC_KEYS,
+} from '../src/app/data/license-config.ts';
 
 const { values } = parseArgs({
   options: {
@@ -32,7 +36,9 @@ const keyPath = values.key ?? join(keyDir, `${values.kid}.private.jwk`);
 const { kid: _kid, ...jwk } = JSON.parse(readFileSync(keyPath, 'utf8'));
 const privateKey = await crypto.subtle.importKey('jwk', jwk, { name: 'Ed25519' }, false, ['sign']);
 
-if (!Object.hasOwn(LICENSE_PUBLIC_KEYS, values.kid)) {
+if (Object.hasOwn(DEV_LICENSE_PUBLIC_KEYS, values.kid)) {
+  console.warn(`Note: kid "${values.kid}" is trusted only by dev builds (npm start, tests).\n`);
+} else if (!Object.hasOwn(LICENSE_PUBLIC_KEYS, values.kid)) {
   console.warn(
     `Warning: kid "${values.kid}" is not in LICENSE_PUBLIC_KEYS; the app will reject this code.\n`,
   );

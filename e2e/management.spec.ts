@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { setupTeam, readData, assertNoOverflow } from './helpers';
+import { setupTeam, readData, assertNoOverflow, activatePro } from './helpers';
 test('roster edits, archive/reactivate, team switching and invalid import preserve the notebook', async ({
   page,
 }, testInfo) => {
@@ -25,6 +25,7 @@ test('roster edits, archive/reactivate, team switching and invalid import preser
   await page.getByRole('link', { name: 'Pinch Hitter home' }).click();
   await page.screenshot({ path: testInfo.outputPath('home.png'), fullPage: true });
   await assertNoOverflow(page);
+  await activatePro(page);
   await page.getByRole('link', { name: 'Settings', exact: true }).click();
   const original = (await readData(page))['teams'][0] as { id: string };
   await page.getByRole('button', { name: '+ Add team', exact: true }).click();

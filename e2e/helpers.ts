@@ -1,4 +1,7 @@
 import { expect, Page } from '@playwright/test';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { encodeUnlockCode } from '../src/app/data/license';
 export async function setupTeam(page: Page) {
   await page.goto('./');
   await page.getByLabel('Team name', { exact: true }).fill('Westfield Wildcats');
@@ -56,4 +59,22 @@ export async function readData(page: Page) {
 }
 export async function assertNoOverflow(page: Page) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+}
+
+/**
+ * Mints an unlock code with the dev-only key (trusted by `npm start` builds, never production)
+ * and activates it through the real `/activate#code=` link flow.
+ */
+export async function devUnlockCode(name = 'Coach Dana R.'): Promise<string> {
+  const jwk = JSON.parse(readFileSync(join(__dirname, 'fixtures', 'dev.private.jwk'), 'utf8'));
+  delete jwk.kid;
+  const key = await crypto.subtle.importKey('jwk', jwk, { name: 'Ed25519' }, false, ['sign']);
+  return encodeUnlockCode(
+    { v: 1, kid: 'dev', lic: 'comp-e2e', tier: 'pro', name, iat: 1_791_000_000 },
+    key,
+  );
+}
+export async function activatePro(page: Page, name?: string) {
+  await page.goto(`./activate#code=${await devUnlockCode(name)}`);
+  await expect(page.getByRole('heading', { name: "You're Pro, Coach." })).toBeVisible();
 }

@@ -1,4 +1,12 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, computed, isDevMode, signal } from '@angular/core';
+import {
+  DEV_LICENSE_PUBLIC_KEYS,
+  LICENSE_PUBLIC_KEYS,
+  LICENSING_ENFORCED,
+  REVOKED_LICENSES,
+} from './license-config';
+import { UnlockCodeResult, verifyUnlockCode } from './license';
+import { CoachRepository } from './repository';
 
 export type FeatureId =
   | 'multi_team'
@@ -13,12 +21,17 @@ export type CoachTier = 'free' | 'pro' | 'organization';
 export interface LicenseStatus {
   tier: CoachTier;
   active: boolean;
-  source: 'simulated' | 'stripe' | 'license_key' | 'organization';
+  source: 'free' | 'unlock_code' | 'simulated' | 'unenforced';
+  /** Always null for Lifetime Pro; kept for future organization licenses. */
   expiresAt: string | null;
-  licenseeEmail?: string;
+  licenseeName?: string;
+  licenseId?: string;
+  /** The verified unlock code, so the coach can copy it to another device. */
+  code?: string;
+  activatedAt?: string;
 }
 
-const STORAGE_KEY = 'pinch_hitter_simulated_tier';
+const SIMULATOR_STORAGE_KEY = 'pinch_hitter_simulated_tier';
 
 const PRO_FEATURES: readonly FeatureId[] = [
   'multi_team',
@@ -58,90 +71,128 @@ export const FEATURE_DESCRIPTIONS: Record<FeatureId, { name: string; description
   },
 };
 
+/** Pro features that exist in the app today, in the order the upgrade sheet presents them. */
+export const SHIPPED_PRO_FEATURES: readonly FeatureId[] = ['custom_field_dimensions', 'multi_team'];
+
+const FREE_STATUS: LicenseStatus = { tier: 'free', active: true, source: 'free', expiresAt: null };
+
+/**
+ * Method-agnostic feature gateway (ADR-008), backed by offline-verified unlock codes (ADR-011).
+ * The code is persisted in IndexedDB before any signal changes, so the UI never shows Pro that a
+ * reload would take away.
+ */
 @Injectable({
   providedIn: 'root',
 })
 export class EntitlementService {
-  private readonly _status = signal<LicenseStatus>(this.loadInitialStatus());
-
-  /** Current license status snapshot */
-  readonly status = this._status.asReadonly();
-
-  /** Current active tier (e.g. 'free' or 'pro') */
-  readonly tier = computed(() => this._status().tier);
-
-  /** True if the active tier grants Pro access */
-  readonly isPro = computed(
-    () => this._status().tier === 'pro' || this._status().tier === 'organization',
+  private readonly repository = new CoachRepository();
+  private readonly devMode = isDevMode();
+  private readonly _license = signal<LicenseStatus>(
+    LICENSING_ENFORCED ? FREE_STATUS : { ...FREE_STATUS, tier: 'pro', source: 'unenforced' },
   );
+  private readonly _simulatedTier = signal<CoachTier | null>(this.loadSimulatedTier());
+  private readonly _ready = signal(false);
 
-  /** Check if a specific feature is enabled under the current entitlement */
+  /** True once the stored license has been read and verified. */
+  readonly ready = this._ready.asReadonly();
+
+  /** Current license status, including any dev-mode simulation. */
+  readonly status = computed<LicenseStatus>(() => {
+    const simulated = this._simulatedTier();
+    return simulated
+      ? { tier: simulated, active: true, source: 'simulated', expiresAt: null }
+      : this._license();
+  });
+
+  /** The real, verified license on this device, ignoring the dev simulator. */
+  readonly license = this._license.asReadonly();
+
+  readonly tier = computed(() => this.status().tier);
+
+  readonly isPro = computed(() => this.tier() === 'pro' || this.tier() === 'organization');
+
+  /** True when the developer tier simulator may be shown (never in production builds). */
+  readonly simulatorAvailable = this.devMode;
+
+  constructor() {
+    void this.restore();
+  }
+
   canAccess(feature: FeatureId): boolean {
-    if (this.isPro()) {
-      return PRO_FEATURES.includes(feature);
-    }
-    return false;
+    return this.isPro() && PRO_FEATURES.includes(feature);
   }
 
   /**
-   * Switch the simulated tier for development, demo, and preview purposes.
-   * Persists across page reloads in browser localStorage.
+   * Verifies an unlock code (bare, inside a link, or pasted from an email) and, if valid, stores
+   * it on this device. Nothing changes if verification or storage fails.
    */
-  setSimulatedTier(tier: CoachTier): void {
-    const nextStatus: LicenseStatus = {
-      tier,
-      active: true,
-      source: 'simulated',
-      expiresAt: null,
-      licenseeEmail: 'coach@example.com',
-    };
-    this._status.set(nextStatus);
+  async activate(input: string): Promise<UnlockCodeResult> {
+    const result = await verifyUnlockCode(input, this.trustedKeys(), REVOKED_LICENSES);
+    if (!result.ok) return result;
+    const activatedAt = new Date().toISOString();
+    await this.repository.writeLicense({ code: result.code, activatedAt });
+    this._license.set(this.toStatus(result, activatedAt));
+    return result;
+  }
+
+  /** Removes the license from this device only. The coach can re-activate with the same code. */
+  async deactivate(): Promise<void> {
+    await this.repository.writeLicense(null);
+    if (LICENSING_ENFORCED) this._license.set(FREE_STATUS);
+  }
+
+  /** Dev builds only: preview the app as another tier. `null` returns to the real license. */
+  setSimulatedTier(tier: CoachTier | null): void {
+    if (!this.devMode) return;
+    this._simulatedTier.set(tier);
     try {
-      if (typeof localStorage !== 'undefined') {
-        localStorage.setItem(STORAGE_KEY, tier);
-      }
+      if (tier) localStorage.setItem(SIMULATOR_STORAGE_KEY, tier);
+      else localStorage.removeItem(SIMULATOR_STORAGE_KEY);
     } catch {
-      // Ignore storage write errors (e.g. storage disabled or private browsing)
+      // Storage may be disabled; the simulation still applies for this page view.
     }
   }
 
-  /** Reset the simulated tier back to the default Pro (unlocked) state */
-  resetToDefault(): void {
+  private async restore(): Promise<void> {
     try {
-      if (typeof localStorage !== 'undefined') {
-        localStorage.removeItem(STORAGE_KEY);
+      const stored = await this.repository.readLicense();
+      if (stored && LICENSING_ENFORCED) {
+        const result = await verifyUnlockCode(stored.code, this.trustedKeys(), REVOKED_LICENSES);
+        if (result.ok) this._license.set(this.toStatus(result, stored.activatedAt));
       }
     } catch {
-      // Ignore
+      // No IndexedDB (or unreadable): the coach stays on the free tier and can activate again.
+    } finally {
+      this._ready.set(true);
     }
-    this._status.set({
-      tier: 'pro',
-      active: true,
-      source: 'simulated',
-      expiresAt: null,
-      licenseeEmail: 'coach@example.com',
-    });
   }
 
-  private loadInitialStatus(): LicenseStatus {
-    let savedTier: CoachTier = 'pro';
-    try {
-      if (typeof localStorage !== 'undefined') {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored === 'free' || stored === 'pro' || stored === 'organization') {
-          savedTier = stored;
-        }
-      }
-    } catch {
-      // Default to pro on storage access failure
-    }
-
+  private toStatus(result: UnlockCodeResult & { ok: true }, activatedAt: string): LicenseStatus {
     return {
-      tier: savedTier,
+      tier: result.payload.tier,
       active: true,
-      source: 'simulated',
+      source: 'unlock_code',
       expiresAt: null,
-      licenseeEmail: 'coach@example.com',
+      licenseeName: result.payload.name,
+      licenseId: result.payload.lic,
+      code: result.code,
+      activatedAt,
     };
+  }
+
+  private trustedKeys(): Readonly<Record<string, string>> {
+    return this.devMode
+      ? { ...LICENSE_PUBLIC_KEYS, ...DEV_LICENSE_PUBLIC_KEYS }
+      : LICENSE_PUBLIC_KEYS;
+  }
+
+  private loadSimulatedTier(): CoachTier | null {
+    if (!this.devMode) return null;
+    try {
+      const stored = localStorage.getItem(SIMULATOR_STORAGE_KEY);
+      return stored === 'free' || stored === 'pro' || stored === 'organization' ? stored : null;
+    } catch {
+      return null;
+    }
   }
 }

@@ -227,4 +227,116 @@ export const en: TranslationDictionary = {
   'baseball.switch': 'Switch',
   'baseball.rhp': 'RHP',
   'baseball.lhp': 'LHP',
+
+  // Pinch Hitter Pro (ADR-011)
+  'pro.brand': 'Pinch Hitter Pro',
+  'pro.close': 'Close',
+  'pro.licensedTo': 'Licensed to {name}',
+  'pro.success.title': "You're Pro, Coach.",
+  'pro.success.body': 'Every Pro feature is unlocked on this device, and it keeps working offline.',
+  'pro.success.continue': 'Back to coaching',
+  'pro.sheet.title': 'Go deeper than the cage.',
+  'pro.sheet.lede':
+    'One payment, yours for good. That includes every Pro feature we build from here on.',
+  'pro.sheet.unlocks': 'This unlocks',
+  'pro.sheet.alwaysFree':
+    'Live capture, undo, spray charts, backups, and exports stay free forever. Your notebook is never locked.',
+  'pro.sheet.oneTime': 'one time · no subscription',
+  'pro.sheet.checkout': 'Continue to secure checkout',
+  'pro.sheet.opening': 'Opening secure checkout…',
+  'pro.sheet.secure':
+    'Checkout is handled by Stripe: Apple Pay, Google Pay, Link, or card. Pinch Hitter never sees your card.',
+  'pro.sheet.haveCode': 'Already have an unlock code?',
+  'pro.feature.multi_team.name': 'Unlimited teams & seasons',
+  'pro.feature.multi_team.description':
+    'Run school, travel, and showcase teams side by side. Free includes one team.',
+  'pro.feature.custom_field_dimensions.name': 'Custom outfield fences',
+  'pro.feature.custom_field_dimensions.description':
+    "Your home field's real wall distances. See which fly balls clear it.",
+  'pro.feature.multi_player_comparison.name': 'Compare hitters',
+  'pro.feature.multi_player_comparison.description':
+    'Overlay two hitters, or both sides of a switch-hitter, on one spray chart.',
+  'pro.feature.advanced_time_series.name': 'Development trend curves',
+  'pro.feature.advanced_time_series.description':
+    'Rolling hard-hit and whiff rates across practices, so progress is visible.',
+  'pro.feature.scout_pdf_export.name': 'Scout cards',
+  'pro.feature.scout_pdf_export.description':
+    'One-page player evaluations with your team crest and notes.',
+  'pro.feature.enriched_csv_metrics.name': 'Enriched analytics export',
+  'pro.feature.enriched_csv_metrics.description':
+    'CSV with distance, direction angle, and field zone for every recorded contact.',
+  'pro.checkout.offline':
+    "You're offline. Checkout needs a connection, and your notebook keeps working in the meantime.",
+  'pro.checkout.not_open':
+    'Checkout opens soon. If you already have an unlock code, paste it below.',
+  'pro.checkout.unavailable':
+    "Couldn't reach checkout. Nothing was charged. Try again in a moment.",
+  'pro.activation.offline':
+    "You're offline. Your purchase is safe: reconnect and tap Try again. This link keeps working.",
+  'pro.activation.not_open':
+    "Activation isn't available right now. Your purchase is safe. Try this link again later.",
+  'pro.activation.not_paid':
+    "Stripe hasn't confirmed this payment yet. If you just paid, wait a few seconds and try again.",
+  'pro.activation.not_found':
+    "We couldn't find that purchase. If you were charged, reply to your Stripe receipt and we'll make it right.",
+  'pro.activation.unavailable':
+    "Couldn't reach the license service. Your purchase is safe. Try again in a moment.",
+  'pro.code.label': 'Unlock code or link',
+  'pro.code.placeholder': 'Paste your code (PH1…) or activation link',
+  'pro.code.activate': 'Activate Pro',
+  'pro.code.checking': 'Checking…',
+  'pro.code.error.not_found': "That doesn't look like an unlock code. Codes start with PH1.",
+  'pro.code.error.malformed':
+    'That code is incomplete. Copy the whole code or the whole link and try again.',
+  'pro.code.error.unknown_key':
+    'This code needs a newer version of Pinch Hitter. Update the app, then try again.',
+  'pro.code.error.bad_signature': "That code didn't check out. Make sure it was copied completely.",
+  'pro.code.error.revoked':
+    "This code has been deactivated. Reply to your Stripe receipt if that's a mistake.",
+  'pro.code.error.unsupported':
+    'This browser is too old to check unlock codes. Update it and try again.',
+  'pro.code.error.storage':
+    "Pro couldn't be saved on this device. Free up some storage and try again.",
+  'pro.keep.title': 'Keep your unlock code',
+  'pro.keep.body':
+    'Use it to turn on Pro on your laptop, tablet, or a new phone. No account needed.',
+  'pro.keep.copy': 'Copy unlock link',
+  'pro.keep.email': 'Email it to myself',
+  'pro.keep.share': 'Share…',
+  'pro.keep.copied': 'Copied. Paste it into Pinch Hitter on any device.',
+  'pro.keep.copyFailed': "Couldn't copy. Use Email it to myself instead.",
+  'pro.keep.shared': 'Shared.',
+  'pro.keep.emailSubject': 'My Pinch Hitter Pro unlock code',
+  'pro.keep.emailIntro':
+    'Open this link on any device to turn on Pinch Hitter Pro, or paste the code in Settings → Pinch Hitter Pro.',
+  'pro.activate.working': 'Unlocking Pro…',
+  'pro.activate.workingHint': 'This takes a second.',
+  'pro.activate.title': "You're Pro, Coach.",
+  'pro.activate.body':
+    'Every Pro feature is unlocked on this device, and it keeps working offline for good.',
+  'pro.activate.openReports': 'Open Reports',
+  'pro.activate.openSettings': 'Back to Settings',
+  'pro.activate.iosTip':
+    'Using Pinch Hitter from your Home Screen? Tap Copy unlock link, open Pinch Hitter from your Home Screen, and paste it in Settings → Pinch Hitter Pro.',
+  'pro.activate.problemTitle': 'Almost there',
+  'pro.activate.retry': 'Try again',
+  'pro.activate.pasteTitle': 'Activate Pro on this device',
+  'pro.card.eyebrow': 'COACH LICENSE',
+  'pro.card.badgePro': '✦ PRO COACH',
+  'pro.card.badgeFree': 'FREE COACH',
+  'pro.card.cancelled': 'Checkout cancelled. No charge was made.',
+  'pro.card.lifetime': 'Lifetime Pro',
+  'pro.card.activatedOn': 'Activated on this device {date}.',
+  'pro.card.lifetimeNote': 'Lifetime: every current and future Pro feature.',
+  'pro.card.remove': 'Remove Pro from this device',
+  'pro.card.removeConfirm':
+    'Remove Pro from this device? Your notebook is not affected, and you can re-activate any time with your unlock code.',
+  'pro.card.freeLede':
+    'Everything you need at the cage is free. Pro adds deeper analysis for coaches who want it.',
+  'pro.card.freeCapture': 'Live capture, whiff scale & undo:',
+  'pro.card.freeBackups': 'Backups, CSV export & spray charts:',
+  'pro.card.alwaysFree': 'Always free',
+  'pro.card.unlocked': 'Unlocked',
+  'pro.card.proOnly': 'Pro',
+  'pro.card.unlock': 'Unlock Pro',
 };

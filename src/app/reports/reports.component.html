@@ -593,9 +593,13 @@
                     >
                       Preview with demo dimensions
                     </button>
-                    <a routerLink="/settings" class="button primary small"
-                      >Open Pro Settings Simulator →</a
+                    <button
+                      type="button"
+                      class="button primary small"
+                      (click)="upsell.open('custom_field_dimensions')"
                     >
+                      Unlock Pro Coach →
+                    </button>
                   </div>
                 </div>
               }
