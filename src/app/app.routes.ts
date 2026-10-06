@@ -31,6 +31,11 @@ export const routes: Routes = [
     title: 'Privacy Policy · Pinch Hitter',
   },
   {
+    path: 'scout/:playerId',
+    loadComponent: () => import('./reports/scout-card.component').then((m) => m.ScoutCardComponent),
+    title: 'Scout Card · Pinch Hitter',
+  },
+  {
     path: 'activate',
     loadComponent: () => import('./pro/activate.component').then((m) => m.ActivateComponent),
     title: 'Pinch Hitter Pro · Pinch Hitter',

@@ -72,7 +72,14 @@ export const FEATURE_DESCRIPTIONS: Record<FeatureId, { name: string; description
 };
 
 /** Pro features that exist in the app today, in the order the upgrade sheet presents them. */
-export const SHIPPED_PRO_FEATURES: readonly FeatureId[] = ['custom_field_dimensions', 'multi_team'];
+export const SHIPPED_PRO_FEATURES: readonly FeatureId[] = [
+  'multi_player_comparison',
+  'advanced_time_series',
+  'custom_field_dimensions',
+  'multi_team',
+  'enriched_csv_metrics',
+  'scout_pdf_export',
+];
 
 const FREE_STATUS: LicenseStatus = { tier: 'free', active: true, source: 'free', expiresAt: null };
 

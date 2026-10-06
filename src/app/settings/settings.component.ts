@@ -389,6 +389,24 @@ import { TranslatePipe } from '../i18n/translate.pipe';
             For spreadsheets and baseball analysis. For a player or session CSV, export from
             Reports.
           </p>
+          @if (entitlement.canAccess('enriched_csv_metrics')) {
+            <p class="small pro-export-note">
+              <span class="pro-tag">✦ PRO</span> Exports include estimated distance, spray angle,
+              direction, and field zone for every contact.
+            </p>
+          } @else {
+            <p class="small pro-export-note">
+              <span class="pro-tag">✦ PRO</span> adds estimated distance, spray angle, direction,
+              and field-zone columns.
+              <button
+                type="button"
+                class="text-button"
+                (click)="upsell.open('enriched_csv_metrics')"
+              >
+                See Pro
+              </button>
+            </p>
+          }
         </section>
         <section class="card">
           <p class="eyebrow">BRING YOUR NOTEBOOK HOME</p>
@@ -764,7 +782,7 @@ import { TranslatePipe } from '../i18n/translate.pipe';
 export class SettingsComponent {
   readonly store = inject(CoachStore);
   readonly entitlement = inject(EntitlementService);
-  private readonly upsell = inject(ProUpsellService);
+  readonly upsell = inject(ProUpsellService);
   readonly message = signal('');
   readonly importError = signal('');
   readonly preview = signal<ImportPreview | null>(null);
@@ -934,7 +952,15 @@ export class SettingsComponent {
       (e) => this.csvScope === 'all' || e.teamId === backup.settings.activeTeamId,
     );
     downloadFile(
-      eventsCsv(events, backup.teams, backup.sessions, backup.notes),
+      eventsCsv(
+        events,
+        backup.teams,
+        backup.sessions,
+        backup.notes,
+        this.entitlement.canAccess('enriched_csv_metrics')
+          ? { fence: this.currentFencePreset }
+          : null,
+      ),
       'baseball-contacts.csv',
       'text/csv;charset=utf-8',
     );

@@ -25,7 +25,7 @@
     </div>
   }
   <main id="main-content" tabindex="-1">
-    @if (store.ready()) {
+    @if (store.ready() && entitlement.ready()) {
       <router-outlet />
     } @else {
       <div class="loading">{{ 'nav.loading' | t }}</div>

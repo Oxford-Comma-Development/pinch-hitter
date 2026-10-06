@@ -1,0 +1,315 @@
+:host {
+  display: block;
+  margin-top: 20px;
+}
+
+.pro-analytics {
+  display: grid;
+  gap: 14px;
+}
+
+.pro-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+
+  h3 {
+    margin: 0;
+  }
+}
+
+.pro-eyebrow {
+  color: var(--green);
+  margin: 0 0 4px;
+}
+
+.view-switch {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+
+  button {
+    border: 0;
+    border-radius: 0;
+    padding: 0 14px;
+  }
+
+  button + button {
+    border-left: 1px solid var(--line);
+  }
+
+  .selected {
+    background: var(--green);
+    color: #fff;
+  }
+}
+
+.preview-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  padding: 12px 14px;
+  border: 1px dashed var(--green);
+  border-radius: 10px;
+  background: #f0f5ea;
+
+  p {
+    flex: 1 1 220px;
+    margin: 0;
+  }
+}
+
+.sample-pill {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.small-button {
+  padding: 0 14px;
+}
+
+.compare-controls,
+.trend-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 10px 16px;
+
+  label {
+    display: grid;
+    gap: 4px;
+    font-weight: 700;
+    font-size: 13px;
+    min-width: min(220px, 100%);
+    flex: 1 1 200px;
+  }
+
+  select {
+    min-height: 44px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    padding: 0 10px;
+    background: var(--surface);
+    width: 100%;
+  }
+}
+
+.mode-switch {
+  flex: 0 0 auto;
+}
+
+.series-key {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 6px;
+  vertical-align: -1px;
+  border: 1.5px solid #142f2b;
+}
+
+.series-a {
+  border-radius: 50%;
+  background: #0072b2;
+}
+
+.series-b {
+  transform: rotate(45deg) scale(0.85);
+  background: #e69f00;
+}
+
+.compare-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.compare-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-top: 8px;
+  font-size: 14px;
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  i {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 1.5px solid #142f2b;
+  }
+
+  .legend-circle {
+    border-radius: 50%;
+  }
+
+  .legend-diamond {
+    transform: rotate(45deg) scale(0.85);
+  }
+}
+
+.compare-table,
+.trend-data table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+
+  th,
+  td {
+    padding: 8px 6px;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  thead th {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  tbody th {
+    font-weight: 700;
+  }
+}
+
+.compare-table td {
+  strong,
+  small {
+    display: block;
+  }
+
+  small {
+    color: var(--muted);
+    font-size: 12px;
+  }
+}
+
+.trend-scope {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  flex: 1 1 200px;
+}
+
+.trend-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+
+  div {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  strong {
+    font-size: 18px;
+  }
+
+  .good {
+    color: var(--green);
+  }
+}
+
+.trend-key {
+  display: inline-block;
+  width: 18px;
+  height: 0;
+  border-top: 3px solid;
+
+  &.hard {
+    border-color: #0072b2;
+  }
+
+  &.whiff {
+    border-color: #d55e00;
+    border-top-style: dashed;
+  }
+}
+
+.trend-chart {
+  width: 100%;
+  height: auto;
+  max-height: 320px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+
+  .grid {
+    stroke: var(--line);
+    stroke-width: 1;
+  }
+
+  .axis {
+    fill: var(--muted);
+    font-size: 15px;
+  }
+
+  .line {
+    fill: none;
+    stroke-width: 3;
+    stroke-linejoin: round;
+  }
+
+  .line.hard {
+    stroke: #0072b2;
+  }
+
+  .line.whiff {
+    stroke: #d55e00;
+    stroke-dasharray: 7 5;
+  }
+
+  .dot {
+    stroke: #fff;
+    stroke-width: 1.5;
+  }
+
+  .dot.hard {
+    fill: #0072b2;
+  }
+
+  .dot.whiff {
+    fill: #d55e00;
+  }
+}
+
+.trend-data summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.trend-data {
+  overflow-x: auto;
+}
+
+.method-note,
+.empty-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+@media (max-width: 760px) {
+  .compare-body {
+    grid-template-columns: 1fr;
+  }
+}

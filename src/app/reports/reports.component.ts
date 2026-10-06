@@ -28,6 +28,7 @@ import {
 } from '../data/models';
 import { EntitlementService } from '../data/entitlement.service';
 import { ProUpsellService } from '../pro/pro-upsell.service';
+import { ProAnalyticsComponent } from './pro-analytics.component';
 import { eventsCsv } from '../data/transfer';
 import { FieldComponent } from '../shared/field.component';
 import { I18nService } from '../i18n/i18n.service';
@@ -65,7 +66,7 @@ const initialSelection = (): ReportSelection => ({
 
 @Component({
   selector: 'app-reports',
-  imports: [CommonModule, FormsModule, RouterLink, FieldComponent],
+  imports: [CommonModule, FormsModule, RouterLink, FieldComponent, ProAnalyticsComponent],
   templateUrl: './reports.component.html',
   styleUrl: './reports.component.scss',
 })
@@ -197,10 +198,17 @@ export class ReportsComponent {
       playerId: this.filters().playerId || undefined,
     }),
   );
-  readonly observations = computed(() => {
+  readonly observations = computed(() => this.applySelection(this.scopeEvents()));
+  /** Same filters as the report, across every hitter on the team (Pro comparisons). */
+  readonly teamObservations = computed(() =>
+    this.applySelection(
+      filterEvents(this.store.events(), { teamId: this.store.activeTeam()?.id || '__no_team__' }),
+    ),
+  );
+  private applySelection(events: BallEvent[]): BallEvent[] {
     const selected = this.filters();
     if (selected.from && selected.through && selected.from > selected.through) return [];
-    return filterEvents(this.scopeEvents(), {
+    return filterEvents(events, {
       sessionIds: selected.sessionIds.length ? selected.sessionIds : undefined,
       ...dateBoundaries(selected.from, selected.through),
       pitcherHand: selected.pitcherHand === 'unknown' ? null : selected.pitcherHand || undefined,
@@ -213,7 +221,7 @@ export class ReportsComponent {
             ? undefined
             : (Number(selected.hardHit) as HardHitRating),
     });
-  });
+  }
   readonly summary = computed(() => summarizeEvents(this.observations()));
   readonly entitlement = inject(EntitlementService);
   readonly upsell = inject(ProUpsellService);
@@ -847,6 +855,9 @@ export class ReportsComponent {
       this.store.teams(),
       this.store.sessions(),
       this.store.notes(),
+      this.entitlement.canAccess('enriched_csv_metrics')
+        ? { fence: this.activeFenceConfig() }
+        : null,
     );
     const name = `${(
       this.player()?.name ||
@@ -883,5 +894,13 @@ export class ReportsComponent {
 
   print(): void {
     window.print();
+  }
+
+  openScoutCard(playerId: string): void {
+    if (!this.entitlement.canAccess('scout_pdf_export')) {
+      this.upsell.open('scout_pdf_export');
+      return;
+    }
+    void this.router.navigate(['/scout', playerId]);
   }
 }

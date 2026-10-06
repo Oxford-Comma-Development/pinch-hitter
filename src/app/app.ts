@@ -3,6 +3,7 @@ import { RouterOutlet, RouterLink, RouterLinkActive, Router, NavigationEnd } fro
 import { SwUpdate } from '@angular/service-worker';
 import { InstallService } from './shared/install.service';
 import { CoachStore } from './data/coach-store';
+import { EntitlementService } from './data/entitlement.service';
 import { TranslatePipe } from './i18n/translate.pipe';
 import { UpgradeSheetComponent } from './pro/upgrade-sheet.component';
 @Component({
@@ -14,6 +15,8 @@ import { UpgradeSheetComponent } from './pro/upgrade-sheet.component';
 export class App {
   readonly store = inject(CoachStore);
   readonly installer = inject(InstallService);
+  /** Rendering waits for the license check too, so Pro coaches never see a free-tier flash. */
+  readonly entitlement = inject(EntitlementService);
   private readonly router = inject(Router);
   private readonly updates = inject(SwUpdate, { optional: true });
   readonly url = signal(this.router.url);

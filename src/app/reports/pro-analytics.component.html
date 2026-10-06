@@ -1,0 +1,302 @@
+<section class="card pro-analytics no-print" aria-labelledby="pro-analytics-title">
+  <div class="pro-heading">
+    <div>
+      <p class="eyebrow pro-eyebrow">✦ PRO ANALYSIS</p>
+      <h3 id="pro-analytics-title">
+        {{ tab() === 'compare' ? 'Compare hitters' : 'Development trends' }}
+      </h3>
+    </div>
+    <div class="view-switch" aria-label="Pro analysis view">
+      <button
+        type="button"
+        [class.selected]="tab() === 'compare'"
+        [attr.aria-pressed]="tab() === 'compare'"
+        (click)="setTab('compare')"
+      >
+        Compare
+      </button>
+      <button
+        type="button"
+        [class.selected]="tab() === 'trends'"
+        [attr.aria-pressed]="tab() === 'trends'"
+        (click)="setTab('trends')"
+      >
+        Trends
+      </button>
+    </div>
+  </div>
+
+  @if (!unlocked()) {
+    <div class="preview-banner" role="note">
+      <span class="sample-pill">Sample data</span>
+      <p>
+        {{
+          tab() === 'compare'
+            ? 'This is how two of your hitters would look side by side.'
+            : 'This is how a hitter’s development looks over a season.'
+        }}
+        Unlock Pro to run it on your own team.
+      </p>
+      <button type="button" class="primary small-button" (click)="unlock()">
+        Unlock Pro Coach →
+      </button>
+    </div>
+  }
+
+  @if (tab() === 'compare') {
+    <div class="compare-controls">
+      <div class="view-switch mode-switch" aria-label="Comparison type">
+        <button
+          type="button"
+          [class.selected]="mode() === 'players'"
+          [attr.aria-pressed]="mode() === 'players'"
+          (click)="mode.set('players')"
+        >
+          Two hitters
+        </button>
+        <button
+          type="button"
+          [class.selected]="mode() === 'split'"
+          [attr.aria-pressed]="mode() === 'split'"
+          (click)="mode.set('split')"
+        >
+          Switch-hitter split
+        </button>
+      </div>
+      @if (mode() === 'players') {
+        <label
+          ><span class="label-text"
+            ><span class="series-key series-a" aria-hidden="true"></span>Hitter A</span
+          >
+          <select
+            [value]="playerA()"
+            [disabled]="!unlocked()"
+            (change)="pickA.set($any($event.target).value)"
+          >
+            @for (item of activePlayers(); track item.player.id) {
+              <option [value]="item.player.id" [selected]="item.player.id === playerA()">
+                {{ item.player.name }} ({{ item.count }})
+              </option>
+            }
+          </select>
+        </label>
+        <label
+          ><span class="label-text"
+            ><span class="series-key series-b" aria-hidden="true"></span>Hitter B</span
+          >
+          <select
+            [value]="playerB()"
+            [disabled]="!unlocked()"
+            (change)="pickB.set($any($event.target).value)"
+          >
+            @for (item of activePlayers(); track item.player.id) {
+              @if (item.player.id !== playerA()) {
+                <option [value]="item.player.id" [selected]="item.player.id === playerB()">
+                  {{ item.player.name }} ({{ item.count }})
+                </option>
+              }
+            }
+          </select>
+        </label>
+      } @else {
+        <label
+          >Switch-hitter
+          <select
+            [value]="splitPlayer()"
+            [disabled]="!unlocked() || !switchHitters().length"
+            (change)="pickSplit.set($any($event.target).value)"
+          >
+            @for (player of switchHitters(); track player.id) {
+              <option [value]="player.id" [selected]="player.id === splitPlayer()">
+                {{ player.name }}
+              </option>
+            }
+          </select>
+        </label>
+      }
+    </div>
+
+    @if (canCompare()) {
+      <div class="compare-body">
+        <div class="compare-field">
+          <app-field
+            [events]="overlay()"
+            [compareSeries]="series()"
+            [palette]="palette()"
+            [theme]="theme()"
+            [fenceConfig]="fenceConfig()"
+            label="Two-group spray chart comparison. Circles are group A, diamonds are group B."
+          />
+          <div class="compare-legend" aria-label="Comparison legend">
+            <span
+              ><i class="legend-circle" [style.background]="seriesColors.a" aria-hidden="true"></i
+              >{{ groups().labelA }} <b>{{ groups().a.length }}</b></span
+            >
+            <span
+              ><i class="legend-diamond" [style.background]="seriesColors.b" aria-hidden="true"></i
+              >{{ groups().labelB }} <b>{{ groups().b.length }}</b></span
+            >
+          </div>
+        </div>
+        <table class="compare-table">
+          <caption class="sr-only">
+            Side-by-side metrics. Each rate shows its count and denominator.
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col"><span class="sr-only">Metric</span></th>
+              <th scope="col">
+                <span class="series-key series-a" aria-hidden="true"></span>{{ groups().labelA }}
+              </th>
+              <th scope="col">
+                <span class="series-key series-b" aria-hidden="true"></span>{{ groups().labelB }}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of metricRows(); track row.label) {
+              <tr>
+                <th scope="row">{{ row.label }}</th>
+                <td>
+                  <strong>{{ row.a.main }}</strong
+                  ><small>{{ row.a.detail }}</small>
+                </td>
+                <td>
+                  <strong>{{ row.b.main }}</strong
+                  ><small>{{ row.b.detail }}</small>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="method-note">
+        Uses the report's date, practice, and pitcher filters. Hard-hit and whiff rates count only
+        contacts with a hard-hit rating; direction counts only contacts with a known batting side.
+      </p>
+    } @else {
+      <p class="empty-note">
+        {{
+          mode() === 'split'
+            ? 'No switch-hitter has recorded contacts from both sides in this report yet.'
+            : 'Record contacts for at least two hitters to compare them.'
+        }}
+      </p>
+    }
+  } @else {
+    <div class="trend-controls">
+      <p class="trend-scope">
+        <strong>{{ trendScope() }}</strong>
+        @if (unlocked() && !trendPlayerId()) {
+          <span class="muted small">Pick a hitter in the report filters to focus on one.</span>
+        }
+      </p>
+      <label
+        >Rolling window
+        <select
+          [value]="windowDays()"
+          [disabled]="!unlocked()"
+          (change)="windowDays.set(+$any($event.target).value)"
+        >
+          @for (days of windows; track days) {
+            <option [value]="days" [selected]="days === windowDays()">{{ days }} days</option>
+          }
+        </select>
+      </label>
+    </div>
+
+    @if (chart().hard.length >= 2 || chart().whiff.length >= 2) {
+      <div class="trend-summary">
+        <div>
+          <span class="trend-key hard" aria-hidden="true"></span>
+          <span>Hard-hit rate</span>
+          <strong [class.good]="(hardHitChange() ?? 0) > 0">{{
+            formatChange(hardHitChange())
+          }}</strong>
+        </div>
+        <div>
+          <span class="trend-key whiff" aria-hidden="true"></span>
+          <span>Whiff rate</span>
+          <strong [class.good]="(whiffChange() ?? 0) < 0">{{ formatChange(whiffChange()) }}</strong>
+        </div>
+      </div>
+      <svg
+        class="trend-chart"
+        [attr.viewBox]="'0 0 ' + chart().width + ' ' + chart().height"
+        role="img"
+        [attr.aria-label]="
+          'Rolling ' +
+          windowDays() +
+          '-day hard-hit rate ' +
+          formatChange(hardHitChange()) +
+          ' and whiff rate ' +
+          formatChange(whiffChange()) +
+          ' across ' +
+          trendPoints().length +
+          ' practice days. Data table follows.'
+        "
+      >
+        @for (line of chart().grid; track line.label) {
+          <line
+            class="grid"
+            [attr.x1]="chart().left"
+            [attr.x2]="chart().right"
+            [attr.y1]="line.y"
+            [attr.y2]="line.y"
+          />
+          <text class="axis" [attr.x]="chart().left - 8" [attr.y]="line.y + 4" text-anchor="end">
+            {{ line.label }}
+          </text>
+        }
+        @for (tick of chart().ticks; track tick.x) {
+          <text class="axis" [attr.x]="tick.x" [attr.y]="chart().bottom + 24" text-anchor="middle">
+            {{ tick.label }}
+          </text>
+        }
+        <polyline class="line hard" [attr.points]="chart().hardPath" />
+        <polyline class="line whiff" [attr.points]="chart().whiffPath" />
+        @for (d of chart().hard; track d.point.date) {
+          <circle class="dot hard" [attr.cx]="d.x" [attr.cy]="d.y" r="5">
+            <title>{{ d.point.date }}: hard-hit {{ ratioLabel(d.point.hardHit) }}</title>
+          </circle>
+        }
+        @for (d of chart().whiff; track d.point.date) {
+          <rect class="dot whiff" [attr.x]="d.x - 4.5" [attr.y]="d.y - 4.5" width="9" height="9">
+            <title>{{ d.point.date }}: whiff {{ ratioLabel(d.point.whiff) }}</title>
+          </rect>
+        }
+      </svg>
+      <details class="trend-data">
+        <summary>Show the numbers</summary>
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Practice day</th>
+              <th scope="col">Contacts that day</th>
+              <th scope="col">Hard-hit ({{ windowDays() }}-day)</th>
+              <th scope="col">Whiff ({{ windowDays() }}-day)</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (point of trendPoints(); track point.date) {
+              <tr>
+                <th scope="row">{{ point.date }}</th>
+                <td>{{ point.contacts }}</td>
+                <td>{{ ratioLabel(point.hardHit) }}</td>
+                <td>{{ ratioLabel(point.whiff) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </details>
+      <p class="method-note">
+        Each point is a practice day. Rates cover the {{ windowDays() }} days ending that day and
+        count only contacts with a hard-hit rating (4–6 is hard; 0 is a whiff).
+      </p>
+    } @else {
+      <p class="empty-note">
+        Rate hard-hit quality on contacts across at least two practice days to see a trend.
+      </p>
+    }
+  }
+</section>

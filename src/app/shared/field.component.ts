@@ -108,6 +108,9 @@ export const HIGH_CONTRAST_HARD_HIT_COLORS: Record<string, string> = {
   unclassified: '#ffffff',
 };
 
+/** Okabe-Ito blue and orange: distinguishable with every common colour-vision deficiency. */
+export const SERIES_COLORS = { a: '#0072B2', b: '#E69F00' } as const;
+
 @Component({
   selector: 'app-field',
   template: `
@@ -526,6 +529,11 @@ export class FieldComponent {
   readonly shapeMarkers = input(false);
   readonly fenceConfig = input<OutfieldFenceConfig | null>(null);
   readonly label = input('Baseball spray chart');
+  /**
+   * Two-group overlay (Pro comparison): event id to series. Series always differ by shape as
+   * well as colour (WCAG 1.4.1), whatever the shape-marker setting.
+   */
+  readonly compareSeries = input<ReadonlyMap<string, 'a' | 'b'> | null>(null);
   // This chart output carries coordinates; it does not refer to window.location.
   // eslint-disable-next-line @angular-eslint/no-output-native
   readonly location = output<FieldPoint>();
@@ -570,6 +578,8 @@ export class FieldComponent {
   });
 
   eventColor(event: BallEvent): string {
+    const series = this.compareSeries()?.get(event.id);
+    if (series) return SERIES_COLORS[series];
     const isCvd = this.palette() === 'colorblind';
     const isHc = this.palette() === 'high_contrast';
     if (this.colorBy() === 'hardHit') {
@@ -622,6 +632,8 @@ export class FieldComponent {
     | 'cross'
     | 'star'
     | 'square' {
+    const series = this.compareSeries()?.get(event.id);
+    if (series) return series === 'a' ? 'circle' : 'diamond';
     if (!this.shapeMarkers()) return 'circle';
     if (this.colorBy() === 'result') {
       switch (event.result) {

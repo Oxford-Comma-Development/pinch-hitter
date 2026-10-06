@@ -9,12 +9,14 @@ import {
   HardHitRating,
   HIT_RESULTS,
   ImportPreview,
+  OutfieldFenceConfig,
   Player,
   PracticeSession,
   RosterPreview,
   RosterRow,
   Team,
 } from './models';
+import { enrichedMetrics } from './pro-analytics';
 
 type JsonObject = Record<string, unknown>;
 
@@ -541,6 +543,14 @@ export const EVENT_CSV_COLUMNS = [
   'created_at',
   'updated_at',
 ] as const;
+/** Pro: derived columns appended after the raw ones, so raw-column spreadsheets keep working. */
+export const ENRICHED_CSV_COLUMNS = [
+  'distance_ft_estimated',
+  'spray_angle_deg',
+  'direction',
+  'field_zone',
+  'fence_preset',
+] as const;
 /** Prefix spreadsheet formulas in text cells. JSON always retains the exact original text. */
 function csvCell(value: string | number | null | undefined): string {
   let text = String(value ?? '');
@@ -552,6 +562,7 @@ export function eventsCsv(
   teams: readonly Team[],
   sessions: readonly PracticeSession[],
   notes: readonly CoachNote[] = [],
+  enrichment: { fence: OutfieldFenceConfig } | null = null,
 ): string {
   const teamMap = new Map(teams.map((team) => [team.id, team]));
   const sessionMap = new Map(sessions.map((session) => [session.id, session]));
@@ -563,8 +574,9 @@ export function eventsCsv(
       notesByEvent.set(note.eventId, entries);
     }
   }
+  const header = enrichment ? [...EVENT_CSV_COLUMNS, ...ENRICHED_CSV_COLUMNS] : EVENT_CSV_COLUMNS;
   return [
-    EVENT_CSV_COLUMNS.join(','),
+    header.join(','),
     ...events.map((event) => {
       const team = teamMap.get(event.teamId);
       const session = sessionMap.get(event.sessionId);
@@ -593,9 +605,21 @@ export function eventsCsv(
         [event.notes, ...(notesByEvent.get(event.id) ?? [])].filter(Boolean).join('\n'),
         event.createdAt,
         event.updatedAt,
+        ...(enrichment ? enrichedCells(event, enrichment.fence) : []),
       ]
         .map(csvCell)
         .join(',');
     }),
   ].join('\r\n');
+}
+
+function enrichedCells(event: BallEvent, fence: OutfieldFenceConfig): (string | number | null)[] {
+  const metrics = enrichedMetrics(event, fence);
+  return [
+    metrics.distanceFeet,
+    metrics.sprayAngleDegrees,
+    metrics.direction,
+    metrics.zone,
+    fence.label,
+  ];
 }

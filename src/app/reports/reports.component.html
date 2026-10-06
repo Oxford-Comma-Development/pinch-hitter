@@ -19,6 +19,14 @@
       <button class="button secondary" (click)="print()" [disabled]="!observations().length">
         Print / PDF
       </button>
+      @if (player(); as p) {
+        <button class="button secondary" (click)="openScoutCard(p.id)">
+          Scout card
+          @if (!entitlement.canAccess('scout_pdf_export')) {
+            <span class="pro-tag">✦ PRO</span>
+          }
+        </button>
+      }
     </div>
   </header>
 
@@ -998,6 +1006,15 @@
           </section>
         </aside>
       </div>
+
+      <app-pro-analytics
+        [events]="teamObservations()"
+        [players]="players()"
+        [focusPlayerId]="filters().playerId"
+        [palette]="store.settings().colorPalette || 'standard'"
+        [theme]="store.settings().fieldTheme || 'classic'"
+        [fenceConfig]="activeFenceConfig()"
+      />
 
       <div class="secondary-grid">
         <section class="card direction-card">
