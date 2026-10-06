@@ -33,7 +33,7 @@ Pinch Hitter is an offline-first, client-side baseball and softball coaching not
 - **Local-First Data Sovereignty ("Your Notebook Belongs to You")**: All teams, rosters, practices, ball events, and notes reside strictly on the coach's local device in IndexedDB. No remote database or account registration is ever involved.
 - **Offline-Native Operation**: Works seamlessly in rural ballparks, concrete dugouts, and batting cages with spotty or nonexistent cellular coverage. Storage persistence is requested via `navigator.storage.persist()`.
 - **Single-Transaction Atomic Capture**: Recording a batted-ball observation commits the event record, session turn state, batting queue rotation, and database revision in a single atomic IndexedDB transaction before UI signals update or success is acknowledged.
-- **Static Hosting Optimized**: Deploys statically to GitHub Pages (`https://cboler.github.io/pinch-hitter/`) using a 404 single-page app (SPA) fallback mechanism without hardcoding subpath assumptions.
+- **Static Hosting Optimized**: Deploys statically to GitHub Pages (`https://oxford-comma-development.github.io/pinch-hitter/`) using a 404 single-page app (SPA) fallback mechanism without hardcoding subpath assumptions.
 
 ---
 

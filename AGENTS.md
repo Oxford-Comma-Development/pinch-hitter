@@ -6,7 +6,7 @@ These instructions apply to this repository and any downstream tools or extensio
 
 - **Product**: Pinch Hitter — an offline-first, client-side baseball and softball coaching notebook, batting-practice capture tool, and spray chart designed for coaches behind the batting cage.
 - **Framework**: Angular 22+ (standalone components, inject-based dependency injection, and Angular Signals for fine-grained reactive state).
-- **PWA & Deployment**: Angular Service Worker (`@angular/service-worker`, `ngsw-config.json`), Web App Manifest (`public/manifest.webmanifest`), dynamic subpath base-href, and SPA routing fallback (`scripts/prepare-pages.mjs` creating `404.html`) via GitHub Actions (`.github/workflows/deploy.yml` deploying to `https://cboler.github.io/pinch-hitter/`).
+- **PWA & Deployment**: Angular Service Worker (`@angular/service-worker`, `ngsw-config.json`), Web App Manifest (`public/manifest.webmanifest`), dynamic subpath base-href, and SPA routing fallback (`scripts/prepare-pages.mjs` creating `404.html`) via GitHub Actions (`.github/workflows/deploy.yml` deploying to `https://oxford-comma-development.github.io/pinch-hitter/`).
 - **Architecture Style**: Client-side single-page application with **zero server-side runtime, zero user accounts, zero analytics tracking, and zero cloud data leakage**. All coaching data (teams, rosters, sessions, ball events, notes, preferences) lives strictly on the coach's device in browser-native IndexedDB.
 
 ---

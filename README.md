@@ -2,7 +2,7 @@
 
 A coach’s personal baseball notebook and batting-practice spray chart. Built for the coach behind the catcher, with a phone in one hand and attention on the hitter.
 
-**[Open Pinch Hitter](https://cboler.github.io/pinch-hitter/)**
+**[Open Pinch Hitter](https://oxford-comma-development.github.io/pinch-hitter/)**
 
 ## At the field
 
@@ -81,7 +81,7 @@ Reports currently filter in-memory season data and aggregate density into a fixe
 
 ## Deployment
 
-The public repository is [cboler/pinch-hitter](https://github.com/cboler/pinch-hitter). GitHub Pages uses **GitHub Actions**, deploying `main` to `/pinch-hitter/`.
+The public repository is [Oxford-Comma-Development/pinch-hitter](https://github.com/Oxford-Comma-Development/pinch-hitter). GitHub Pages uses **GitHub Actions**, deploying `main` to `/pinch-hitter/`.
 
 The Pages workflow runs formatting, lint, unit tests, production build, multi-viewport coach workflows, and offline PWA tests before deployment. GitHub supplies the repository base path. `scripts/prepare-pages.mjs` creates the SPA `404.html` fallback and verifies PWA output. A separate Gitleaks workflow scans commits for secrets. Direct application routes remain usable after refresh through the Pages fallback (GitHub returns HTTP 404 for those fallback requests while Angular renders the requested route).
 

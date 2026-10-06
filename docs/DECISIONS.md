@@ -18,6 +18,7 @@ Each record outlines the context, rationale, consequences, and trade-offs of sig
 - [ADR-008: Method-Agnostic Feature Entitlement Gateway with In-App Simulator](#adr-008-method-agnostic-feature-entitlement-gateway-with-in-app-simulator)
 - [ADR-009: Universal Accessibility Baseline & Dugout Ergonomics](#adr-009-universal-accessibility-baseline--dugout-ergonomics)
 - [ADR-010: Single-Transaction Atomic Capture and Reversible 100-Step Undo Stack](#adr-010-single-transaction-atomic-capture-and-reversible-100-step-undo-stack)
+- [ADR-011: Signed Offline Unlock Codes Minted by a Stateless Function](#adr-011-signed-offline-unlock-codes-minted-by-a-stateless-function)
 
 ---
 
@@ -255,6 +256,37 @@ During high-tempo batting practice, a coach may tap the screen rapidly. Partial 
 
 - **Positive**: Zero possibility of orphaned events or corrupted batting orders; bulletproof field recovery.
 - **Trade-off**: Requires snapshotting turn and queue state into each undo frame.
+
+---
+
+## ADR-011: Signed Offline Unlock Codes Minted by a Stateless Function
+
+### Status
+
+Accepted
+
+### Context
+
+Pinch Hitter Pro is sold by Oxford Comma Development LLC as a one-time Lifetime purchase covering every current and future Pro Coach feature. Sales go through a Stripe-hosted Payment Link, with Stripe Managed Payments as merchant of record. The app is a static, offline-first PWA with no accounts. A static site can start a payment but cannot confirm one: verifying a Checkout Session needs a Stripe secret key, and anything shipped to the browser is public. Pro must keep working indefinitely on a field with no signal.
+
+### Decision
+
+- **License format.** A Pro license is an **unlock code**: `PH1.<base64url payload>.<base64url Ed25519 signature>`. The payload holds only `v`, `kid`, `lic` (an opaque license id), `tier`, the licensee `name`, and `iat`. It contains no coaching data, no email, and no expiry.
+- **Offline verification.** The app verifies codes offline with Web Crypto (`src/app/data/license.ts`) against public keys bundled in `src/app/data/license-config.ts`. Keys are selected by `kid`, so the signing key can be rotated; retired keys stay listed.
+- **Minting.** A single stateless **GCP Cloud Run function** mints codes. It lives in the private repo `Oxford-Comma-Development/pinch-hitter-license`, verifies the Stripe Checkout Session from the success redirect, signs a code, and holds no database. The same session always produces an equivalent code, so the activation link doubles as a restore link. `npm run mint-code` signs comp and support codes by hand using the same module.
+- **Per coach, not per device.** Browsers expose no stable device id. A generated install id would be lost to storage clearing, iOS eviction, and the separate storage of Safari and the installed PWA. The licensee name shown in Settings is the deterrent against sharing.
+- **Secrets.** The Ed25519 private key and the Stripe restricted key live only in GCP Secret Manager and an offline LLC backup. They never go in either repository or the client bundle.
+
+### Consequences
+
+- **Positive**:
+  - After one activation, Pro works offline forever, with no accounts and no server involved in daily use.
+  - The function is contacted only at purchase or restore. An outage blocks new activations but never affects existing coaches, and `mint-code` is the manual fallback.
+- **Trade-offs**:
+  - Amends the "zero server-side runtime" principle, for purchase time only.
+  - Client-side checks can be bypassed in devtools (accepted, as in ADR-008).
+  - There is no remote revocation: a leaked code is rejected only after its `lic` ships in `REVOKED_LICENSES`.
+  - Requires Ed25519 in Web Crypto (Chromium 137+, Safari 17+, Firefox 129+). Older browsers get an "update your browser" message.
 
 ---
 
