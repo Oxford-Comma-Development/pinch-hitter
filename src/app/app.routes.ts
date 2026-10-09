@@ -3,7 +3,7 @@ export const routes: Routes = [
   {
     path: '',
     loadComponent: () => import('./home/home.component').then((m) => m.HomeComponent),
-    title: 'Pinch Hitter',
+    title: 'Pinch Hitter · Batting Practice Spray Charts for Baseball & Softball',
   },
   {
     path: 'roster',

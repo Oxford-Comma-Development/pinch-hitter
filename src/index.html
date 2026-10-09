@@ -2,20 +2,111 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Pinch Hitter</title>
+    <title>Pinch Hitter · Batting Practice Spray Charts for Baseball &amp; Softball</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta
       name="description"
-      content="A coach's personal baseball notebook. Record batting-practice contacts, explore spray charts, and keep your data offline."
+      content="Free offline baseball and softball coaching notebook. Tap where the ball lands in batting practice to build spray charts, track hitters, and keep your data on your phone."
     />
+    <meta name="application-name" content="Pinch Hitter" />
+    <meta name="apple-mobile-web-app-title" content="Pinch Hitter" />
     <meta name="theme-color" content="#172f2b" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Pinch Hitter" />
+    <meta property="og:title" content="Pinch Hitter · Batting practice spray charts for coaches" />
+    <meta
+      property="og:description"
+      content="Tap where the ball lands. Build spray charts, rotate your hitters, and keep every coaching note on your phone. Free, offline, no account."
+    />
+    <meta property="og:image" content="og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Pinch Hitter logo beside the words Batting practice spray charts for coaches"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" type="image/svg+xml" href="icons/mark.svg" />
     <link rel="apple-touch-icon" href="icons/icon-192x192.png" />
     <link rel="manifest" href="manifest.webmanifest" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Pinch Hitter",
+        "applicationCategory": "SportsApplication",
+        "operatingSystem": "Any (web browser: iPhone, iPad, Android, Windows, Mac, Chromebook)",
+        "browserRequirements": "Requires JavaScript. Works offline after the first visit.",
+        "description": "An offline-first baseball and softball coaching notebook. Record batting-practice contacts with one tap, build spray charts and heatmaps, manage your batting order, and keep all data on your device.",
+        "inLanguage": ["en", "es"],
+        "isAccessibleForFree": true,
+        "offers": [
+          { "@type": "Offer", "name": "Pinch Hitter", "price": "0", "priceCurrency": "USD" },
+          {
+            "@type": "Offer",
+            "name": "Pinch Hitter Lifetime Pro",
+            "price": "39",
+            "priceCurrency": "USD"
+          }
+        ],
+        "featureList": [
+          "One-tap batting practice capture",
+          "Spray charts and density heatmaps",
+          "Batting order rotation and on-deck queue",
+          "Works offline as an installable app",
+          "No account; data stays on your device",
+          "JSON backup and CSV export",
+          "English and Spanish"
+        ]
+      }
+    </script>
+    <style>
+      /* First paint before Angular boots; replaced when <app-root> renders. */
+      .boot {
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: grid;
+        place-content: center;
+        gap: 12px;
+        padding: 24px;
+        text-align: center;
+        background: #f6f5ee;
+        color: #172f2b;
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+      }
+      .boot img {
+        margin: 0 auto 8px;
+      }
+      .boot h1 {
+        margin: 0;
+        font-size: 1.75rem;
+        letter-spacing: -0.5px;
+      }
+      .boot p {
+        margin: 0 auto;
+        max-width: 30ch;
+        color: #52635b;
+        line-height: 1.5;
+      }
+    </style>
   </head>
   <body>
-    <app-root></app-root>
+    <app-root
+      ><div class="boot">
+        <img src="icons/mark.svg" alt="" width="72" height="72" />
+        <h1>Pinch Hitter</h1>
+        <p>
+          The batting-practice notebook and spray chart for baseball and softball coaches. Free,
+          offline, and private.
+        </p>
+      </div></app-root
+    >
     <noscript
       >Please enable JavaScript to open Pinch Hitter. Your notebook works offline after its first
       load.</noscript

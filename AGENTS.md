@@ -37,7 +37,8 @@ pinch-hitter/
 │   └── manifest.webmanifest # Web App Manifest identity and theme configuration
 ├── scripts/                 # Build and deployment helper scripts
 │   ├── generate-icons.mjs   # Generates raster PNG/ICO icons from public/icons/mark.svg
-│   └── prepare-pages.mjs    # Generates 404.html SPA fallback and validates PWA build output
+│   ├── generate-og-image.mjs # Renders public/og-image.png, the 1200x630 link-preview card
+│   └── prepare-pages.mjs    # 404.html SPA fallback, SITE_URL canonical/OG URLs, sitemap, PWA checks
 ├── src/                     # Application source code
 │   ├── app/
 │   │   ├── data/            # Core domain and persistence layer

@@ -1,7 +1,7 @@
 {
   "name": "Pinch Hitter",
   "short_name": "Pinch Hitter",
-  "description": "Your personal baseball notebook and batting-practice spray chart. Capture contacts, coach your players, and own your data.",
+  "description": "The batting-practice notebook and spray chart for baseball and softball coaches. Capture contacts, coach your players, and own your data.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

@@ -50,6 +50,8 @@ jobs:
 
       - name: Generate SPA 404 fallback & verify assets
         run: node scripts/prepare-pages.mjs
+        env:
+          SITE_URL: ${{ steps.pages.outputs.base_url }}
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium

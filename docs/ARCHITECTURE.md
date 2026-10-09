@@ -79,7 +79,7 @@ pinch-hitter/
 │   └── manifest.webmanifest  # Install metadata, orientations, and theme colors
 ├── scripts/                  # Automation scripts for build and deployment pipeline
 │   ├── generate-icons.mjs    # Playwright-based script regenerating PNG/ICO icons from mark.svg
-│   └── prepare-pages.mjs     # Generates 404.html SPA fallback from index.html
+│   └── prepare-pages.mjs     # Generates 404.html SPA fallback, SEO URLs, and sitemap
 ├── src/
 │   ├── app/
 │   │   ├── data/             # Core domain, data transfer, and persistence layer
@@ -227,6 +227,12 @@ Pinch Hitter resolves this via `scripts/prepare-pages.mjs`:
 ### Subpath Independence
 
 The deployment workflow dynamically injects the base path (`--base-href /pinch-hitter/` on GitHub Pages, `--base-href /` on custom apex domains). The source code contains zero hardcoded absolute domain paths.
+
+### Search & Link-Preview Metadata
+
+`src/index.html` carries host-independent SEO metadata: title, description, Open Graph and Twitter tags, `WebApplication` JSON-LD, and a static splash inside `<app-root>` that gives crawlers and link-preview bots (which do not run JavaScript) a heading and summary until Angular replaces it. The home route's `title` matches the static `<title>` so the rendered page keeps its keywords.
+
+Absolute URLs are only known at deploy time. When `SITE_URL` is set (the workflow passes `configure-pages`' `base_url`), `prepare-pages.mjs` adds the canonical link, `og:url`, an absolute `og:image`, and the JSON-LD `url`; gives `privacy/index.html` its own title, description, and canonical; writes `sitemap.xml`; and writes `robots.txt` only when the site is served from a domain root, because crawlers ignore `robots.txt` under a subpath. Because `index.html` changes after the build, the script also rewrites its SHA-1 in `ngsw.json` so the service worker's integrity check still passes. Regenerate `public/og-image.png` with `node scripts/generate-og-image.mjs`.
 
 ---
 
