@@ -152,6 +152,8 @@ test('defensive alignments compare coverage for a Pro coach, in English and Span
 
   await page.goto('./settings');
   await page.getByLabel('Language / Idioma').selectOption('es');
+  // Wait for the saved setting before leaving, or the reload can race the write.
+  await expect(page.getByRole('heading', { name: 'Ajustes.' })).toBeVisible();
   await page.goto('./reports');
   await card.getByRole('button', { name: 'Defensa', exact: true }).click();
   await expect(card.getByRole('heading', { name: 'Alineación defensiva' })).toBeVisible();

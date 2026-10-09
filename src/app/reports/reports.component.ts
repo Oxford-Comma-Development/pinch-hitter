@@ -30,6 +30,7 @@ import { EntitlementService } from '../data/entitlement.service';
 import { ProUpsellService } from '../pro/pro-upsell.service';
 import { ProAnalyticsComponent } from './pro-analytics.component';
 import { TranslatePipe } from '../i18n/translate.pipe';
+import { LocalDatePipe } from '../i18n/local-date.pipe';
 import { eventsCsv } from '../data/transfer';
 import { FieldComponent } from '../shared/field.component';
 import { I18nService } from '../i18n/i18n.service';
@@ -74,6 +75,7 @@ const initialSelection = (): ReportSelection => ({
     FieldComponent,
     ProAnalyticsComponent,
     TranslatePipe,
+    LocalDatePipe,
   ],
   templateUrl: './reports.component.html',
   styleUrl: './reports.component.scss',
@@ -322,29 +324,47 @@ export class ReportsComponent {
   readonly directionalTotal = computed(
     () => this.summary().total - this.summary().directions.unknown,
   );
-  readonly title = computed(() => this.player()?.name || this.session()?.title || 'Team report');
+  readonly title = computed(
+    () =>
+      this.player()?.name ||
+      (this.session() ? this.i18n.sessionTitle(this.session()!.title) : '') ||
+      this.i18n.t('reports.teamReport'),
+  );
   readonly context = computed(() => {
     const f = this.filters();
-    const parts = [this.store.activeTeam()?.name || 'Your team'];
+    const t = (key: string, params?: Record<string, string | number>) => this.i18n.t(key, params);
+    const parts = [this.store.activeTeam()?.name || t('reports.yourTeam')];
     if (this.store.activeTeam()?.season) parts.push(this.store.activeTeam()!.season);
     if (f.sessionIds.length)
+      parts.push(t('reports.selectedPractices', { count: f.sessionIds.length }));
+    else if (!f.from && !f.through) parts.push(t('reports.allPractices'));
+    if (f.from || f.through)
       parts.push(
-        `${f.sessionIds.length} selected ${f.sessionIds.length === 1 ? 'practice' : 'practices'}`,
+        t('reports.dateRange', {
+          from: f.from || t('reports.beginning'),
+          through: f.through || t('reports.todayLower'),
+        }),
       );
-    else if (!f.from && !f.through) parts.push('All practices');
-    if (f.from || f.through) parts.push(`${f.from || 'Beginning'} to ${f.through || 'today'}`);
     if (f.pitcherHand)
-      parts.push(f.pitcherHand === 'unknown' ? 'Unknown pitcher hand' : `${f.pitcherHand}HP`);
+      parts.push(
+        f.pitcherHand === 'unknown'
+          ? t('reports.unknownPitcherHand')
+          : this.i18n.pitcherHandLabels()[f.pitcherHand],
+      );
     if (f.contactType)
       parts.push(
-        f.contactType === 'unknown' ? 'Unclassified contact' : this.contactLabels[f.contactType],
+        f.contactType === 'unknown'
+          ? t('reports.unclassifiedContact')
+          : this.contactLabels[f.contactType],
       );
     if (f.result)
-      parts.push(f.result === 'unknown' ? 'Unclassified result' : this.resultLabels[f.result]);
+      parts.push(
+        f.result === 'unknown' ? t('reports.unclassifiedResult') : this.resultLabels[f.result],
+      );
     if (f.hardHit !== '')
       parts.push(
         f.hardHit === 'unknown'
-          ? 'Unclassified hard hit'
+          ? t('reports.unclassifiedHardHit')
           : this.hardHitLabels[Number(f.hardHit) as HardHitRating],
       );
     return parts.join(' · ');
@@ -533,7 +553,7 @@ export class ReportsComponent {
   async saveEvent(): Promise<void> {
     if (!this.editDraft || this.busy()) return;
     if (!this.editTime || !Number.isFinite(new Date(this.editTime).getTime())) {
-      this.error.set('Choose a valid date and time for this observation.');
+      this.error.set(this.i18n.t('reports.invalidTime'));
       return;
     }
     this.busy.set(true);
@@ -557,12 +577,10 @@ export class ReportsComponent {
         this.editAssociatedNotes.map(({ id, text }) => ({ id, text })),
       );
       this.cancelEditor();
-      this.message.set('Observation updated. Your report now includes the correction.');
+      this.message.set(this.i18n.t('reports.eventUpdated'));
     } catch (error) {
       this.error.set(
-        error instanceof Error
-          ? error.message
-          : 'This correction could not be saved. Please try again.',
+        error instanceof Error ? error.message : this.i18n.t('reports.eventSaveFailed'),
       );
     } finally {
       this.busy.set(false);
@@ -576,9 +594,11 @@ export class ReportsComponent {
       await this.store.deleteEvent(this.editDraft.id);
       this.cancelEditor();
       this.selectedId.set('');
-      this.message.set('Observation deleted.');
+      this.message.set(this.i18n.t('reports.eventDeleted'));
     } catch (error) {
-      this.error.set(error instanceof Error ? error.message : 'Could not delete this observation.');
+      this.error.set(
+        error instanceof Error ? error.message : this.i18n.t('reports.eventDeleteFailed'),
+      );
     } finally {
       this.busy.set(false);
     }
@@ -616,12 +636,12 @@ export class ReportsComponent {
     try {
       await this.store.moveEvents(ids, this.bulkTargetPlayerId);
       this.message.set(
-        `Moved ${ids.length} contact${ids.length > 1 ? 's' : ''} to ${targetPlayer.name}.`,
+        this.i18n.t('reports.moved', { count: ids.length, name: targetPlayer.name }),
       );
       this.deselectAll();
       this.bulkTargetPlayerId = '';
     } catch (err) {
-      this.error.set(err instanceof Error ? err.message : 'Could not move contacts.');
+      this.error.set(err instanceof Error ? err.message : this.i18n.t('reports.moveFailed'));
     } finally {
       this.busy.set(false);
     }
@@ -633,13 +653,13 @@ export class ReportsComponent {
     this.busy.set(true);
     try {
       await this.store.deleteEvents(ids);
-      this.message.set(`Deleted ${ids.length} contact${ids.length > 1 ? 's' : ''}.`);
+      this.message.set(this.i18n.t('reports.deleted', { count: ids.length }));
       this.deselectAll();
       if (this.selectedId() && ids.includes(this.selectedId())) {
         this.selectedId.set('');
       }
     } catch (err) {
-      this.error.set(err instanceof Error ? err.message : 'Could not delete contacts.');
+      this.error.set(err instanceof Error ? err.message : this.i18n.t('reports.deleteFailed'));
     } finally {
       this.busy.set(false);
     }
@@ -670,12 +690,17 @@ export class ReportsComponent {
         events.map((e) => e.id),
         targetPlayerId,
       );
-      this.message.set(`Moved all ${events.length} contacts to ${targetPlayer?.name || 'player'}.`);
+      this.message.set(
+        this.i18n.t('reports.movedAll', {
+          count: events.length,
+          name: targetPlayer?.name || this.i18n.t('practice.player'),
+        }),
+      );
       this.managePlayerModalOpen.set(false);
       this.setFilter('playerId', targetPlayerId);
       this.syncScope();
     } catch (err) {
-      this.error.set(err instanceof Error ? err.message : 'Could not move player contacts.');
+      this.error.set(err instanceof Error ? err.message : this.i18n.t('reports.moveFailed'));
     } finally {
       this.busy.set(false);
     }
@@ -688,11 +713,11 @@ export class ReportsComponent {
     this.busy.set(true);
     try {
       await this.store.deleteEvents(events.map((e) => e.id));
-      this.message.set(`Permanently deleted all ${events.length} contacts for this player.`);
+      this.message.set(this.i18n.t('reports.deletedAll', { count: events.length }));
       this.managePlayerModalOpen.set(false);
       this.selectedId.set('');
     } catch (err) {
-      this.error.set(err instanceof Error ? err.message : 'Could not delete player contacts.');
+      this.error.set(err instanceof Error ? err.message : this.i18n.t('reports.deleteFailed'));
     } finally {
       this.busy.set(false);
     }
@@ -705,11 +730,15 @@ export class ReportsComponent {
     try {
       await this.store.deleteSession(session.id);
       this.deleteSessionPending = false;
-      this.message.set(`Practice "${session.title || 'Batting practice'}" deleted.`);
+      this.message.set(
+        this.i18n.t('reports.practiceDeleted', { title: this.i18n.sessionTitle(session.title) }),
+      );
       this.setFilter('sessionIds', []);
       this.syncScope();
     } catch (error) {
-      this.error.set(error instanceof Error ? error.message : 'Could not delete this practice.');
+      this.error.set(
+        error instanceof Error ? error.message : this.i18n.t('reports.practiceDeleteFailed'),
+      );
     } finally {
       this.busy.set(false);
     }
@@ -733,9 +762,11 @@ export class ReportsComponent {
         notes: this.sessionNotes.trim(),
       });
       this.editingSession = false;
-      this.message.set('Practice details saved.');
+      this.message.set(this.i18n.t('reports.practiceSaved'));
     } catch (error) {
-      this.error.set(error instanceof Error ? error.message : 'Could not save practice details.');
+      this.error.set(
+        error instanceof Error ? error.message : this.i18n.t('reports.practiceSaveFailed'),
+      );
     } finally {
       this.busy.set(false);
     }
@@ -749,7 +780,7 @@ export class ReportsComponent {
       await this.store.resumeSession(session.id);
       await this.router.navigate(['/practice']);
     } catch (error) {
-      this.error.set(error instanceof Error ? error.message : 'Could not resume this practice.');
+      this.error.set(error instanceof Error ? error.message : this.i18n.t('reports.resumeFailed'));
     } finally {
       this.busy.set(false);
     }
@@ -764,9 +795,11 @@ export class ReportsComponent {
         this.noteText.trim(),
       );
       this.noteText = '';
-      this.message.set('Coaching note saved.');
+      this.message.set(this.i18n.t('practice.noteSaved'));
     } catch (error) {
-      this.error.set(error instanceof Error ? error.message : 'Could not save this note.');
+      this.error.set(
+        error instanceof Error ? error.message : this.i18n.t('reports.noteSaveFailed'),
+      );
     } finally {
       this.busy.set(false);
     }
@@ -790,9 +823,11 @@ export class ReportsComponent {
       await this.store.updateNote(id, this.editNoteText.trim());
       this.editingNoteId = '';
       this.editNoteText = '';
-      this.message.set('Coaching note updated.');
+      this.message.set(this.i18n.t('reports.noteUpdated'));
     } catch (error) {
-      this.error.set(error instanceof Error ? error.message : 'Could not update this note.');
+      this.error.set(
+        error instanceof Error ? error.message : this.i18n.t('reports.noteUpdateFailed'),
+      );
     } finally {
       this.busy.set(false);
     }
@@ -820,9 +855,11 @@ export class ReportsComponent {
         this.editingNoteId = '';
         this.editNoteText = '';
       }
-      this.message.set('Coaching note deleted.');
+      this.message.set(this.i18n.t('reports.noteDeleted'));
     } catch (error) {
-      this.error.set(error instanceof Error ? error.message : 'Could not delete this note.');
+      this.error.set(
+        error instanceof Error ? error.message : this.i18n.t('reports.noteDeleteFailed'),
+      );
     } finally {
       this.busy.set(false);
     }
@@ -837,7 +874,9 @@ export class ReportsComponent {
           60000,
       ),
     );
-    return minutes >= 60 ? `${Math.floor(minutes / 60)}h ${minutes % 60}m` : `${minutes} min`;
+    return minutes >= 60
+      ? this.i18n.t('reports.durationHours', { h: Math.floor(minutes / 60), m: minutes % 60 })
+      : this.i18n.t('reports.durationMinutes', { m: minutes });
   }
 
   eventName(event: BallEvent): string {
@@ -848,14 +887,14 @@ export class ReportsComponent {
 
   sessionName(id: string): string {
     const session = this.sessions().find((candidate) => candidate.id === id);
-    return session?.title || 'Batting practice';
+    return this.i18n.sessionTitle(session?.title);
   }
 
   async exportCsv(share = false): Promise<void> {
     try {
       await this.store.refresh();
     } catch {
-      this.error.set('The latest notebook could not be read. Please try exporting again.');
+      this.error.set(this.i18n.t('reports.refreshFailed'));
       return;
     }
     const content = eventsCsv(
@@ -880,7 +919,7 @@ export class ReportsComponent {
     try {
       if (share && navigator.canShare?.({ files: [file] })) {
         await navigator.share({ files: [file], title: `${this.title()} · Pinch Hitter` });
-        this.message.set('Report shared.');
+        this.message.set(this.i18n.t('reports.shared'));
         return;
       }
       const url = URL.createObjectURL(file);
@@ -891,12 +930,12 @@ export class ReportsComponent {
       setTimeout(() => URL.revokeObjectURL(url), 1000);
       this.message.set(
         share
-          ? 'File sharing is unavailable here. Your CSV was downloaded instead.'
-          : `Exported ${this.observations().length} observations to CSV.`,
+          ? this.i18n.t('reports.shareUnavailable')
+          : this.i18n.t('reports.exported', { count: this.observations().length }),
       );
     } catch (error) {
       if (!(error instanceof DOMException && error.name === 'AbortError'))
-        this.error.set('The file could not be shared. Try Download CSV.');
+        this.error.set(this.i18n.t('reports.shareFailed'));
     }
   }
 

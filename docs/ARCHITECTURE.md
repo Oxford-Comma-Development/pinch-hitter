@@ -262,6 +262,15 @@ Designed specifically for one-handed mobile use in intense outdoor sunlight:
 - **Touch Target Baseline**: All interactive controls maintain a minimum target size of 44x44px (`--touch-target-min`).
 - **Safe Area Insets**: Handled via `env(safe-area-inset-*)` across notched phone portrait and landscape displays.
 
+### 9.1 Language (English & Spanish)
+
+Every visible string, including `aria-label`, `title`, `placeholder`, and status messages, goes through the `t` pipe or `I18nService.t`, with keys in `src/app/i18n/dictionaries/en.ts` and `es.ts`. Spanish copy says "pelotero", "libreta", and "coach".
+
+- **Plurals**: pass a numeric `count` and define `key.one` / `key.other`; `Intl.PluralRules` picks the form for the coach's language.
+- **Dates**: use the `localDate` pipe (or `I18nService.date`). Its format can be a `date.*` key so each language orders day and month its own way. Spanish locale data is registered in `i18n.service.ts`.
+- **Services return data, not sentences**: for example `CoachStore.unbackedWork()` returns counts, and `I18nService.unbackedSummary()` words them.
+- **Check**: `node scripts/check-i18n.mjs` lists unused keys and keys missing from either dictionary.
+
 ---
 
 ## 10. Testing & Quality Strategy

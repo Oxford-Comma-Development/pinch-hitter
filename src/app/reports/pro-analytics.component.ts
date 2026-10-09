@@ -101,7 +101,9 @@ export class ProAnalyticsComponent {
     this.unlocked() ? this.events() : DEMO_EVENTS,
   );
   readonly sourcePlayers = computed<readonly Player[]>(() =>
-    this.unlocked() ? this.players() : DEMO_PLAYERS,
+    this.unlocked()
+      ? this.players()
+      : DEMO_PLAYERS.map((p) => ({ ...p, name: this.i18n.t('proa.sampleName.' + p.id) })),
   );
   private readonly fence = computed(() => this.fenceConfig() ?? STANDARD_FENCE_PRESETS.high_school);
 

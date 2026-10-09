@@ -472,9 +472,7 @@ describe('portable backups and CSV', () => {
     await store.recordContact(0.5, 0.5);
     expect(store.unbackedWork().hasSubstantialWork).toBe(true);
     expect(store.unbackedWork().unbackedEvents).toBe(3);
-    expect(store.unbackedWork().summary).toContain(
-      '3 new contacts recorded since your last backup',
-    );
+    expect(store.unbackedWork().neverBackedUp).toBe(false);
 
     // Exporting again clears the unbacked flag
     store.recordBackupExported();

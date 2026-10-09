@@ -202,7 +202,10 @@ export class PracticeComponent implements OnDestroy {
     this.speech?.abort();
   }
   playerName(id: string): string {
-    return this.store.players().find((player) => player.id === id)?.name ?? 'Player';
+    return (
+      this.store.players().find((player) => player.id === id)?.name ??
+      this.i18n.t('practice.player')
+    );
   }
   jersey(player?: Player): string {
     return player?.jerseyNumber ? `#${player.jerseyNumber}` : '—';
@@ -237,7 +240,7 @@ export class PracticeComponent implements OnDestroy {
       return true;
     } catch (error) {
       this.failure.set(
-        error instanceof Error ? error.message : 'Could not save. Please try again.',
+        error instanceof Error ? error.message : this.i18n.t('practice.couldNotSave'),
       );
       return false;
     } finally {
@@ -256,11 +259,11 @@ export class PracticeComponent implements OnDestroy {
   async start(): Promise<void> {
     const count = this.rotationCount();
     if (!this.selectedIds().length) {
-      this.failure.set('Choose at least one hitter.');
+      this.failure.set(this.i18n.t('practice.chooseHitter'));
       return;
     }
     if (count !== null && (!Number.isInteger(count) || count < 1 || count > 100)) {
-      this.failure.set('Choose 1 to 100 recorded contacts for automatic rotation.');
+      this.failure.set(this.i18n.t('practice.rotationRange'));
       return;
     }
     await this.action(() =>
@@ -281,7 +284,9 @@ export class PracticeComponent implements OnDestroy {
     await this.action(async () => {
       const event = await this.store.recordContact(point.x, point.y, side, player.id);
       this.latestId.set(event.id);
-      this.message.set(`Contact ${event.contactSequence} saved for ${player.name}.`);
+      this.message.set(
+        this.i18n.t('practice.contactSavedFor', { n: event.contactSequence, name: player.name }),
+      );
     });
   }
 
@@ -291,7 +296,10 @@ export class PracticeComponent implements OnDestroy {
     const patch = { [type]: event[type] === value ? null : value } as Partial<
       Pick<BallEvent, 'contactType' | 'result'>
     >;
-    await this.action(() => this.store.enrichEvent(event.id, patch), 'Last contact updated.');
+    await this.action(
+      () => this.store.enrichEvent(event.id, patch),
+      this.i18n.t('practice.lastUpdated'),
+    );
   }
 
   async recordWhiff(): Promise<void> {
@@ -301,7 +309,7 @@ export class PracticeComponent implements OnDestroy {
     await this.action(async () => {
       const event = await this.store.recordSwingAndMiss(side, player.id);
       this.latestId.set(event.id);
-      this.message.set(`Swing & miss recorded for ${player.name}.`);
+      this.message.set(this.i18n.t('practice.whiffFor', { name: player.name }));
     });
   }
 
@@ -315,18 +323,18 @@ export class PracticeComponent implements OnDestroy {
     const next = event.hardHit === level ? null : level;
     await this.action(
       () => this.store.enrichEvent(event.id, { hardHit: next }),
-      'Hard hit rating updated.',
+      this.i18n.t('practice.hardHitUpdated'),
     );
   }
 
   async undo(): Promise<void> {
-    await this.action(() => this.store.undoLast(), 'Last contact removed; batting order restored.');
+    await this.action(() => this.store.undoLast(), this.i18n.t('practice.undoSaved'));
   }
   async next(): Promise<void> {
-    await this.action(() => this.store.nextBatter(), 'Next hitter is ready.');
+    await this.action(() => this.store.nextBatter(), this.i18n.t('practice.nextReady'));
   }
   async defer(id?: string): Promise<void> {
-    await this.action(() => this.store.deferBatter(id), 'Hitter moved to the back of the line.');
+    await this.action(() => this.store.deferBatter(id), this.i18n.t('practice.deferred'));
   }
   async setPitcher(hand: 'L' | 'R'): Promise<void> {
     await this.action(() => this.store.setPitcherHand(hand));
@@ -372,7 +380,12 @@ export class PracticeComponent implements OnDestroy {
   }
 
   async select(id: string): Promise<void> {
-    if (await this.action(() => this.store.selectBatter(id), `${this.playerName(id)} is hitting.`))
+    if (
+      await this.action(
+        () => this.store.selectBatter(id),
+        this.i18n.t('practice.isHitting', { name: this.playerName(id) }),
+      )
+    )
       this.closeSheet();
   }
 
@@ -382,7 +395,7 @@ export class PracticeComponent implements OnDestroy {
     const target = index + amount;
     if (index < 1 || target < 1 || target >= ids.length) return;
     [ids[index], ids[target]] = [ids[target], ids[index]];
-    await this.action(() => this.store.reorderQueue(ids), 'Batting order updated.');
+    await this.action(() => this.store.reorderQueue(ids), this.i18n.t('practice.orderUpdated'));
   }
 
   startDrag(event: PointerEvent, id: string): void {
@@ -417,7 +430,7 @@ export class PracticeComponent implements OnDestroy {
     this.draggedId.set('');
     if (ids && this.dragMoved) {
       this.dragFinishedAt = Date.now();
-      await this.action(() => this.store.reorderQueue(ids), 'Batting order updated.');
+      await this.action(() => this.store.reorderQueue(ids), this.i18n.t('practice.orderUpdated'));
     }
     this.dragOrder.set(null);
   }
@@ -430,25 +443,22 @@ export class PracticeComponent implements OnDestroy {
     this.dragOrder.set(null);
   }
   async remove(id: string): Promise<void> {
-    await this.action(
-      () => this.store.removeFromQueue(id),
-      'Hitter is sitting out. Return them whenever ready.',
-    );
+    await this.action(() => this.store.removeFromQueue(id), this.i18n.t('practice.satOut'));
   }
   async returnPlayer(id: string): Promise<void> {
-    await this.action(() => this.store.returnToQueue(id), 'Hitter returned to the line.');
+    await this.action(() => this.store.returnToQueue(id), this.i18n.t('practice.returned'));
   }
 
   async saveOptions(): Promise<void> {
     const count = this.rotationCount();
     if (count !== null && (!Number.isInteger(count) || count < 1 || count > 100)) {
-      this.failure.set('Enter a whole number from 1 to 100.');
+      this.failure.set(this.i18n.t('practice.wholeNumber'));
       return;
     }
     if (
       await this.action(
         () => this.store.setRotation(count),
-        'Rotation updated for the next recorded contact.',
+        this.i18n.t('practice.rotationUpdated'),
       )
     )
       this.closeSheet();
@@ -466,7 +476,7 @@ export class PracticeComponent implements OnDestroy {
     if (
       await this.action(
         () => this.store.addNote(scope, this.noteText.trim()),
-        'Coaching note saved.',
+        this.i18n.t('practice.noteSaved'),
       )
     )
       this.closeSheet();
@@ -493,9 +503,7 @@ export class PracticeComponent implements OnDestroy {
     const Recognition = speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition;
     this.openSheet('players');
     if (!Recognition) {
-      this.message.set(
-        'Voice selection is unavailable in this browser. Find a hitter by name or number below.',
-      );
+      this.message.set(this.i18n.t('practice.voiceUnavailable'));
       return;
     }
     this.speech = new Recognition();
@@ -512,25 +520,23 @@ export class PracticeComponent implements OnDestroy {
       }
       this.voiceMatches.set(matches.length ? matches : null);
       this.message.set(
-        matches.length
-          ? `Heard “${result.transcript}”. Choose the hitter below.`
-          : `Heard “${result.transcript}”. Search for a name or jersey number below.`,
+        this.i18n.t(matches.length ? 'practice.heardChoose' : 'practice.heardSearch', {
+          text: result.transcript,
+        }),
       );
     };
     this.speech.onerror = () => {
       this.listening.set(false);
-      this.message.set(
-        'Voice could not connect or microphone access was unavailable. Select a hitter below.',
-      );
+      this.message.set(this.i18n.t('practice.voiceError'));
     };
     this.speech.onend = () => this.listening.set(false);
     try {
       this.speech.start();
       this.listening.set(true);
-      this.message.set('Listening. Say a player’s name or jersey number.');
+      this.message.set(this.i18n.t('practice.listening'));
     } catch {
       this.listening.set(false);
-      this.message.set('Voice is unavailable right now. Select a hitter below.');
+      this.message.set(this.i18n.t('practice.voiceNow'));
     }
   }
 }

@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { LocalDatePipe } from '../i18n/local-date.pipe';
 import { Component, computed, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -19,7 +19,7 @@ import { ProUpsellService } from '../pro/pro-upsell.service';
  */
 @Component({
   selector: 'app-scout-card',
-  imports: [DatePipe, RouterLink, FieldComponent, TranslatePipe],
+  imports: [LocalDatePipe, RouterLink, FieldComponent, TranslatePipe],
   template: `
     <div class="scout-page">
       <div class="scout-toolbar no-print">
@@ -70,7 +70,7 @@ import { ProUpsellService } from '../pro/pro-upsell.service';
                 }
               </p>
             </div>
-            <p class="generated">{{ today | date: 'mediumDate' }}</p>
+            <p class="generated">{{ today | localDate: 'mediumDate' }}</p>
           </header>
 
           <div class="scout-body">
@@ -354,11 +354,11 @@ export class ScoutCardComponent {
   );
   readonly unlocked = computed(() => this.entitlement.canAccess('scout_pdf_export'));
   readonly playerId = computed(() => this.routePlayerId());
-  readonly player = computed(() =>
-    this.unlocked()
-      ? this.store.players().find((p) => p.id === this.playerId())
-      : DEMO_PLAYERS.find((p) => p.id === 'demo-b'),
-  );
+  readonly player = computed(() => {
+    if (this.unlocked()) return this.store.players().find((p) => p.id === this.playerId());
+    const sample = DEMO_PLAYERS.find((p) => p.id === 'demo-b')!;
+    return { ...sample, name: this.i18n.t('proa.sampleName.' + sample.id) };
+  });
   readonly team = computed(() =>
     this.unlocked() ? this.store.teams().find((t) => t.id === this.player()?.teamId) : undefined,
   );

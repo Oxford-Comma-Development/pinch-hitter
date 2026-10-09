@@ -1,38 +1,40 @@
 @if (!store.ready()) {
-  <p class="loading">Opening your practice notebook…</p>
+  <p class="loading">{{ 'practice.loading' | t }}</p>
 } @else if (!store.activeTeam()) {
   <section class="card setup-empty">
-    <span class="eyebrow">Your first practice</span>
-    <h1>A team. A field. Let’s go.</h1>
-    <p>Create your team and add a few hitters to get started.</p>
-    <a class="button primary" routerLink="/">Set up your team</a>
+    <span class="eyebrow">{{ 'practice.firstEyebrow' | t }}</span>
+    <h1>{{ 'practice.firstHeading' | t }}</h1>
+    <p>{{ 'practice.firstText' | t }}</p>
+    <a class="button primary" routerLink="/">{{ 'roster.setUpTeam' | t }}</a>
   </section>
 } @else if (!store.activeSession()) {
   <section class="practice-setup">
     <div class="setup-heading">
-      <span class="eyebrow">{{ store.activeTeam()?.name }} / Batting practice</span>
-      <h1>Meet you at the field.</h1>
-      <p>Your roster is ready. Pick the lineup and start recording.</p>
+      <span class="eyebrow">{{
+        'practice.setupEyebrow' | t: { team: store.activeTeam()?.name ?? '' }
+      }}</span>
+      <h1>{{ 'practice.setupHeading' | t }}</h1>
+      <p>{{ 'practice.setupText' | t }}</p>
     </div>
     @if (!store.roster().length) {
       <div class="card setup-empty">
-        <h2>Who’s hitting?</h2>
-        <p>Add your players once. Their usual order will be ready for every practice.</p>
-        <a class="button primary" routerLink="/roster">Add players</a>
+        <h2>{{ 'practice.whoHitting' | t }}</h2>
+        <p>{{ 'practice.addPlayersOnce' | t }}</p>
+        <a class="button primary" routerLink="/roster">{{ 'practice.addPlayers' | t }}</a>
       </div>
     } @else {
       <form (ngSubmit)="start()" class="setup-grid">
         <section class="card lineup-card">
           <div class="section-heading">
             <div>
-              <span class="eyebrow">The lineup</span>
-              <h2>{{ selectedIds().length }} hitters ready</h2>
+              <span class="eyebrow">{{ 'practice.lineupEyebrow' | t }}</span>
+              <h2>{{ 'practice.hittersReady' | t: { count: selectedIds().length } }}</h2>
             </div>
-            <button type="button" class="text-button" (click)="selectAll()">Select all</button>
+            <button type="button" class="text-button" (click)="selectAll()">
+              {{ 'practice.selectAll' | t }}
+            </button>
           </div>
-          <p class="muted small">
-            Uncheck anyone sitting out. Use the arrows to set today’s order.
-          </p>
+          <p class="muted small">{{ 'practice.lineupHelp' | t }}</p>
           <div class="starting-lineup">
             @for (player of startingPlayers(); track player.id; let i = $index) {
               <div class="lineup-row">
@@ -43,7 +45,11 @@
                   ><span
                     >{{ player.name
                     }}<small>{{
-                      i === 0 ? 'First up' : i === 1 ? 'On deck' : 'Hitter ' + (i + 1)
+                      i === 0
+                        ? ('practice.firstUp' | t)
+                        : i === 1
+                          ? ('practice.onDeck' | t)
+                          : ('practice.hitterN' | t: { n: i + 1 })
                     }}</small></span
                   ></label
                 >
@@ -53,7 +59,7 @@
                     class="icon-button"
                     [disabled]="i === 0"
                     (click)="moveStart(player.id, -1)"
-                    [attr.aria-label]="'Move ' + player.name + ' earlier'"
+                    [attr.aria-label]="'practice.moveEarlier' | t: { name: player.name }"
                   >
                     ↑</button
                   ><button
@@ -61,7 +67,7 @@
                     class="icon-button"
                     [disabled]="i === selectedIds().length - 1"
                     (click)="moveStart(player.id, 1)"
-                    [attr.aria-label]="'Move ' + player.name + ' later'"
+                    [attr.aria-label]="'practice.moveLater' | t: { name: player.name }"
                   >
                     ↓
                   </button>
@@ -75,7 +81,9 @@
                     ><input type="checkbox" (change)="toggleParticipant(player.id)" /><span
                       class="jersey-small"
                       >{{ jersey(player) }}</span
-                    ><span>{{ player.name }}<small>Sitting out</small></span></label
+                    ><span
+                      >{{ player.name }}<small>{{ 'practice.sittingOut' | t }}</small></span
+                    ></label
                   >
                 </div>
               }
@@ -83,18 +91,18 @@
           </div>
         </section>
         <section class="card setup-details">
-          <span class="eyebrow">Keep it simple</span>
-          <h2>Practice your way.</h2>
-          <label for="start-rotation">Hitter rotation</label
+          <span class="eyebrow">{{ 'practice.keepSimple' | t }}</span>
+          <h2>{{ 'practice.yourWay' | t }}</h2>
+          <label for="start-rotation">{{ 'practice.hitterRotation' | t }}</label
           ><select id="start-rotation" name="rotation" [(ngModel)]="rotation">
-            <option value="manual">Manual advance</option>
-            <option value="1">After 1 recorded contact</option>
-            <option value="3">After 3 recorded contacts</option>
-            <option value="5">After 5 recorded contacts</option>
-            <option value="custom">Custom contact count</option>
+            <option value="manual">{{ 'settings.rotationManual' | t }}</option>
+            <option value="1">{{ 'settings.rotation1' | t }}</option>
+            <option value="3">{{ 'settings.rotation3' | t }}</option>
+            <option value="5">{{ 'settings.rotation5' | t }}</option>
+            <option value="custom">{{ 'settings.rotationCustom' | t }}</option>
           </select>
           @if (rotation === 'custom') {
-            <label for="custom-count">Recorded contacts per hitter</label
+            <label for="custom-count">{{ 'practice.contactsPerHitter' | t }}</label
             ><input
               id="custom-count"
               name="customCount"
@@ -105,32 +113,32 @@
               [(ngModel)]="customCount"
             />
           }
-          <p class="small muted">
-            With manual advance, the same hitter stays up until you tap Next batter.
-          </p>
+          <p class="small muted">{{ 'practice.manualHelp' | t }}</p>
           <details>
-            <summary>Practice details <span class="muted">optional</span></summary>
-            <label for="practice-title">Title</label
+            <summary>
+              {{ 'practice.details' | t }} <span class="muted">{{ 'practice.optional' | t }}</span>
+            </summary>
+            <label for="practice-title">{{ 'practice.title' | t }}</label
             ><input
               id="practice-title"
               name="title"
               [(ngModel)]="title"
-              placeholder="Afternoon batting practice"
+              [placeholder]="'practice.titlePlaceholder' | t"
               maxlength="120"
-            /><label for="practice-location">Location</label
+            /><label for="practice-location">{{ 'practice.location' | t }}</label
             ><input
               id="practice-location"
               name="location"
               [(ngModel)]="location"
-              placeholder="Home field"
+              [placeholder]="'practice.locationPlaceholder' | t"
               maxlength="160"
-            /><label for="practice-notes">Session notes</label
+            /><label for="practice-notes">{{ 'practice.sessionNotes' | t }}</label
             ><textarea
               id="practice-notes"
               name="notes"
               [(ngModel)]="sessionNote"
               rows="3"
-              placeholder="What are we working on?"
+              [placeholder]="'practice.sessionNotesPlaceholder' | t"
               maxlength="5000"
             ></textarea>
           </details>
@@ -145,9 +153,7 @@
             {{ busy() ? ('practice.starting' | t) : ('practice.startPractice' | t) }}
             <span aria-hidden="true">→</span>
           </button>
-          <p class="small muted ownership">
-            Every contact saves on this device. Ready without a connection.
-          </p>
+          <p class="small muted ownership">{{ 'practice.ownership' | t }}</p>
         </section>
       </form>
     }
@@ -157,76 +163,89 @@
   <section
     class="practice-workspace"
     [class.left-handed]="store.settings().leftHandedMode"
-    aria-label="Active batting practice"
+    [attr.aria-label]="'practice.workspaceAria' | t"
   >
     <header class="practice-toolbar">
       <span class="practice-live"
-        ><span aria-hidden="true"></span> LIVE PRACTICE
-        <b>{{ sessionEvents().length }} contacts</b></span
+        ><span aria-hidden="true"></span> {{ 'practice.live' | t }}
+        <b>{{ 'practice.liveContacts' | t: { count: sessionEvents().length } }}</b></span
       >
       <div>
         <button
           class="icon-button"
           (click)="openSheet('note')"
-          aria-label="Add coaching note"
-          title="Add note"
+          [attr.aria-label]="'practice.addNoteAria' | t"
+          [title]="'practice.addNoteTitle' | t"
         >
           ✎</button
         ><button
           class="icon-button"
           (click)="openSheet('options')"
-          aria-label="Practice options"
-          title="Practice options"
+          [attr.aria-label]="'practice.options' | t"
+          [title]="'practice.options' | t"
         >
           ⚙</button
-        ><button class="finish-link" (click)="openSheet('finish')">Finish</button>
+        ><button class="finish-link" (click)="openSheet('finish')">
+          {{ 'practice.finishPractice' | t }}
+        </button>
       </div>
     </header>
     <div class="current-hitter">
       <span class="hitter-number">{{ jersey(current()) }}</span>
       <div class="hitter-identity">
         <span class="eyebrow"
-          >At bat
+          >{{ 'practice.atBat' | t }}
           <span class="turn-count"
-            >· {{ session.turnContacts
-            }}{{ session.rotationCount ? ' / ' + session.rotationCount : '' }} this turn</span
+            >·
+            {{
+              'practice.turnCount'
+                | t
+                  : {
+                      count: session.rotationCount
+                        ? ('practice.turnLimit'
+                          | t: { count: session.turnContacts, limit: session.rotationCount })
+                        : session.turnContacts,
+                    }
+            }}</span
           ></span
         >
-        <h1>{{ current()?.name || 'Lineup is empty' }}</h1>
+        <h1>{{ current()?.name || ('practice.emptyLineup' | t) }}</h1>
         <span class="hitter-meta"
-          >{{
-            current()?.bats === 'S'
-              ? 'Switch hitter'
-              : current()?.bats === 'L'
-                ? 'Bats left'
-                : 'Bats right'
-          }}
-          · {{ session.rotationCount ? 'Auto advance' : 'Manual advance' }}</span
+          >{{ 'practice.bats.' + (current()?.bats ?? 'R') | t }}
+          ·
+          {{
+            (session.rotationCount ? 'practice.autoAdvance' : 'practice.manualAdvance') | t
+          }}</span
         >
       </div>
-      <div class="pitcher-toggle" role="group" aria-label="Pitcher handedness">
+      <div class="pitcher-toggle" role="group" [attr.aria-label]="'settings.pitcherHand' | t">
         <button
           [class.selected]="session.pitcherHand === 'R'"
           [attr.aria-pressed]="session.pitcherHand === 'R'"
           [disabled]="busy()"
           (click)="setPitcher('R')"
         >
-          RHP</button
+          {{ 'practice.rhp' | t }}</button
         ><button
           [class.selected]="session.pitcherHand === 'L'"
           [attr.aria-pressed]="session.pitcherHand === 'L'"
           [disabled]="busy()"
           (click)="setPitcher('L')"
         >
-          LHP
+          {{ 'practice.lhp' | t }}
         </button>
       </div>
     </div>
     <div class="queue-strip">
-      <button class="queue-manage" (click)="openSheet('queue')" aria-label="Manage batting queue">
-        <span class="eyebrow">Up next</span><span>Lineup ↗</span>
+      <button
+        class="queue-manage"
+        (click)="openSheet('queue')"
+        [attr.aria-label]="'practice.manageQueue' | t"
+      >
+        <span class="eyebrow">{{ 'practice.upNext' | t }}</span
+        ><span>{{ 'practice.lineupLink' | t }}</span>
       </button>
-      <div class="upcoming-list" aria-label="Upcoming hitters">
+      <div class="upcoming-list" [attr.aria-label]="'practice.upcomingAria' | t">
         @for (player of orderedQueue().slice(1, 6); track player.id; let i = $index) {
           <div
             class="queue-chip"
@@ -237,24 +256,24 @@
               class="drag-handle"
               (pointerdown)="startDrag($event, player.id)"
               (click)="queueHandleClick()"
-              [attr.aria-label]="'Reorder ' + player.name + '; drag or open lineup'"
+              [attr.aria-label]="'practice.reorderAria' | t: { name: player.name }"
             >
               ⠿</button
             ><span
-              ><small>{{ i === 0 ? 'ON DECK' : '#' + (i + 2) }}</small
+              ><small>{{ i === 0 ? ('practice.onDeckChip' | t) : '#' + (i + 2) }}</small
               >{{ player.name.split(' ')[0] }}</span
             >
           </div>
         } @empty {
           <span class="small muted">{{
-            current() ? 'One hitter in rotation' : 'Add a hitter to keep going'
+            (current() ? 'practice.oneHitter' : 'practice.addHitter') | t
           }}</span>
         }
       </div>
       <button
         class="voice-button icon-button"
         (click)="listen()"
-        [attr.aria-label]="listening() ? 'Stop listening' : 'Find hitter by voice or name'"
+        [attr.aria-label]="(listening() ? 'practice.stopListening' : 'practice.findByVoice') | t"
       >
         <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true">
           <rect
@@ -278,8 +297,8 @@
     </div>
     <div class="field-area">
       <div class="field-instruction">
-        <span>Tap where the ball lands</span>
-        <span>{{ hitterEvents().length }} for this hitter</span>
+        <span>{{ 'practice.tapWhere' | t }}</span>
+        <span>{{ 'practice.forHitter' | t: { count: hitterEvents().length } }}</span>
       </div>
       <app-field
         [events]="hitterEvents()"
@@ -289,28 +308,30 @@
         [theme]="store.settings().fieldTheme || 'classic'"
         [shapeMarkers]="store.settings().shapeMarkers ?? false"
         (location)="capture($event)"
-        [label]="'Record a contact for ' + (current()?.name || 'current hitter')"
+        [label]="
+          'practice.fieldLabel' | t: { name: current()?.name || ('practice.currentHitter' | t) }
+        "
       />
       @if (current()?.bats === 'S') {
-        <div class="batter-side" role="group" aria-label="Switch hitter batting side">
-          <span>Batting side</span
+        <div class="batter-side" role="group" [attr.aria-label]="'practice.sideAria' | t">
+          <span>{{ 'practice.battingSide' | t }}</span
           ><button
             [class.selected]="batterSide() === 'L'"
             [attr.aria-pressed]="batterSide() === 'L'"
             (click)="setSide('L')"
           >
-            Left</button
+            {{ 'baseball.left' | t }}</button
           ><button
             [class.selected]="batterSide() === 'R'"
             [attr.aria-pressed]="batterSide() === 'R'"
             (click)="setSide('R')"
           >
-            Right
+            {{ 'baseball.right' | t }}
           </button>
         </div>
       }
     </div>
-    <section class="classification" aria-label="Classify last recorded contact">
+    <section class="classification" [attr.aria-label]="'practice.classifyAria' | t">
       <div class="capture-status" role="status" aria-live="polite">
         @if (failure()) {
           <span class="error">{{ failure() }}</span>
@@ -322,13 +343,14 @@
             >
             · {{ playerName(event.playerId) }}</span
           ><span class="optional-label">{{
-            event.hardHit === 0 ? 'Recorded at plate' : 'Details optional'
+            (event.hardHit === 0 ? 'practice.recordedAtPlate' : 'practice.detailsOptional') | t
           }}</span>
         } @else {
-          <span>Location is all you need.</span><span class="optional-label">Details optional</span>
+          <span>{{ 'practice.locationEnough' | t }}</span
+          ><span class="optional-label">{{ 'practice.detailsOptional' | t }}</span>
         }
       </div>
-      <div class="classify-row" role="group" aria-label="Last contact type">
+      <div class="classify-row" role="group" [attr.aria-label]="'practice.typeAria' | t">
         @for (type of contactTypes; track type) {
           <button
             [disabled]="!latest() || busy()"
@@ -340,7 +362,7 @@
           </button>
         }
       </div>
-      <div class="classify-row results" role="group" aria-label="Last contact result">
+      <div class="classify-row results" role="group" [attr.aria-label]="'practice.resultAria' | t">
         @for (result of results; track result) {
           <button
             [disabled]="!latest() || busy()"
@@ -352,7 +374,11 @@
           </button>
         }
       </div>
-      <div class="classify-row hard-hit" role="group" aria-label="Hard hit contact quality">
+      <div
+        class="classify-row hard-hit"
+        role="group"
+        [attr.aria-label]="'practice.contactQuality' | t"
+      >
         @for (level of hardHitRatings; track level) {
           @if (level === 0) {
             <button
@@ -410,42 +436,55 @@
   <header class="sheet-header">
     <h2 id="sheet-title">
       {{
-        sheetMode() === 'queue'
-          ? 'Today’s batting order'
+        (sheetMode() === 'queue'
+          ? 'practice.queueTitle'
           : sheetMode() === 'players'
-            ? 'Who’s hitting?'
+            ? 'practice.whoHitting'
             : sheetMode() === 'note'
-              ? 'A note from coach'
+              ? 'practice.noteTitle'
               : sheetMode() === 'finish'
-                ? 'Wrap up practice?'
-                : 'Practice options'
+                ? 'practice.endSessionConfirm'
+                : 'practice.options'
+        ) | t
       }}
     </h2>
-    <button class="icon-button" (click)="closeSheet()" aria-label="Close dialog">×</button>
+    <button
+      class="icon-button"
+      (click)="closeSheet()"
+      [attr.aria-label]="'practice.closeDialog' | t"
+    >
+      ×
+    </button>
   </header>
   @if (sheetMode() === 'queue') {
-    <p class="small muted">Reorder upcoming hitters, let someone hit now, or give them a break.</p>
+    <p class="small muted">{{ 'practice.queueHelp' | t }}</p>
     <div class="full-queue">
       @for (player of orderedQueue(); track player.id; let i = $index) {
         <div class="full-queue-row">
           <span class="jersey-small">{{ jersey(player) }}</span>
           <div class="queue-player">
             <strong>{{ player.name }}</strong
-            ><small>{{ i === 0 ? 'Hitting now' : i === 1 ? 'On deck' : 'Up ' + (i + 1) }}</small>
+            ><small>{{
+              i === 0
+                ? ('practice.hittingNow' | t)
+                : i === 1
+                  ? ('practice.onDeck' | t)
+                  : ('practice.upN' | t: { n: i + 1 })
+            }}</small>
           </div>
           <div class="move-buttons">
             <button
               class="icon-button"
               [disabled]="i < 2 || busy()"
               (click)="moveQueue(player.id, -1)"
-              [attr.aria-label]="'Move ' + player.name + ' earlier'"
+              [attr.aria-label]="'practice.moveEarlier' | t: { name: player.name }"
             >
               ↑</button
             ><button
               class="icon-button"
               [disabled]="i === 0 || i === orderedQueue().length - 1 || busy()"
               (click)="moveQueue(player.id, 1)"
-              [attr.aria-label]="'Move ' + player.name + ' later'"
+              [attr.aria-label]="'practice.moveLater' | t: { name: player.name }"
             >
               ↓
             </button>
@@ -453,54 +492,56 @@
           <div class="queue-row-actions">
             @if (i > 0) {
               <button class="small-button" [disabled]="busy()" (click)="select(player.id)">
-                Hit now</button
+                {{ 'practice.hitNow' | t }}</button
               ><button class="small-button" [disabled]="busy()" (click)="defer(player.id)">
-                Defer
+                {{ 'practice.defer' | t }}
               </button>
             }
             <button
               class="small-button"
               [disabled]="busy()"
               (click)="remove(player.id)"
-              [attr.aria-label]="'Sit out ' + player.name"
+              [attr.aria-label]="'practice.sitOutAria' | t: { name: player.name }"
             >
-              Sit out
+              {{ 'practice.sitOut' | t }}
             </button>
           </div>
         </div>
       }
     </div>
     @if (removedPlayers().length) {
-      <h3 class="return-heading">Ready to join</h3>
+      <h3 class="return-heading">{{ 'practice.readyToJoin' | t }}</h3>
       @for (player of removedPlayers(); track player.id) {
         <div class="return-player">
           <span>{{ jersey(player) }} {{ player.name }}</span
           ><button class="small-button" [disabled]="busy()" (click)="returnPlayer(player.id)">
-            Return to line
+            {{ 'practice.return' | t }}
           </button>
         </div>
       }
     }
-    <button class="button primary full-width" (click)="closeSheet()">Back to the field</button>
+    <button class="button primary full-width" (click)="closeSheet()">
+      {{ 'practice.backToField' | t }}
+    </button>
   }
   @if (sheetMode() === 'players') {
     <p class="small voice-status" role="status">
-      {{ message() || 'Select any roster player to make them current.' }}
+      {{ message() || ('practice.selectAny' | t) }}
     </p>
     <div class="player-search">
-      <label class="sr-only" for="find-hitter">Find hitter by name or number</label
+      <label class="sr-only" for="find-hitter">{{ 'practice.findLabel' | t }}</label
       ><input
         id="find-hitter"
         type="search"
-        placeholder="Name or jersey number"
+        [placeholder]="'practice.searchPlayer' | t"
         [ngModel]="query()"
         (ngModelChange)="query.set($event)"
       /><button
         class="icon-button"
         (click)="listen()"
-        [attr.aria-label]="listening() ? 'Stop listening' : 'Try voice selection'"
+        [attr.aria-label]="(listening() ? 'practice.stopListening' : 'practice.voiceSelect') | t"
       >
-        {{ listening() ? '■' : 'Mic' }}
+        {{ listening() ? '■' : ('practice.mic' | t) }}
       </button>
     </div>
     @for (player of availablePlayers(); track player.id) {
@@ -510,32 +551,36 @@
         ><span aria-hidden="true">→</span>
       </button>
     } @empty {
-      <p>No matching hitters. Try a name or jersey number.</p>
+      <p>{{ 'practice.noMatches' | t }}</p>
     }
     @if (voiceMatches()) {
-      <button class="text-button" (click)="voiceMatches.set(null)">Show the whole roster</button>
+      <button class="text-button" (click)="voiceMatches.set(null)">
+        {{ 'practice.allPlayers' | t }}
+      </button>
     }
-    <p class="small muted">Voice may need a connection. Selecting a hitter always works offline.</p>
+    <p class="small muted">{{ 'practice.voiceNote' | t }}</p>
   }
   @if (sheetMode() === 'note') {
     <form (ngSubmit)="saveNote()">
-      <label for="note-scope">Attach note to</label
+      <label for="note-scope">{{ 'practice.attachTo' | t }}</label
       ><select id="note-scope" name="noteScope" [(ngModel)]="noteScope">
         @if (current()) {
           <option value="player">{{ current()?.name }}</option>
         }
-        <option value="session">This practice</option>
+        <option value="session">{{ 'practice.thisPractice' | t }}</option>
         @if (latest()) {
-          <option value="event">Last contact · {{ playerName(latest()!.playerId) }}</option>
+          <option value="event">
+            {{ 'practice.lastContact' | t: { name: playerName(latest()!.playerId) } }}
+          </option>
         }</select
-      ><label for="quick-note">Coaching note</label
+      ><label for="quick-note">{{ 'practice.coachingNote' | t }}</label
       ><textarea
         id="quick-note"
         name="note"
         rows="5"
         maxlength="5000"
         [(ngModel)]="noteText"
-        placeholder="What did you notice?"
+        [placeholder]="'practice.addNote' | t"
         required
       ></textarea
       ><button
@@ -543,22 +588,22 @@
         type="submit"
         [disabled]="!noteText.trim() || busy()"
       >
-        Save note
+        {{ 'practice.saveNote' | t }}
       </button>
     </form>
   }
   @if (sheetMode() === 'options') {
     <form (ngSubmit)="saveOptions()">
-      <label for="live-rotation">Hitter rotation</label
+      <label for="live-rotation">{{ 'practice.hitterRotation' | t }}</label
       ><select id="live-rotation" name="rotation" [(ngModel)]="rotation">
-        <option value="manual">Manual advance</option>
-        <option value="1">After 1 recorded contact</option>
-        <option value="3">After 3 recorded contacts</option>
-        <option value="5">After 5 recorded contacts</option>
-        <option value="custom">Custom contact count</option>
+        <option value="manual">{{ 'settings.rotationManual' | t }}</option>
+        <option value="1">{{ 'settings.rotation1' | t }}</option>
+        <option value="3">{{ 'settings.rotation3' | t }}</option>
+        <option value="5">{{ 'settings.rotation5' | t }}</option>
+        <option value="custom">{{ 'settings.rotationCustom' | t }}</option>
       </select>
       @if (rotation === 'custom') {
-        <label for="live-count">Recorded contacts per hitter</label
+        <label for="live-count">{{ 'practice.contactsPerHitter' | t }}</label
         ><input
           id="live-count"
           name="count"
@@ -569,10 +614,7 @@
           [(ngModel)]="customCount"
         />
       }
-      <p class="small muted">
-        Automatic rotation counts recorded contacts, not pitches or swings. Changes apply on the
-        next capture.
-      </p>
+      <p class="small muted">{{ 'practice.rotationHelp' | t }}</p>
       <label class="check-label practice-option-check">
         <input
           type="checkbox"
@@ -580,7 +622,7 @@
           (ngModelChange)="store.updateSettings({ leftHandedMode: $event })"
           name="leftHandedMode"
         />
-        Left-handed dugout mode (left-thumb reach)
+        {{ 'practice.leftHanded' | t }}
       </label>
       <label class="check-label practice-option-check">
         <input
@@ -591,7 +633,7 @@
           "
           name="fieldTheme"
         />
-        High-contrast field (for bright outdoor sunlight)
+        {{ 'practice.highContrast' | t }}
       </label>
       <label class="check-label practice-option-check">
         <input
@@ -605,24 +647,26 @@
           "
           name="colorPalette"
         />
-        Color-blind friendly palette (Okabe-Ito CVD safe)
+        {{ 'practice.colorblind' | t }}
       </label>
       <button class="button primary full-width" type="submit" [disabled]="busy()">
-        Save practice options
+        {{ 'practice.saveOptions' | t }}
       </button>
     </form>
-    <a routerLink="/" class="button secondary full-width" (click)="closeSheet()"
-      >Leave practice running</a
-    >
+    <a routerLink="/" class="button secondary full-width" (click)="closeSheet()">{{
+      'practice.leaveRunning' | t
+    }}</a>
   }
   @if (sheetMode() === 'finish') {
     <p>
-      <strong>{{ sessionEvents().length }} recorded contacts</strong> are saved in your notebook.
-      Review the chart and notes, or resume this practice later from Reports.
+      <strong>{{ 'practice.finishCount' | t: { count: sessionEvents().length } }}</strong>
+      {{ 'practice.finishText' | t: { count: sessionEvents().length } }}
     </p>
     <button class="button primary full-width" [disabled]="busy()" (click)="finish()">
-      Finish & review practice</button
-    ><button class="button secondary full-width" (click)="closeSheet()">Keep practicing</button>
+      {{ 'practice.confirmFinish' | t }}</button
+    ><button class="button secondary full-width" (click)="closeSheet()">
+      {{ 'practice.keepPracticing' | t }}
+    </button>
   }
   @if (failure()) {
     <p class="error" role="alert">{{ failure() }}</p>

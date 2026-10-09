@@ -1,19 +1,20 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink, Router } from '@angular/router';
-import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CoachStore } from '../data/coach-store';
-import { ImportPreview } from '../data/models';
+import { ImportPreview, PracticeSession } from '../data/models';
+import { I18nService } from '../i18n/i18n.service';
 import { TranslatePipe } from '../i18n/translate.pipe';
+import { LocalDatePipe } from '../i18n/local-date.pipe';
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, DatePipe, FormsModule, TranslatePipe],
+  imports: [RouterLink, LocalDatePipe, FormsModule, TranslatePipe],
   template: ` <div class="page">
     @if (!store.activeTeam()) {
       <div class="welcome">
         <div class="welcome-art" aria-hidden="true">
-          <img src="icons/mark.svg" alt="" /><span>MAKE EVERY<br />ROUND COUNT.</span>
-          <p>A little less screen time.<br />A little more field time.</p>
+          <img src="icons/mark.svg" alt="" /><span>{{ 'home.welcomeArtHeading' | t }}</span>
+          <p>{{ 'home.welcomeArtText' | t }}</p>
         </div>
         <div class="welcome-panels">
           <section class="setup card">
@@ -63,41 +64,40 @@ import { TranslatePipe } from '../i18n/translate.pipe';
           </section>
 
           <section class="card receive-card">
-            <p class="eyebrow">OPENING ON ANOTHER DEVICE?</p>
-            <h2>Bring your notebook over</h2>
-            <p class="muted small">
-              Saved your notebook to iCloud Drive, Google Drive, or sent it from another coach? Pick
-              up right where you left off.
-            </p>
+            <p class="eyebrow">{{ 'home.bringNotebookEyebrow' | t }}</p>
+            <h2>{{ 'home.bringNotebookHeading' | t }}</h2>
+            <p class="muted small">{{ 'home.bringNotebookText' | t }}</p>
             <label class="receive-file-label button">
-              <span>Choose notebook backup (.json)</span>
+              <span>{{ 'home.chooseBackup' | t }}</span>
               <input
                 type="file"
-                aria-label="Choose notebook file to import"
+                [attr.aria-label]="'home.chooseBackup' | t"
                 accept=".json,application/json"
                 (change)="readWelcomeBackup($event)"
               />
             </label>
-            <p class="small muted cross-platform-badge">
-              Works on iPhone, iPad, Android, Windows, Mac, and Chromebook. No app store required.
-            </p>
+            <p class="small muted cross-platform-badge">{{ 'home.crossPlatform' | t }}</p>
             @if (importError()) {
               <p role="alert" class="error">{{ importError() }}</p>
             }
             @if (preview()) {
               <div class="welcome-preview-box">
-                <h3>Ready to open</h3>
+                <h3>{{ 'home.readyToOpen' | t }}</h3>
                 <p class="small">
-                  <strong>{{ preview()!.counts.teams }}</strong> teams ·
-                  <strong>{{ preview()!.counts.players }}</strong> players ·
-                  <strong>{{ preview()!.counts.sessions }}</strong> practices ·
-                  <strong>{{ preview()!.counts.events }}</strong> contacts
+                  <strong>{{ preview()!.counts.teams }}</strong>
+                  {{ 'home.countTeams' | t: { count: preview()!.counts.teams } }} ·
+                  <strong>{{ preview()!.counts.players }}</strong>
+                  {{ 'home.countPlayers' | t: { count: preview()!.counts.players } }} ·
+                  <strong>{{ preview()!.counts.sessions }}</strong>
+                  {{ 'home.countPractices' | t: { count: preview()!.counts.sessions } }} ·
+                  <strong>{{ preview()!.counts.events }}</strong>
+                  {{ 'home.countContacts' | t: { count: preview()!.counts.events } }}
                 </p>
                 <div class="row">
                   <button class="primary" [disabled]="busy()" (click)="applyWelcomeImport()">
-                    Open notebook on this device
+                    {{ 'home.openNotebookBtn' | t }}
                   </button>
-                  <button type="button" (click)="preview.set(null)">Cancel</button>
+                  <button type="button" (click)="preview.set(null)">{{ 'home.cancel' | t }}</button>
                 </div>
               </div>
             }
@@ -108,17 +108,18 @@ import { TranslatePipe } from '../i18n/translate.pipe';
       <div class="home-heading">
         <div>
           <p class="eyebrow">
-            {{ store.activeTeam()!.season || 'YOUR SEASON' }} · THE COACH'S NOTEBOOK
+            {{ store.activeTeam()!.season || ('home.yourSeason' | t) }} ·
+            {{ 'home.coachsNotebook' | t }}
           </p>
           <h1>{{ store.activeTeam()!.name }}</h1>
-          <p class="muted">Good habits start with a good round.</p>
+          <p class="muted">{{ 'home.tagline' | t }}</p>
         </div>
         <div class="team-emblem-badge">
           @if (store.activeTeam()!.logoUrl) {
             <img
               class="team-logo-img"
               [src]="store.activeTeam()!.logoUrl"
-              [alt]="store.activeTeam()!.name + ' logo'"
+              [alt]="'home.logoAlt' | t: { team: store.activeTeam()!.name }"
             />
           } @else {
             <div class="team-crest" [title]="store.activeTeam()!.name">
@@ -130,27 +131,20 @@ import { TranslatePipe } from '../i18n/translate.pipe';
             </div>
           }
           <a routerLink="/settings" class="change-logo-link">{{
-            store.activeTeam()!.logoUrl ? 'Change logo' : 'Add logo'
+            (store.activeTeam()!.logoUrl ? 'home.changeLogo' : 'home.addLogo') | t
           }}</a>
         </div>
       </div>
       <section class="practice-hero">
         <div>
-          <span class="hero-tag">BATTING PRACTICE</span>
+          <span class="hero-tag">{{ 'home.tagBattingPractice' | t }}</span>
           <h2>
             {{
-              store.activeSession()
-                ? 'Pick up where you left off.'
-                : 'Eyes on the hitter.
-We’ll keep the notebook.'
+              store.activeSession() ? ('home.heroResumeHeading' | t) : ('home.heroNewHeading' | t)
             }}
           </h2>
           <p>
-            {{
-              store.activeSession()
-                ? 'Your batting order and recorded contacts are saved.'
-                : 'Tap where it lands. Add the details you want. Keep the round moving.'
-            }}
+            {{ store.activeSession() ? ('home.heroResumeText' | t) : ('home.heroNewText' | t) }}
           </p>
           @if (store.activeSession()) {
             <a class="button accent" routerLink="/practice"
@@ -170,71 +164,67 @@ We’ll keep the notebook.'
       </section>
       <div class="context-row">
         <span
-          ><strong>{{ store.roster().length }}</strong> active players</span
+          ><strong>{{ store.roster().length }}</strong>
+          {{ 'home.activePlayers' | t: { count: store.roster().length } }}</span
         ><span
-          ><strong>{{ sessions().length }}</strong> practices</span
+          ><strong>{{ sessions().length }}</strong>
+          {{ 'home.practices' | t: { count: sessions().length } }}</span
         ><span
-          ><strong>{{ contactCount() }}</strong> recorded contacts</span
+          ><strong>{{ contactCount() }}</strong>
+          {{ 'home.contacts' | t: { count: contactCount() } }}</span
         >
       </div>
       <div class="home-grid">
         <section>
           <div class="section-heading">
-            <h2>Recent practices</h2>
-            <a routerLink="/reports">All reports →</a>
+            <h2>{{ 'home.recentPractices' | t }}</h2>
+            <a routerLink="/reports">{{ 'home.allReports' | t }}</a>
           </div>
           @for (session of sessions().slice(0, 5); track session.id) {
             <a class="session-row" routerLink="/reports" [queryParams]="{ session: session.id }"
               ><div class="date-box">
-                <strong>{{ session.startedAt | date: 'dd' }}</strong
-                ><span>{{ session.startedAt | date: 'MMM' }}</span>
+                <strong>{{ session.startedAt | localDate: 'dd' }}</strong
+                ><span>{{ session.startedAt | localDate: 'MMM' }}</span>
               </div>
               <div>
-                <h3>{{ session.title || 'Batting practice' }}</h3>
+                <h3>{{ sessionTitle(session) }}</h3>
                 <span class="muted small"
-                  >{{ session.startedAt | date: 'EEE, h:mm a' }} ·
-                  {{ count(session.id) }} contacts</span
+                  >{{ session.startedAt | localDate: 'date.weekdayTime' }} ·
+                  {{ 'home.sessionContacts' | t: { count: count(session.id) } }}</span
                 >
               </div>
-              <span class="badge">{{ session.endedAt ? 'Review' : 'In progress' }}</span></a
+              <span class="badge">{{
+                (session.endedAt ? 'home.review' : 'home.inProgress') | t
+              }}</span></a
             >
           } @empty {
             <div class="card empty">
-              <h3>Your next round starts here.</h3>
-              <p class="muted">
-                Practice sessions and player spray charts will show up as you record contacts.
-              </p>
+              <h3>{{ 'home.noPracticesHeading' | t }}</h3>
+              <p class="muted">{{ 'home.noPracticesText' | t }}</p>
             </div>
           }
         </section>
         <aside class="coach-note card">
-          <p class="eyebrow">TAKE YOUR NOTEBOOK WITH YOU</p>
-          <h2>Watch the ball.<br />Mark the spot.</h2>
-          <p class="muted small philosophy-blurb">
-            “Pinch Hitter doesn't keep your data on our servers. Your notebook stays on your devices
-            and in whatever storage provider you trust.”
-          </p>
+          <p class="eyebrow">{{ 'home.takeNotebookEyebrow' | t }}</p>
+          <h2>{{ 'home.takeNotebookHeading' | t }}</h2>
+          <p class="muted small philosophy-blurb">{{ 'home.philosophy' | t }}</p>
           <hr />
           @if (store.unbackedWork().hasSubstantialWork) {
             <div class="unbacked-flag">
               <span class="unbacked-dot" aria-hidden="true">●</span>
               <div>
-                <strong>Backup recommended</strong>
-                <p class="small muted">{{ store.unbackedWork().summary }}.</p>
+                <strong>{{ 'home.backupRecommended' | t }}</strong>
+                <p class="small muted">{{ i18n.unbackedSummary(store.unbackedWork()) }}.</p>
               </div>
             </div>
-            <a routerLink="/settings" class="button primary unbacked-btn"
-              >Take notebook with you →</a
-            >
+            <a routerLink="/settings" class="button primary unbacked-btn">{{
+              'home.takeNotebookBtn' | t
+            }}</a>
           } @else {
             <p class="small muted">
-              {{
-                store.lastBackupAt()
-                  ? 'Notebook is backed up to your storage.'
-                  : 'Make a backup after practice to keep a copy off this device.'
-              }}
+              {{ store.lastBackupAt() ? ('home.backedUp' | t) : ('home.backupReminder' | t) }}
             </p>
-            <a routerLink="/settings">Take your notebook with you →</a>
+            <a routerLink="/settings">{{ 'home.takeNotebookLink' | t }}</a>
           }
         </aside>
       </div>
@@ -266,8 +256,10 @@ We’ll keep the notebook.'
       font-size: 44px;
       letter-spacing: -1.5px;
       line-height: 1.05;
+      white-space: pre-line;
     }
     .welcome-art p {
+      white-space: pre-line;
       color: #d8e5d7;
       margin-top: 28px;
     }
@@ -519,6 +511,7 @@ We’ll keep the notebook.'
     }
     .coach-note h2 {
       line-height: 1.25;
+      white-space: pre-line;
     }
     .coach-note hr {
       border: 0;
@@ -617,6 +610,7 @@ We’ll keep the notebook.'
 })
 export class HomeComponent {
   readonly store = inject(CoachStore);
+  protected readonly i18n = inject(I18nService);
   private readonly router = inject(Router);
   readonly busy = signal(false);
   readonly preview = signal<ImportPreview | null>(null);
@@ -643,6 +637,9 @@ export class HomeComponent {
   readonly contactCount = computed(
     () => this.store.events().filter((e) => e.teamId === this.store.activeTeam()?.id).length,
   );
+  sessionTitle(session: PracticeSession) {
+    return this.i18n.sessionTitle(session.title);
+  }
   count(id: string) {
     return this.store.events().filter((e) => e.sessionId === id).length;
   }
@@ -668,11 +665,13 @@ export class HomeComponent {
     this.importError.set('');
     try {
       if (file) {
-        if (file.size > 50_000_000) throw new Error('Please choose a backup smaller than 50 MB.');
+        if (file.size > 50_000_000) throw new Error(this.i18n.t('backup.tooLarge'));
         this.preview.set(this.store.previewImport(await file.text()));
       }
     } catch (error) {
-      this.importError.set(error instanceof Error ? error.message : 'This file could not be read.');
+      this.importError.set(
+        error instanceof Error ? error.message : this.i18n.t('backup.unreadable'),
+      );
     }
     input.value = '';
   }
@@ -685,7 +684,7 @@ export class HomeComponent {
       this.preview.set(null);
     } catch (error) {
       this.importError.set(
-        error instanceof Error ? error.message : 'Import failed. Existing data was preserved.',
+        error instanceof Error ? error.message : this.i18n.t('backup.importFailed'),
       );
     } finally {
       this.busy.set(false);
