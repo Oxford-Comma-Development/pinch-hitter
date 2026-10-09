@@ -6,3 +6,6 @@
 /playwright-report
 package-lock.json
 *.code-workspace
+
+# Search Console ownership file; must stay byte-for-byte as Google issued it
+/public/google*.html
