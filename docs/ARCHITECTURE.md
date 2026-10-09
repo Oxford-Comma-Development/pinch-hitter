@@ -234,6 +234,10 @@ The deployment workflow dynamically injects the base path (`--base-href /pinch-h
 
 Absolute URLs are only known at deploy time. When `SITE_URL` is set (the workflow passes `configure-pages`' `base_url`), `prepare-pages.mjs` adds the canonical link, `og:url`, an absolute `og:image`, and the JSON-LD `url`; gives `privacy/index.html` its own title, description, and canonical; writes `sitemap.xml`; and writes `robots.txt` only when the site is served from a domain root, because crawlers ignore `robots.txt` under a subpath. Because `index.html` changes after the build, the script also rewrites its SHA-1 in `ngsw.json` so the service worker's integrity check still passes. Regenerate `public/og-image.png` with `node scripts/generate-og-image.mjs`.
 
+**Coaching guides.** Static articles live outside Angular in `guides/`: `guides.mjs` lists each guide's slug, title, description, and dates, and `guides/<slug>.html` holds its body as a plain HTML fragment, so the build needs no Markdown parser. `prepare-pages.mjs` calls `scripts/build-guides.mjs`, which wraps each fragment in one inline-styled template (the app's color tokens, system fonts, 44px targets, safe-area padding) and writes `guides/index.html` plus `guides/<slug>/index.html`. Every link is relative (`../../` back to the app), so the pages work under any base href. Each page carries its own title, description, Open Graph tags, and `Article` JSON-LD (`CollectionPage` for the index). With `SITE_URL` set it also gets a canonical link, `og:url`, an absolute `og:image`, and a `sitemap.xml` entry whose `lastmod` is the guide's `updated` date. Crawlers reach the guides from a link in the static splash in `src/index.html` and from the privacy page footer.
+
+The service worker would otherwise answer every in-scope navigation with `index.html`, so an installed app would show Home instead of an article. `ngsw-config.json` therefore restates Angular's default `navigationUrls` and adds `!/guides` and `!/guides/**`. Those navigations go to the network, and the guides aren't cached offline. `e2e-pwa/guides.spec.ts` installs the worker, then follows the links to a guide and checks the article text. `scripts/serve-production.mjs` serves a folder's `index.html` and redirects a missing trailing slash, as GitHub Pages does. CI runs `npm run build:pages` so the guides exist for that test.
+
 ---
 
 ## 8. PWA & Offline Strategy
@@ -246,7 +250,9 @@ Governed by `@angular/service-worker` through `ngsw-config.json`:
 2. **Static Assets Group (`lazy`)**:
    - Includes icons, images, and static manifests in `public/`.
    - Downloaded on-demand and cached for offline use.
-3. **Data Sovereignty**:
+3. **Navigation Exclusions**:
+   - `navigationUrls` keeps Angular's defaults and excludes `guides/`, the static coaching articles, so they are fetched from the network instead of being answered with the app shell.
+4. **Data Sovereignty**:
    - Zero remote data groups are defined; all data is local in IndexedDB. Service worker handles code updates gracefully without touching database stores.
 
 ---

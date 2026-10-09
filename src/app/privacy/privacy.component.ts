@@ -229,6 +229,8 @@ import { RouterLink } from '@angular/router';
       <div class="privacy-footer">
         <a routerLink="/settings" class="button primary">Return to Settings</a>
         <a routerLink="/" class="button">Home</a>
+        <!-- Static pages outside Angular; a plain relative href resolves against <base href>. -->
+        <a href="guides/" class="button">Coaching guides</a>
       </div>
     </div>
   `,
