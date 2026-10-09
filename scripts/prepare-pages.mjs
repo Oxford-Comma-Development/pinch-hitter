@@ -9,6 +9,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { resolve, join } from 'node:path';
+import { writeGuides } from './build-guides.mjs';
 
 // Locate the browser build directory dynamically to ensure complete repo-name independence
 function findBrowserDir(baseDir) {
@@ -86,6 +87,9 @@ function withPageText(html, title, description) {
   return html.replace(/(<meta\s+property="og:description"\s+content=")[^"]*"/, `$1${description}"`);
 }
 
+const guidePages = writeGuides(browserDir, siteUrl);
+console.log('✓ Generated static coaching guides: guides/index.html and one page per guide');
+
 let privacyHtml = readFileSync(indexPath, 'utf8');
 if (siteUrl) {
   const indexHtml = withPageUrl(readFileSync(indexPath, 'utf8'), siteUrl);
@@ -106,8 +110,12 @@ if (siteUrl) {
   );
 
   const today = new Date().toISOString().slice(0, 10);
-  const urls = [siteUrl, `${siteUrl}privacy/`]
-    .map((loc) => `  <url><loc>${loc}</loc><lastmod>${today}</lastmod></url>`)
+  const urls = [
+    { loc: siteUrl, lastmod: today },
+    { loc: `${siteUrl}privacy/`, lastmod: today },
+    ...guidePages,
+  ]
+    .map(({ loc, lastmod }) => `  <url><loc>${loc}</loc><lastmod>${lastmod}</lastmod></url>`)
     .join('\n');
   writeFileSync(
     join(browserDir, 'sitemap.xml'),

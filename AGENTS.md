@@ -30,15 +30,18 @@ pinch-hitter/
 ├── e2e/                     # Playwright cross-viewport smoke test suite (mobile, tablet, desktop)
 │   └── smoke.spec.ts        # Roster, practice capture, queue rotation, reports, and CSV tests
 ├── e2e-pwa/                 # Playwright production offline PWA validation suite
+│   ├── guides.spec.ts       # Verifies an installed service worker lets static guides load
 │   └── pwa-offline.spec.ts  # Verifies app startup, live capture, and export when severed from network
+├── guides/                  # Static coaching articles (HTML fragments + guides.mjs metadata)
 ├── public/                  # Source-controlled static assets
 │   ├── icons/               # PWA icons (72x72 through 512x512, maskable) generated from mark.svg
 │   ├── favicon.ico          # Browser tab favicon
 │   └── manifest.webmanifest # Web App Manifest identity and theme configuration
 ├── scripts/                 # Build and deployment helper scripts
+│   ├── build-guides.mjs     # Renders guides/ into static pages with SEO tags (called by prepare-pages)
 │   ├── generate-icons.mjs   # Generates raster PNG/ICO icons from public/icons/mark.svg
 │   ├── generate-og-image.mjs # Renders public/og-image.png, the 1200x630 link-preview card
-│   └── prepare-pages.mjs    # 404.html SPA fallback, SITE_URL canonical/OG URLs, sitemap, PWA checks
+│   └── prepare-pages.mjs    # 404.html SPA fallback, guides, SITE_URL canonical/OG URLs, sitemap, PWA checks
 ├── src/                     # Application source code
 │   ├── app/
 │   │   ├── data/            # Core domain and persistence layer
