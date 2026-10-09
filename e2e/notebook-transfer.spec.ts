@@ -54,7 +54,7 @@ test.describe('Take Your Notebook With You: Mobile Transfers', () => {
 
     // Verify philosophy statement & cross-platform PWA messaging
     await expect(iphonePage.locator('.philosophy-quote')).toContainText(
-      "Pinch Hitter doesn't keep your data on our servers",
+      'Pinch Hitter doesn’t keep your data on our servers',
     );
     await expect(
       iphonePage
@@ -120,7 +120,7 @@ test.describe('Take Your Notebook With You: Mobile Transfers', () => {
     ).toBeVisible();
 
     // Select the file from iCloud Drive directly on the welcome screen
-    await ipadPage.getByLabel('Choose notebook file to import').setInputFiles({
+    await ipadPage.getByLabel('Choose notebook backup (.json)').setInputFiles({
       name: icloudFile.name,
       mimeType: 'application/json',
       buffer: Buffer.from(icloudFile.text),
@@ -128,7 +128,7 @@ test.describe('Take Your Notebook With You: Mobile Transfers', () => {
 
     // Preview shows all incoming counts
     await expect(ipadPage.locator('.welcome-preview-box')).toBeVisible();
-    await expect(ipadPage.locator('.welcome-preview-box')).toContainText('1 teams');
+    await expect(ipadPage.locator('.welcome-preview-box')).toContainText('1 team');
     await expect(ipadPage.locator('.welcome-preview-box')).toContainText('5 players');
     await expect(ipadPage.locator('.welcome-preview-box')).toContainText('2 contacts');
 
@@ -208,7 +208,7 @@ test.describe('Take Your Notebook With You: Mobile Transfers', () => {
     await expect(androidPage.locator('.unbacked-flag')).toBeVisible();
     await expect(androidPage.locator('.unbacked-flag')).toContainText('Backup recommended');
     await expect(androidPage.locator('.philosophy-blurb')).toContainText(
-      "Pinch Hitter doesn't keep your data on our servers",
+      'Pinch Hitter doesn’t keep your data on our servers',
     );
 
     // Tap "Take notebook with you →"

@@ -1,23 +1,23 @@
 <div class="reports-page">
   <header class="report-heading">
     <div>
-      <p class="eyebrow">THE COACH'S NOTEBOOK</p>
-      <h1>See the whole field.</h1>
-      <p class="muted">Every contact tells part of the story. Find the patterns together.</p>
+      <p class="eyebrow">{{ 'reports.eyebrow' | t }}</p>
+      <h1>{{ 'reports.heading' | t }}</h1>
+      <p class="muted">{{ 'reports.subtitle' | t }}</p>
     </div>
     <div class="report-actions no-print">
       <button class="button secondary" (click)="exportCsv()" [disabled]="!observations().length">
-        Download CSV
+        {{ 'reports.exportCsv' | t }}
       </button>
       <button
         class="button secondary"
         (click)="exportCsv(true)"
         [disabled]="!observations().length"
       >
-        Share
+        {{ 'reports.share' | t }}
       </button>
       <button class="button secondary" (click)="print()" [disabled]="!observations().length">
-        Print / PDF
+        {{ 'reports.printPdf' | t }}
       </button>
       @if (player(); as p) {
         <button class="button secondary" (click)="openScoutCard(p.id)">
@@ -33,39 +33,36 @@
   @if (!store.activeTeam()) {
     <section class="card empty-state">
       <span class="empty-mark" aria-hidden="true">◇</span>
-      <h2>Your notebook starts with a team.</h2>
-      <p>
-        Create your team and record a few contacts. Your spray charts and coaching reports will
-        appear here.
-      </p>
-      <a class="button primary" routerLink="/">Set up your team</a>
+      <h2>{{ 'reports.noTeamHeading' | t }}</h2>
+      <p>{{ 'reports.noTeamText' | t }}</p>
+      <a class="button primary" routerLink="/">{{ 'roster.setUpTeam' | t }}</a>
     </section>
   } @else {
-    <section class="card filter-panel no-print" aria-label="Report filters">
+    <section class="card filter-panel no-print" [attr.aria-label]="'reports.filtersAria' | t">
       <div class="filter-topline">
         <label class="player-select"
-          >Report for
+          >{{ 'reports.reportFor' | t }}
           <select
             [ngModel]="filters().playerId"
             (ngModelChange)="selectPlayer($event)"
-            aria-label="Report player"
+            [attr.aria-label]="'reports.filterByHitter' | t"
           >
-            <option value="">Entire team</option>
+            <option value="">{{ 'reports.entireTeam' | t }}</option>
             @for (player of players(); track player.id) {
               <option [value]="player.id">
                 {{ player.jerseyNumber ? '#' + player.jerseyNumber + ' · ' : '' }}{{ player.name
-                }}{{ !player.active ? ' (archived)' : '' }}
+                }}{{ !player.active ? ' ' + ('reports.archivedSuffix' | t) : '' }}
               </option>
             }
           </select>
         </label>
-        <div class="period-presets" aria-label="Date presets">
+        <div class="period-presets" [attr.aria-label]="'reports.datePresetsAria' | t">
           <button
             [class.selected]="filters().preset === 'season'"
             [attr.aria-pressed]="filters().preset === 'season'"
             (click)="applyPreset('season')"
           >
-            Season
+            {{ 'reports.preset.season' | t }}
           </button>
           <button
             [class.selected]="filters().preset === 'latest'"
@@ -73,59 +70,61 @@
             (click)="applyPreset('latest')"
             [disabled]="!sessions().length"
           >
-            Latest practice
+            {{ 'reports.preset.latest' | t }}
           </button>
           <button
             [class.selected]="filters().preset === '1'"
             [attr.aria-pressed]="filters().preset === '1'"
             (click)="applyPreset('1')"
           >
-            Today
+            {{ 'reports.today' | t }}
           </button>
           <button
             [class.selected]="filters().preset === '7'"
             [attr.aria-pressed]="filters().preset === '7'"
             (click)="applyPreset('7')"
           >
-            7 days
+            {{ 'reports.preset.days' | t: { n: 7 } }}
           </button>
           <button
             [class.selected]="filters().preset === '30'"
             [attr.aria-pressed]="filters().preset === '30'"
             (click)="applyPreset('30')"
           >
-            30 days
+            {{ 'reports.preset.days' | t: { n: 30 } }}
           </button>
           <button
             [class.selected]="filters().preset === 'all'"
             [attr.aria-pressed]="filters().preset === 'all'"
             (click)="applyPreset('all')"
           >
-            All
+            {{ 'reports.allTime' | t }}
           </button>
           <button
             [class.selected]="filters().preset === 'custom'"
             [attr.aria-pressed]="filters().preset === 'custom'"
             (click)="applyPreset('custom')"
           >
-            Custom
+            {{ 'reports.preset.custom' | t }}
           </button>
         </div>
       </div>
       <details class="advanced-filters" [open]="filters().preset === 'custom'">
         <summary>
-          Refine report <span class="muted">Dates, practices &amp; classifications</span>
+          {{ 'reports.refine' | t }} <span class="muted">{{ 'reports.refineHint' | t }}</span>
         </summary>
         <div class="filter-groups">
           <div class="filter-dates-grid">
             <label
-              >From date<input
+              >{{ 'reports.fromDate' | t
+              }}<input
                 type="date"
                 [ngModel]="filters().from"
                 (ngModelChange)="setFilter('from', $event); setFilter('preset', 'custom')"
             /></label>
             <label
-              >Through date<input
+              >{{ 'reports.throughDate' | t
+              }}<input
                 type="date"
                 [ngModel]="filters().through"
                 (ngModelChange)="setFilter('through', $event); setFilter('preset', 'custom')"
@@ -133,55 +132,55 @@
           </div>
           <div class="filter-class-grid">
             <label
-              >Pitcher hand
+              >{{ 'reports.filterByPitcher' | t }}
               <select
                 [ngModel]="filters().pitcherHand"
-                aria-label="Pitcher hand"
+                [attr.aria-label]="'reports.filterByPitcher' | t"
                 (ngModelChange)="setFilter('pitcherHand', $event)"
               >
-                <option value="">Any pitcher</option>
-                <option value="R">RHP</option>
-                <option value="L">LHP</option>
-                <option value="unknown">Unknown hand</option>
+                <option value="">{{ 'reports.anyPitcher' | t }}</option>
+                <option value="R">{{ 'practice.rhp' | t }}</option>
+                <option value="L">{{ 'practice.lhp' | t }}</option>
+                <option value="unknown">{{ 'reports.unknownHand' | t }}</option>
               </select>
             </label>
             <label
-              >Contact type
+              >{{ 'reports.filterByContact' | t }}
               <select
                 [ngModel]="filters().contactType"
-                aria-label="Contact type"
+                [attr.aria-label]="'reports.filterByContact' | t"
                 (ngModelChange)="setFilter('contactType', $event)"
               >
-                <option value="">All contacts</option>
-                <option value="unknown">Unclassified only</option>
+                <option value="">{{ 'reports.allContacts' | t }}</option>
+                <option value="unknown">{{ 'reports.unclassifiedOnly' | t }}</option>
                 @for (type of contactTypes; track type) {
                   <option [value]="type">{{ contactLabels[type] }}</option>
                 }
               </select>
             </label>
             <label
-              >Result
+              >{{ 'reports.filterByResult' | t }}
               <select
-                aria-label="Result"
+                [attr.aria-label]="'reports.filterByResult' | t"
                 [ngModel]="filters().result"
                 (ngModelChange)="setFilter('result', $event)"
               >
-                <option value="">All results</option>
-                <option value="unknown">Unclassified only</option>
+                <option value="">{{ 'reports.allResults' | t }}</option>
+                <option value="unknown">{{ 'reports.unclassifiedOnly' | t }}</option>
                 @for (result of results; track result) {
                   <option [value]="result">{{ resultLabels[result] }}</option>
                 }
               </select>
             </label>
             <label
-              >Hard hit
+              >{{ 'reports.filterByQuality' | t }}
               <select
-                aria-label="Hard hit"
+                [attr.aria-label]="'reports.filterByQuality' | t"
                 [ngModel]="filters().hardHit"
                 (ngModelChange)="setFilter('hardHit', $event)"
               >
-                <option value="">All ratings</option>
-                <option value="unknown">Unclassified only</option>
+                <option value="">{{ 'reports.allRatings' | t }}</option>
+                <option value="unknown">{{ 'reports.unclassifiedOnly' | t }}</option>
                 @for (rating of hardHitRatings; track rating) {
                   <option [value]="rating">{{ hardHitLabels[rating] }}</option>
                 }
@@ -191,8 +190,8 @@
         </div>
         <fieldset class="session-filter">
           <legend>
-            Practices
-            <span class="muted">Select several to compare. None selected includes all.</span>
+            {{ 'reports.practicesLegend' | t }}
+            <span class="muted">{{ 'reports.practicesHint' | t }}</span>
           </legend>
           <div class="session-options">
             @for (session of sessions(); track session.id) {
@@ -203,25 +202,27 @@
                   (change)="toggleSession(session.id)"
                 />
                 <span
-                  >{{ session.title || 'Batting practice'
+                  >{{ i18n.sessionTitle(session.title)
                   }}<small
-                    >{{ session.startedAt | date: 'MMM d, y'
-                    }}{{ !session.endedAt ? ' · In progress' : '' }}</small
+                    >{{ session.startedAt | localDate: 'date.monthDayYear'
+                    }}{{ !session.endedAt ? ' · ' + ('home.inProgress' | t) : '' }}</small
                   ></span
                 >
               </label>
             } @empty {
-              <p class="muted">Your practices will appear here after you start a session.</p>
+              <p class="muted">{{ 'reports.noPracticesYet' | t }}</p>
             }
           </div>
         </fieldset>
       </details>
       <div class="filter-context">
         <p>{{ context() }}</p>
-        <button class="text-button" (click)="resetFilters()">Reset filters</button>
+        <button class="text-button" (click)="resetFilters()">
+          {{ 'reports.resetFilters' | t }}
+        </button>
       </div>
       @if (filters().from && filters().through && filters().from > filters().through) {
-        <p class="error" role="alert">The through date must be on or after the from date.</p>
+        <p class="error" role="alert">{{ 'reports.dateOrder' | t }}</p>
       }
     </section>
 
@@ -232,17 +233,31 @@
 
     <section class="report-identity">
       @if (player(); as player) {
-        <div class="jersey" aria-label="Jersey number">{{ player.jerseyNumber || '—' }}</div>
+        <div class="jersey" [attr.aria-label]="'reports.jerseyAria' | t">
+          {{ player.jerseyNumber || '—' }}
+        </div>
       }
       <div>
         <p class="eyebrow">
-          {{ player() ? 'PLAYER REPORT' : session() ? 'PRACTICE REPORT' : 'TEAM REPORT' }}
+          {{
+            (player()
+              ? 'reports.playerReport'
+              : session()
+                ? 'reports.practiceReport'
+                : 'reports.teamReportEyebrow'
+            ) | t
+          }}
         </p>
         <h2>{{ title() }}</h2>
         @if (player(); as player) {
           <p class="muted">
-            Bats {{ player.bats === 'S' ? 'switch' : player.bats === 'L' ? 'left' : 'right' }} ·
-            Throws {{ player.throws === 'S' ? 'both' : player.throws === 'L' ? 'left' : 'right'
+            {{
+              'scout.bio'
+                | t
+                  : {
+                      bats: i18n.handLabels()[player.bats],
+                      throws: i18n.handLabels()[player.throws],
+                    }
             }}{{ player.positions.length ? ' · ' + player.positions.join(', ') : ''
             }}{{ player.grade ? ' · ' + player.grade : '' }}
           </p>
@@ -251,7 +266,8 @@
           }
         } @else {
           <p class="muted">
-            {{ store.activeTeam()?.name }} · {{ store.activeTeam()?.season || 'Your season' }}
+            {{ store.activeTeam()?.name }} ·
+            {{ store.activeTeam()?.season || ('reports.yourSeason' | t) }}
           </p>
         }
         <p class="print-context">{{ context() }}</p>
@@ -263,7 +279,7 @@
             class="button secondary manage-player-button"
             (click)="openManagePlayerModal()"
           >
-            Manage player hits…
+            {{ 'reports.managePlayer' | t }}
           </button>
         </div>
       }
@@ -273,15 +289,21 @@
       <section class="card session-detail">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">PRACTICE DETAILS</p>
-            <h3>{{ session.title || 'Batting practice' }}</h3>
+            <p class="eyebrow">{{ 'reports.practiceDetails' | t }}</p>
+            <h3>{{ i18n.sessionTitle(session.title) }}</h3>
           </div>
-          <span class="status-pill">{{ session.endedAt ? 'Completed' : 'In progress' }}</span>
+          <span class="status-pill">{{
+            (session.endedAt ? 'reports.completed' : 'home.inProgress') | t
+          }}</span>
         </div>
         <div class="session-facts">
-          <span>{{ session.startedAt | date: 'EEE, MMM d, y · h:mm a' }}</span
-          ><span>{{ duration(session) }}{{ !session.endedAt ? ' elapsed' : '' }}</span
-          ><span>{{ session.participantIds.length }} participants</span>
+          <span>{{ session.startedAt | localDate: 'date.weekdayDateTime' }}</span
+          ><span>{{
+            session.endedAt
+              ? duration(session)
+              : ('reports.elapsed' | t: { duration: duration(session) })
+          }}</span
+          ><span>{{ 'reports.participants' | t: { count: session.participantIds.length } }}</span>
           @if (session.location) {
             <span>{{ session.location }}</span>
           }
@@ -292,7 +314,7 @@
         @if (!editingSession) {
           <div class="inline-actions no-print">
             <button class="text-button" (click)="editSession(session)">
-              Edit practice details
+              {{ 'reports.editPractice' | t }}
             </button>
             <button
               class="text-button"
@@ -301,22 +323,22 @@
                 busy() || (!!store.activeSession() && store.activeSession()?.id !== session.id)
               "
             >
-              {{ session.endedAt ? 'Resume this practice' : 'Return to practice' }} →
+              {{ (session.endedAt ? 'reports.resumePractice' : 'reports.returnToPractice') | t }}
+              →
             </button>
             <button
               class="text-button danger-text"
               (click)="deleteSessionPending = true"
               [disabled]="busy()"
             >
-              Delete practice
+              {{ 'reports.deletePractice' | t }}
             </button>
           </div>
           @if (deleteSessionPending) {
             <div class="delete-confirm no-print" role="alert">
-              <strong>Delete this entire practice?</strong>
+              <strong>{{ 'reports.deletePracticeConfirm' | t }}</strong>
               <p>
-                This permanently deletes "{{ session.title || 'Batting practice' }}", including all
-                recorded contacts and practice notes from this session. It cannot be undone.
+                {{ 'reports.deletePracticeText' | t: { title: i18n.sessionTitle(session.title) } }}
               </p>
               <div class="inline-actions">
                 <button
@@ -324,7 +346,7 @@
                   class="button secondary"
                   (click)="deleteSessionPending = false"
                 >
-                  Keep practice
+                  {{ 'reports.keepPractice' | t }}
                 </button>
                 <button
                   type="button"
@@ -332,43 +354,34 @@
                   (click)="deleteSession()"
                   [disabled]="busy()"
                 >
-                  Delete practice permanently
+                  {{ 'reports.deletePracticeForever' | t }}
                 </button>
               </div>
             </div>
           }
           @if (store.activeSession() && store.activeSession()?.id !== session.id) {
-            <p class="muted small no-print">
-              Finish the current practice before resuming this one.
-            </p>
+            <p class="muted small no-print">{{ 'reports.finishCurrentFirst' | t }}</p>
           }
         } @else {
           <form class="session-edit no-print" (ngSubmit)="saveSession()">
             <div class="filter-grid">
               <label
-                >Practice title<input
-                  name="sessionTitle"
-                  [(ngModel)]="sessionTitle"
-                  maxlength="120" /></label
+                >{{ 'reports.practiceTitle' | t
+                }}<input name="sessionTitle" [(ngModel)]="sessionTitle" maxlength="120" /></label
               ><label
-                >Location<input
-                  name="sessionLocation"
-                  [(ngModel)]="sessionLocation"
-                  maxlength="160"
+                >{{ 'practice.location' | t
+                }}<input name="sessionLocation" [(ngModel)]="sessionLocation" maxlength="160"
               /></label>
             </div>
             <label
-              >Practice notes<textarea
-                name="sessionNotes"
-                [(ngModel)]="sessionNotes"
-                rows="3"
-              ></textarea>
+              >{{ 'reports.practiceNotes' | t
+              }}<textarea name="sessionNotes" [(ngModel)]="sessionNotes" rows="3"></textarea>
             </label>
             <div class="inline-actions">
               <button type="button" class="button secondary" (click)="editingSession = false">
-                Cancel</button
+                {{ 'common.cancel' | t }}</button
               ><button type="submit" class="button primary" [disabled]="busy()">
-                Save practice
+                {{ 'reports.savePractice' | t }}
               </button>
             </div>
           </form>
@@ -376,24 +389,24 @@
       </section>
     }
 
-    <section class="summary-strip" aria-label="Observation summary">
+    <section class="summary-strip" [attr.aria-label]="'reports.summaryAria' | t">
       <div>
         <strong>{{ summary().total }}</strong
-        ><span>Recorded locations</span>
+        ><span>{{ 'reports.recordedLocations' | t }}</span>
       </div>
       <div>
         <strong
           >{{ summary().classifiedContacts }}<small>/ {{ summary().total }}</small></strong
-        ><span>Contact types recorded</span>
+        ><span>{{ 'reports.contactTypesRecorded' | t }}</span>
       </div>
       <div>
         <strong
           >{{ summary().classifiedResults }}<small>/ {{ summary().total }}</small></strong
-        ><span>Results recorded</span>
+        ><span>{{ 'reports.resultsRecorded' | t }}</span>
       </div>
       <div>
         <strong>{{ summary().sessions }}</strong
-        ><span>{{ summary().sessions === 1 ? 'Practice' : 'Practices' }} in view</span>
+        ><span>{{ 'reports.practicesInView' | t: { count: summary().sessions } }}</span>
       </div>
     </section>
 
@@ -401,79 +414,79 @@
       <section class="card empty-state">
         <span class="empty-mark" aria-hidden="true">◇</span>
         <h3>
-          {{
-            scopeEvents().length ? 'No contacts match this view.' : 'A fresh page in the notebook.'
-          }}
+          {{ (scopeEvents().length ? 'reports.noMatchHeading' : 'reports.freshHeading') | t }}
         </h3>
         <p>
-          {{
-            scopeEvents().length
-              ? 'Try a wider date range, another practice, or fewer filters.'
-              : 'Record a few batted balls at practice to build a spray chart. A field tap is all it takes.'
-          }}
+          {{ (scopeEvents().length ? 'reports.noMatchText' : 'reports.freshText') | t }}
         </p>
         @if (scopeEvents().length) {
-          <button class="button primary" (click)="resetFilters()">Show all observations</button>
+          <button class="button primary" (click)="resetFilters()">
+            {{ 'reports.showAll' | t }}
+          </button>
         } @else {
-          <a class="button primary" routerLink="/">Head to practice</a>
+          <a class="button primary" routerLink="/">{{ 'reports.headToPractice' | t }}</a>
         }
       </section>
     } @else {
       <div class="report-layout">
-        <section class="card chart-panel" aria-label="Contact locations">
+        <section class="card chart-panel" [attr.aria-label]="'reports.locationsAria' | t">
           <div class="section-heading">
             <div>
-              <p class="eyebrow">WHERE THE BALL WENT</p>
+              <p class="eyebrow">{{ 'reports.whereEyebrow' | t }}</p>
               <h3>
                 {{
-                  view() === 'heat'
-                    ? 'Contact density'
+                  (view() === 'heat'
+                    ? 'reports.densityGrid'
                     : view() === 'history'
-                      ? 'Observation history'
-                      : 'Spray chart'
+                      ? 'reports.history'
+                      : 'reports.sprayChart'
+                  ) | t
                 }}
               </h3>
             </div>
-            <span class="count-pill">{{ summary().total }} contacts</span>
+            <span class="count-pill">{{
+              'reports.recordedContacts' | t: { count: summary().total }
+            }}</span>
           </div>
           <div class="chart-toolbar no-print">
-            <div class="view-switch" aria-label="Report view">
+            <div class="view-switch" [attr.aria-label]="'reports.viewAria' | t">
               <button
                 [class.selected]="view() === 'spray'"
                 [attr.aria-pressed]="view() === 'spray'"
                 (click)="view.set('spray')"
               >
-                Spray
+                {{ 'reports.view.spray' | t }}
               </button>
               <button
                 [class.selected]="view() === 'heat'"
                 [attr.aria-pressed]="view() === 'heat'"
                 (click)="view.set('heat')"
               >
-                Heat
+                {{ 'reports.view.heat' | t }}
               </button>
               <button
                 [class.selected]="view() === 'history'"
                 [attr.aria-pressed]="view() === 'history'"
                 (click)="view.set('history')"
               >
-                History
+                {{ 'reports.view.history' | t }}
               </button>
             </div>
             @if (view() !== 'history') {
               <label class="color-select"
-                >Color by<select [ngModel]="colorBy()" (ngModelChange)="colorBy.set($event)">
-                  <option value="contactType">Contact type</option>
-                  <option value="result">Result</option>
-                  <option value="hardHit">Hard hit rating</option>
+                >{{ 'reports.colorBy' | t
+                }}<select [ngModel]="colorBy()" (ngModelChange)="colorBy.set($event)">
+                  <option value="contactType">{{ 'reports.filterByContact' | t }}</option>
+                  <option value="result">{{ 'reports.filterByResult' | t }}</option>
+                  <option value="hardHit">{{ 'reports.hardHitRating' | t }}</option>
                 </select></label
               >
             }
           </div>
 
           @if (view() !== 'history') {
-            <div class="fence-toolbar no-print" aria-label="Outfield fence presets">
-              <span class="fence-toolbar-title">Outfield wall:</span>
+            <div class="fence-toolbar no-print" [attr.aria-label]="'reports.fenceAria' | t">
+              <span class="fence-toolbar-title">{{ 'reports.outfieldWall' | t }}</span>
               <div class="fence-preset-pills">
                 <button
                   type="button"
@@ -481,7 +494,7 @@
                   [class.selected]="selectedFencePreset() === 'high_school'"
                   (click)="selectFencePreset('high_school')"
                 >
-                  High School (390')
+                  {{ 'reports.fencePill.high_school' | t }}
                 </button>
                 <button
                   type="button"
@@ -489,7 +502,7 @@
                   [class.selected]="selectedFencePreset() === 'college'"
                   (click)="selectFencePreset('college')"
                 >
-                  College (405')
+                  {{ 'reports.fencePill.college' | t }}
                 </button>
                 <button
                   type="button"
@@ -497,7 +510,7 @@
                   [class.selected]="selectedFencePreset() === 'little_league'"
                   (click)="selectFencePreset('little_league')"
                 >
-                  Little League (200')
+                  {{ 'reports.fencePill.little_league' | t }}
                 </button>
                 <button
                   type="button"
@@ -505,7 +518,7 @@
                   [class.selected]="selectedFencePreset() === 'softball'"
                   (click)="selectFencePreset('softball')"
                 >
-                  Softball (220')
+                  {{ 'reports.fencePill.softball' | t }}
                 </button>
                 <button
                   type="button"
@@ -513,7 +526,7 @@
                   [class.selected]="selectedFencePreset() === 'custom'"
                   (click)="selectFencePreset('custom')"
                 >
-                  Custom wall
+                  {{ 'reports.customWall' | t }}
                   @if (!canAccessCustomFence()) {
                     <span class="pro-tag">✦ PRO</span>
                   }
@@ -525,14 +538,14 @@
               @if (canAccessCustomFence() || customPreviewMode()) {
                 <div class="custom-fence-editor no-print">
                   <div class="custom-fence-header">
-                    <strong>Custom Wall Distances (feet)</strong>
+                    <strong>{{ 'reports.customWallHeading' | t }}</strong>
                     @if (!canAccessCustomFence()) {
-                      <span class="preview-badge">Interactive Demo Mode</span>
+                      <span class="preview-badge">{{ 'reports.demoMode' | t }}</span>
                     }
                   </div>
                   <div class="custom-fence-grid">
                     <label
-                      >LF Line (ft)
+                      >{{ 'reports.fence.leftLine' | t }}
                       <input
                         type="number"
                         min="150"
@@ -542,7 +555,7 @@
                       />
                     </label>
                     <label
-                      >LC Alley (ft)
+                      >{{ 'reports.fence.leftCenter' | t }}
                       <input
                         type="number"
                         min="180"
@@ -552,7 +565,7 @@
                       />
                     </label>
                     <label
-                      >Center (ft)
+                      >{{ 'reports.fence.center' | t }}
                       <input
                         type="number"
                         min="200"
@@ -562,7 +575,7 @@
                       />
                     </label>
                     <label
-                      >RC Alley (ft)
+                      >{{ 'reports.fence.rightCenter' | t }}
                       <input
                         type="number"
                         min="180"
@@ -572,7 +585,7 @@
                       />
                     </label>
                     <label
-                      >RF Line (ft)
+                      >{{ 'reports.fence.rightLine' | t }}
                       <input
                         type="number"
                         min="150"
@@ -586,20 +599,17 @@
               } @else {
                 <div class="pro-preview-card no-print">
                   <div class="pro-preview-header">
-                    <span class="pro-badge">✦ PRO FEATURE</span>
-                    <h4>Custom Outfield Fence & Wall Lines</h4>
+                    <span class="pro-badge">{{ 'reports.proFeature' | t }}</span>
+                    <h4>{{ 'reports.customFenceHeading' | t }}</h4>
                   </div>
-                  <p>
-                    Tailor the outfield fence to your home ballpark's exact dimensions (e.g. 315'
-                    LF, 380' CF) to see which fly balls clear your real wall.
-                  </p>
+                  <p>{{ 'reports.customFenceText' | t }}</p>
                   <div class="pro-preview-actions">
                     <button
                       type="button"
                       class="button secondary small"
                       (click)="customPreviewMode.set(true)"
                     >
-                      Preview with demo dimensions
+                      {{ 'reports.previewDemo' | t }}
                     </button>
                     <button
                       type="button"
@@ -616,17 +626,15 @@
             <div class="fence-analytics-strip no-print">
               <span
                 class="fence-metric-chip warning-track-chip"
-                title="Fly balls landing within 15 ft of the fence"
+                [title]="'reports.warningTrackTitle' | t"
               >
                 <span class="chip-dot warning-track-dot"></span>
-                <b>{{ fenceStats().warningTrack }}</b> Warning track
+                <b>{{ fenceStats().warningTrack }}</b> {{ 'reports.warningTrack' | t }}
               </span>
-              <span
-                class="fence-metric-chip homerun-chip"
-                title="Balls that clear the selected outfield wall"
-              >
+              <span class="fence-metric-chip homerun-chip" [title]="'reports.overFenceTitle' | t">
                 <span class="chip-dot homerun-dot">★</span>
-                <b>{{ fenceStats().homeRuns }}</b> Over {{ activeFenceConfig().centerFeet }}' fence
+                <b>{{ fenceStats().homeRuns }}</b>
+                {{ 'reports.overFence' | t: { feet: activeFenceConfig().centerFeet } }}
               </span>
             </div>
           }
@@ -642,21 +650,17 @@
               [shapeMarkers]="store.settings().shapeMarkers ?? false"
               [fenceConfig]="activeFenceConfig()"
               (selectEvent)="selectObservation($event)"
-              label="Spray chart of the filtered observations. Select a recorded contact to inspect or edit it."
+              [label]="'reports.fieldLabel' | t"
             />
             <p class="chart-caption">
-              {{
-                view() === 'heat'
-                  ? 'Darker areas show more recorded contacts. Select History to inspect individual observations.'
-                  : 'Every mark is a recorded contact. Tap a mark to see its details.'
-              }}
+              {{ (view() === 'heat' ? 'reports.heatCaption' : 'reports.sprayCaption') | t }}
             </p>
             <div
               class="chart-legend"
               [class.palette-colorblind]="store.settings().colorPalette === 'colorblind'"
               [class.palette-high-contrast]="store.settings().colorPalette === 'high_contrast'"
               [class.shapes-enabled]="store.settings().shapeMarkers"
-              aria-label="Chart legend"
+              [attr.aria-label]="'reports.legendAria' | t"
             >
               @if (colorBy() === 'contactType') {
                 @for (item of contactDistribution(); track item.type) {
@@ -692,7 +696,8 @@
                 }
               }
               <span
-                ><i class="legend-dot unclassified shape-circle" aria-hidden="true"></i>Unclassified
+                ><i class="legend-dot unclassified shape-circle" aria-hidden="true"></i
+                >{{ 'reports.unclassified' | t }}
                 <b>{{
                   summary().total -
                     (colorBy() === 'contactType'
@@ -709,59 +714,76 @@
             <article
               id="selected-observation"
               class="selected-observation no-print"
-              aria-label="Selected observation"
+              [attr.aria-label]="'reports.selectedAria' | t"
             >
               <div class="section-heading">
                 <div>
-                  <p class="eyebrow">CONTACT #{{ event.sequence }}</p>
+                  <p class="eyebrow">{{ 'reports.contactNumber' | t: { n: event.sequence } }}</p>
                   <h4>{{ eventName(event) }}</h4>
                 </div>
                 <button
                   class="text-button"
                   (click)="selectedId.set('')"
-                  aria-label="Close selected observation"
+                  [attr.aria-label]="'reports.closeSelected' | t"
                 >
-                  Close
+                  {{ 'common.close' | t }}
                 </button>
               </div>
               <p>
-                {{ event.timestamp | date: 'MMM d, y · h:mm:ss a' }} ·
-                {{ event.pitcherHand ? event.pitcherHand + 'HP' : 'Pitcher unknown' }} · Bats
-                {{ event.batterSide || 'unknown' }}
+                {{ event.timestamp | localDate: 'date.monthDayYearSeconds' }} ·
+                {{
+                  event.pitcherHand
+                    ? i18n.pitcherHandLabels()[event.pitcherHand]
+                    : ('reports.pitcherUnknown' | t)
+                }}
+                ·
+                {{
+                  event.batterSide
+                    ? ('roster.bats.' + event.batterSide | t)
+                    : ('reports.batsUnknown' | t)
+                }}
               </p>
               <p>
                 <strong>{{
-                  event.contactType ? contactLabels[event.contactType] : 'Contact unclassified'
+                  event.contactType
+                    ? contactLabels[event.contactType]
+                    : ('reports.contactUnclassified' | t)
                 }}</strong>
-                · {{ event.result ? resultLabels[event.result] : 'Result unclassified' }}
+                ·
+                {{ event.result ? resultLabels[event.result] : ('reports.resultUnclassified' | t) }}
                 @if (event.hardHit !== null && event.hardHit !== undefined) {
                   · <strong>{{ hardHitLabels[event.hardHit] }}</strong>
                 }
               </p>
               <p class="muted small">
-                {{ sessionName(event.sessionId) }} · Turn {{ event.turnSequence }}, contact
-                {{ event.contactSequence }}
+                {{ sessionName(event.sessionId) }} ·
+                {{
+                  'reports.turnContact'
+                    | t: { turn: event.turnSequence, contact: event.contactSequence }
+                }}
               </p>
               @if (event.notes) {
                 <p class="saved-note">{{ event.notes }}</p>
               }
               @for (note of selectedNotes(); track note.id) {
                 <p class="saved-note">
-                  <small class="muted">{{ note.timestamp | date: 'MMM d · h:mm a' }}</small
+                  <small class="muted">{{ note.timestamp | localDate: 'date.monthDayTime' }}</small
                   ><br />{{ note.text }}
                 </p>
               }
               @if (view() === 'history') {
                 <button class="button secondary" (click)="view.set('spray')">
-                  Show on spray chart
+                  {{ 'reports.showOnChart' | t }}
                 </button>
               }
-              <button class="button primary" (click)="openEditor(event)">Edit observation</button>
+              <button class="button primary" (click)="openEditor(event)">
+                {{ 'reports.editObservation' | t }}
+              </button>
             </article>
           }
 
           @if (view() === 'history') {
-            <div class="history-list no-print" aria-label="Observation history">
+            <div class="history-list no-print" [attr.aria-label]="'reports.history' | t">
               <div class="history-bulk-toolbar">
                 <label class="check-label select-all-label">
                   <input
@@ -776,14 +798,15 @@
                   <span>
                     {{
                       selectedEventIds().size > 0
-                        ? selectedEventIds().size + ' of ' + history().length + ' selected'
-                        : 'Select all (' + history().length + ')'
+                        ? ('reports.selectedOf'
+                          | t: { count: selectedEventIds().size, total: history().length })
+                        : ('reports.selectAllCount' | t: { count: history().length })
                     }}
                   </span>
                 </label>
                 @if (selectedEventIds().size > 0) {
                   <button type="button" class="text-button" (click)="deselectAll()">
-                    Deselect all
+                    {{ 'reports.deselectAll' | t }}
                   </button>
                 }
               </div>
@@ -791,11 +814,11 @@
               @if (selectedEventIds().size > 0) {
                 <div class="bulk-action-bar">
                   <div class="bulk-move-controls">
-                    <label class="visually-hidden" for="bulk-target-select"
-                      >Move selected contacts to player</label
-                    >
+                    <label class="visually-hidden" for="bulk-target-select">{{
+                      'reports.moveSelectedLabel' | t
+                    }}</label>
                     <select id="bulk-target-select" [(ngModel)]="bulkTargetPlayerId">
-                      <option value="">Move to hitter…</option>
+                      <option value="">{{ 'reports.moveToHitter' | t }}</option>
                       @for (p of players(); track p.id) {
                         <option [value]="p.id">
                           {{ p.name }} {{ p.jerseyNumber ? '(#' + p.jerseyNumber + ')' : '' }}
@@ -808,22 +831,24 @@
                       [disabled]="!bulkTargetPlayerId || busy()"
                       (click)="moveSelectedEvents()"
                     >
-                      Move {{ selectedEventIds().size }}
+                      {{ 'reports.moveCount' | t: { count: selectedEventIds().size } }}
                     </button>
                   </div>
                   @if (bulkDeletePending) {
                     <div class="bulk-delete-confirm-box">
-                      <span>Permanently delete {{ selectedEventIds().size }} contacts?</span>
+                      <span>{{
+                        'reports.bulkDeleteConfirm' | t: { count: selectedEventIds().size }
+                      }}</span>
                       <button
                         type="button"
                         class="button danger small-btn"
                         [disabled]="busy()"
                         (click)="deleteSelectedEvents()"
                       >
-                        Delete
+                        {{ 'common.delete' | t }}
                       </button>
                       <button type="button" class="text-button" (click)="bulkDeletePending = false">
-                        Cancel
+                        {{ 'common.cancel' | t }}
                       </button>
                     </div>
                   } @else {
@@ -833,15 +858,13 @@
                       [disabled]="busy()"
                       (click)="bulkDeletePending = true"
                     >
-                      Delete {{ selectedEventIds().size }}
+                      {{ 'reports.deleteCount' | t: { count: selectedEventIds().size } }}
                     </button>
                   }
                 </div>
               }
 
-              <p class="muted small">
-                Newest first. Choose a contact to review it, or select contacts to move or delete.
-              </p>
+              <p class="muted small">{{ 'reports.historyHelp' | t }}</p>
               @for (event of visibleHistory(); track event.id) {
                 <div class="history-row-container" [class.active]="selectedId() === event.id">
                   <input
@@ -850,22 +873,27 @@
                     [checked]="isSelected(event.id)"
                     (click)="$event.stopPropagation()"
                     (change)="toggleSelectEvent(event.id)"
-                    [attr.aria-label]="'Select contact ' + event.sequence"
+                    [attr.aria-label]="'reports.selectContactAria' | t: { n: event.sequence }"
                   />
                   <button
                     class="history-event"
                     [class.active]="selectedId() === event.id"
                     (click)="selectObservation(event.id)"
                     [attr.aria-label]="
-                      'Select contact ' + event.sequence + ' for ' + eventName(event)
+                      'reports.selectContactForAria'
+                        | t: { n: event.sequence, name: eventName(event) }
                     "
                   >
                     <span class="event-sequence">{{ event.sequence }}</span>
                     <span class="event-main"
                       ><strong>{{ eventName(event) }}</strong
                       ><small
-                        >{{ event.timestamp | date: 'MMM d · h:mm a' }} ·
-                        {{ event.pitcherHand ? event.pitcherHand + 'HP' : 'Hand unknown' }}</small
+                        >{{ event.timestamp | localDate: 'date.monthDayTime' }} ·
+                        {{
+                          event.pitcherHand
+                            ? i18n.pitcherHandLabels()[event.pitcherHand]
+                            : ('reports.handUnknown' | t)
+                        }}</small
                       ></span
                     >
                     <span class="event-classification"
@@ -873,16 +901,16 @@
                         event.contactType
                           ? contactLabels[event.contactType]
                           : event.hardHit === 0
-                            ? 'Swing & miss'
-                            : 'Location only'
+                            ? ('baseball.miss' | t)
+                            : ('reports.locationOnly' | t)
                       }}</span
                       ><small
                         >{{
                           event.result
                             ? resultLabels[event.result]
                             : event.hardHit === 0
-                              ? 'Whiff'
-                              : 'No result recorded'
+                              ? ('reports.whiff' | t)
+                              : ('reports.noResult' | t)
                         }}{{
                           event.hardHit !== null && event.hardHit !== undefined
                             ? ' · ' + hardHitShortLabels[event.hardHit]
@@ -899,19 +927,22 @@
                   class="button secondary load-more"
                   (click)="historyLimit.set(historyLimit() + 40)"
                 >
-                  Show 40 more · {{ history().length - historyLimit() }} remaining
+                  {{ 'reports.showMore' | t: { count: history().length - historyLimit() } }}
                 </button>
               }
             </div>
           }
         </section>
 
-        <aside class="insights" aria-label="Coaching insights">
+        <aside class="insights" [attr.aria-label]="'reports.insightsAria' | t">
           <section class="card distribution-card">
-            <p class="eyebrow">QUALITY OF CONTACT</p>
-            <h3>Contact types</h3>
+            <p class="eyebrow">{{ 'reports.qualityEyebrow' | t }}</p>
+            <h3>{{ 'reports.contactTypes' | t }}</h3>
             <p class="muted small">
-              {{ summary().classifiedContacts }} classified of {{ summary().total }} locations
+              {{
+                'reports.classifiedOf'
+                  | t: { classified: summary().classifiedContacts, count: summary().total }
+              }}
             </p>
             <div class="distribution">
               @for (item of contactDistribution(); track item.type) {
@@ -935,15 +966,20 @@
               }
             </div>
             <p class="classification-note">
-              {{ summary().total - summary().classifiedContacts }} without a contact type.
-              Percentages use classified contacts only.
+              {{
+                'reports.withoutContactType'
+                  | t: { count: summary().total - summary().classifiedContacts }
+              }}
             </p>
           </section>
           <section class="card distribution-card">
-            <p class="eyebrow">RECORDED OUTCOMES</p>
-            <h3>Results</h3>
+            <p class="eyebrow">{{ 'reports.outcomesEyebrow' | t }}</p>
+            <h3>{{ 'reports.results' | t }}</h3>
             <p class="muted small">
-              {{ summary().classifiedResults }} classified of {{ summary().total }} locations
+              {{
+                'reports.classifiedOf'
+                  | t: { classified: summary().classifiedResults, count: summary().total }
+              }}
             </p>
             <div class="distribution">
               @for (item of resultDistribution(); track item.type) {
@@ -967,16 +1003,23 @@
               }
             </div>
             <p class="classification-note">
-              {{ summary().total - summary().classifiedResults }} without a result. Practice
-              outcomes are coach observations.
+              {{
+                'reports.withoutResult'
+                  | t: { count: summary().total - summary().classifiedResults }
+              }}
             </p>
           </section>
           <section class="card distribution-card">
-            <p class="eyebrow">HIT STRENGTH (0–5)</p>
-            <h3>Hard hit ratings</h3>
+            <p class="eyebrow">{{ 'reports.strengthEyebrow' | t }}</p>
+            <h3>{{ 'reports.hardHitRatings' | t }}</h3>
             <p class="muted small">
-              {{ summary().classifiedHardHits }} classified of {{ summary().total }} locations ·
-              {{ summary().contactHits }} contacts, {{ summary().swingsAndMisses }} whiffs
+              {{
+                'reports.classifiedOf'
+                  | t: { classified: summary().classifiedHardHits, count: summary().total }
+              }}
+              ·
+              {{ 'backup.contacts' | t: { count: summary().contactHits } }},
+              {{ 'reports.whiffs' | t: { count: summary().swingsAndMisses } }}
             </p>
             <div class="distribution">
               @for (item of hardHitDistribution(); track item.rating) {
@@ -1000,8 +1043,10 @@
               }
             </div>
             <p class="classification-note">
-              {{ summary().total - summary().classifiedHardHits }} without a hard-hit rating.
-              Percentages use classified observations only.
+              {{
+                'reports.withoutHardHit'
+                  | t: { count: summary().total - summary().classifiedHardHits }
+              }}
             </p>
           </section>
         </aside>
@@ -1018,79 +1063,94 @@
 
       <div class="secondary-grid">
         <section class="card direction-card">
-          <p class="eyebrow">USING THE WHOLE FIELD</p>
-          <h3>Directional tendencies</h3>
+          <p class="eyebrow">{{ 'scout.direction' | t }}</p>
+          <h3>{{ 'reports.directionalTendencies' | t }}</h3>
           <div class="direction-stats">
             <div>
               <strong>{{ percent(summary().directions.pull, directionalTotal()) }}</strong
-              ><span>Pull</span><small>{{ summary().directions.pull }} contacts</small>
+              ><span>{{ 'reports.pull' | t }}</span
+              ><small>{{ 'backup.contacts' | t: { count: summary().directions.pull } }}</small>
             </div>
             <div>
               <strong>{{ percent(summary().directions.center, directionalTotal()) }}</strong
-              ><span>Center</span><small>{{ summary().directions.center }} contacts</small>
+              ><span>{{ 'reports.center' | t }}</span
+              ><small>{{ 'backup.contacts' | t: { count: summary().directions.center } }}</small>
             </div>
             <div>
               <strong>{{ percent(summary().directions.opposite, directionalTotal()) }}</strong
-              ><span>Opposite</span><small>{{ summary().directions.opposite }} contacts</small>
+              ><span>{{ 'reports.opposite' | t }}</span
+              ><small>{{ 'backup.contacts' | t: { count: summary().directions.opposite } }}</small>
             </div>
           </div>
           <p class="muted small">
-            Based on {{ directionalTotal() }} contacts with a known batting side and direction.
-            Center is within 15° of center field. {{ summary().directions.unknown }} excluded
-            because direction or batting side is unknown.
+            {{
+              'reports.directionNote'
+                | t: { count: directionalTotal(), unknown: summary().directions.unknown }
+            }}
           </p>
         </section>
         <section class="card">
-          <p class="eyebrow">PITCHER MATCHUPS</p>
-          <h3>By pitcher hand</h3>
+          <p class="eyebrow">{{ 'reports.matchupsEyebrow' | t }}</p>
+          <h3>{{ 'reports.byPitcherHand' | t }}</h3>
           <div class="hand-stats">
             <button
               (click)="setFilter('pitcherHand', filters().pitcherHand === 'R' ? '' : 'R')"
               [class.active]="filters().pitcherHand === 'R'"
               [attr.aria-pressed]="filters().pitcherHand === 'R'"
             >
-              <span>vs. RHP</span><strong>{{ summary().pitcherHands.R }}</strong
-              ><small>{{ percent(summary().pitcherHands.R, summary().total) }} of locations</small>
+              <span>{{ 'reports.vsHand' | t: { hand: ('practice.rhp' | t) } }}</span
+              ><strong>{{ summary().pitcherHands.R }}</strong
+              ><small>{{
+                'reports.ofLocations'
+                  | t: { pct: percent(summary().pitcherHands.R, summary().total) }
+              }}</small>
             </button>
             <button
               (click)="setFilter('pitcherHand', filters().pitcherHand === 'L' ? '' : 'L')"
               [class.active]="filters().pitcherHand === 'L'"
               [attr.aria-pressed]="filters().pitcherHand === 'L'"
             >
-              <span>vs. LHP</span><strong>{{ summary().pitcherHands.L }}</strong
-              ><small>{{ percent(summary().pitcherHands.L, summary().total) }} of locations</small>
+              <span>{{ 'reports.vsHand' | t: { hand: ('practice.lhp' | t) } }}</span
+              ><strong>{{ summary().pitcherHands.L }}</strong
+              ><small>{{
+                'reports.ofLocations'
+                  | t: { pct: percent(summary().pitcherHands.L, summary().total) }
+              }}</small>
             </button>
           </div>
           <p class="muted small">
-            {{ summary().pitcherHands.unknown }} with unknown pitcher hand.
-            <span class="no-print">Tap a matchup to filter the full report.</span>
+            {{ 'reports.unknownHandCount' | t: { count: summary().pitcherHands.unknown } }}
+            <span class="no-print">{{ 'reports.tapMatchup' | t }}</span>
           </p>
         </section>
         <section class="card comparison-card">
-          <p class="eyebrow">WATCHING THE PROGRESS</p>
-          <h3>Recent vs. season</h3>
+          <p class="eyebrow">{{ 'reports.progressEyebrow' | t }}</p>
+          <h3>{{ 'reports.recentVsSeason' | t }}</h3>
           <p class="muted small">
-            {{ player() ? player()?.name : 'The team' }} · All practices and classifications
+            {{ player() ? player()?.name : ('reports.theTeam' | t) }} ·
+            {{ 'reports.allPracticesAndClasses' | t }}
           </p>
           <table>
             <caption class="visually-hidden">
-              Last 14 days compared with the full team season
+              {{
+                'reports.comparisonCaption' | t
+              }}
             </caption>
             <thead>
               <tr>
-                <th scope="col">Recorded</th>
-                <th scope="col">14 days</th>
-                <th scope="col">Season</th>
+                <th scope="col">{{ 'reports.recorded' | t }}</th>
+                <th scope="col">{{ 'reports.preset.days' | t: { n: 14 } }}</th>
+                <th scope="col">{{ 'reports.preset.season' | t }}</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <th scope="row">Locations</th>
+                <th scope="row">{{ 'reports.locations' | t }}</th>
                 <td>{{ comparison().recent.total }}</td>
                 <td>{{ comparison().season.total }}</td>
               </tr>
               <tr>
-                <th scope="row">Line drives</th>
+                <th scope="row">{{ 'proa.m.lineDrive' | t }}</th>
                 <td>
                   {{
                     percent(
@@ -1109,15 +1169,17 @@
                 </td>
               </tr>
               <tr>
-                <th scope="row">Classified contacts</th>
+                <th scope="row">{{ 'reports.classifiedContacts' | t }}</th>
                 <td>{{ comparison().recent.classifiedContacts }}</td>
                 <td>{{ comparison().season.classifiedContacts }}</td>
               </tr>
             </tbody>
           </table>
           <p class="classification-note">
-            Line-drive share uses classified contacts. Recent: {{ comparison().dates.from }} through
-            {{ comparison().dates.through }}. Season includes recent activity.
+            {{
+              'reports.comparisonNote'
+                | t: { from: comparison().dates.from, through: comparison().dates.through }
+            }}
           </p>
         </section>
       </div>
@@ -1126,8 +1188,10 @@
         <section class="card activity-card">
           <div class="section-heading">
             <div>
-              <p class="eyebrow">TIME AT THE PLATE</p>
-              <h3>{{ player() ? 'Practice activity' : 'Contacts by hitter' }}</h3>
+              <p class="eyebrow">{{ 'reports.plateEyebrow' | t }}</p>
+              <h3>
+                {{ (player() ? 'reports.practiceActivity' : 'reports.contactsByHitter') | t }}
+              </h3>
             </div>
           </div>
           @if (player()) {
@@ -1137,9 +1201,13 @@
                 routerLink="/reports"
                 [queryParams]="{ player: player()?.id, session: item.session.id }"
                 ><span
-                  ><strong>{{ item.session.title || 'Batting practice' }}</strong
-                  ><small>{{ item.session.startedAt | date: 'MMM d, y' }}</small></span
-                ><b>{{ item.count }} <small>contacts</small></b
+                  ><strong>{{ i18n.sessionTitle(item.session.title) }}</strong
+                  ><small>{{
+                    item.session.startedAt | localDate: 'date.monthDayYear'
+                  }}</small></span
+                ><b
+                  >{{ item.count }}
+                  <small>{{ 'home.countContacts' | t: { count: item.count } }}</small></b
                 ><span aria-hidden="true">↗</span></a
               >
             }
@@ -1152,58 +1220,64 @@
                 ><span
                   ><strong>{{ item.player.name }}</strong
                   ><small>{{
-                    item.player.jerseyNumber ? '#' + item.player.jerseyNumber : 'Player report'
+                    item.player.jerseyNumber
+                      ? '#' + item.player.jerseyNumber
+                      : ('reports.playerReportLink' | t)
                   }}</small></span
-                ><b>{{ item.count }} <small>contacts</small></b
+                ><b
+                  >{{ item.count }}
+                  <small>{{ 'home.countContacts' | t: { count: item.count } }}</small></b
                 ><span aria-hidden="true">↗</span></a
               >
             }
           }
         </section>
         <section class="card notebook-card">
-          <p class="eyebrow">TAKE IT TO THE NEXT PRACTICE</p>
-          <h3>Coaching notes</h3>
+          <p class="eyebrow">{{ 'reports.nextPracticeEyebrow' | t }}</p>
+          <h3>{{ 'reports.coachingNotes' | t }}</h3>
           <div class="notes-list">
             @for (note of reportNotes(); track note.id) {
               <article>
                 <div class="note-header">
-                  <time>{{ note.timestamp | date: 'MMM d, y · h:mm a' }}</time>
+                  <time>{{ note.timestamp | localDate: 'date.monthDayYearTime' }}</time>
                   <div class="note-actions inline-actions no-print">
                     <button
                       type="button"
                       class="text-button"
                       (click)="startEditNote(note)"
                       [attr.aria-label]="
-                        'Edit note from ' + (note.timestamp | date: 'MMM d, y · h:mm a')
+                        'reports.editNoteAria'
+                          | t: { date: (note.timestamp | localDate: 'date.monthDayYearTime') }
                       "
                     >
-                      Edit
+                      {{ 'common.edit' | t }}
                     </button>
                     <button
                       type="button"
                       class="text-button danger-text"
                       (click)="promptDeleteNote(note.id)"
                       [attr.aria-label]="
-                        'Delete note from ' + (note.timestamp | date: 'MMM d, y · h:mm a')
+                        'reports.deleteNoteAria'
+                          | t: { date: (note.timestamp | localDate: 'date.monthDayYearTime') }
                       "
                     >
-                      Delete
+                      {{ 'common.delete' | t }}
                     </button>
                   </div>
                 </div>
 
                 @if (editingNoteId === note.id) {
                   <form class="note-edit-form no-print" (ngSubmit)="saveNoteEdit(note.id)">
-                    <label [for]="'edit-note-' + note.id" class="visually-hidden"
-                      >Edit coaching note</label
-                    >
+                    <label [for]="'edit-note-' + note.id" class="visually-hidden">{{
+                      'reports.editNoteLabel' | t
+                    }}</label>
                     <textarea
                       [id]="'edit-note-' + note.id"
                       name="editNoteText"
                       [(ngModel)]="editNoteText"
                       rows="3"
                       maxlength="10000"
-                      placeholder="What did you notice?"
+                      [placeholder]="'practice.addNote' | t"
                       required
                     ></textarea>
                     <div class="inline-actions">
@@ -1212,10 +1286,10 @@
                         class="button secondary small-button"
                         [disabled]="!editNoteText.trim() || busy()"
                       >
-                        Save
+                        {{ 'common.save' | t }}
                       </button>
                       <button type="button" class="text-button" (click)="cancelEditNote()">
-                        Cancel
+                        {{ 'common.cancel' | t }}
                       </button>
                     </div>
                   </form>
@@ -1225,15 +1299,15 @@
 
                 @if (deleteNotePendingId === note.id) {
                   <div class="delete-confirm note-delete-confirm no-print" role="alert">
-                    <strong>Delete this coaching note?</strong>
-                    <p>This note will be permanently removed. It cannot be undone.</p>
+                    <strong>{{ 'reports.deleteNoteConfirm' | t }}</strong>
+                    <p>{{ 'reports.deleteNoteText' | t }}</p>
                     <div class="inline-actions">
                       <button
                         type="button"
                         class="button secondary small-button"
                         (click)="cancelDeleteNote()"
                       >
-                        Keep note
+                        {{ 'reports.keepNote' | t }}
                       </button>
                       <button
                         type="button"
@@ -1241,37 +1315,37 @@
                         (click)="deleteNote(note.id)"
                         [disabled]="busy()"
                       >
-                        Delete permanently
+                        {{ 'reports.deleteForever' | t }}
                       </button>
                     </div>
                   </div>
                 }
               </article>
             } @empty {
-              <p class="muted">
-                A cue, a small adjustment, something to try next time. Keep it here.
-              </p>
+              <p class="muted">{{ 'reports.notesEmpty' | t }}</p>
             }
           </div>
           <form class="note-form no-print" (ngSubmit)="addNote()">
             <label
               >{{
-                player() ? 'Note for ' + player()?.name : session() ? 'Practice note' : 'Team note'
+                player()
+                  ? ('reports.noteFor' | t: { name: player()?.name ?? '' })
+                  : ((session() ? 'reports.practiceNote' : 'reports.teamNote') | t)
               }}<textarea
                 name="coachingNote"
                 [(ngModel)]="noteText"
                 rows="3"
-                placeholder="What did you notice?"
+                [placeholder]="'practice.addNote' | t"
                 maxlength="10000"
               ></textarea></label
             ><button class="button secondary" [disabled]="!noteText.trim() || busy()">
-              Save note
+              {{ 'practice.saveNote' | t }}
             </button>
           </form>
         </section>
       </div>
     }
-    <p class="report-footer">Pinch Hitter · A coach's notebook, owned by you.</p>
+    <p class="report-footer">{{ 'reports.footer' | t }}</p>
   }
 </div>
 
@@ -1285,36 +1359,46 @@
     <form (ngSubmit)="saveEvent()">
       <header class="editor-header">
         <div>
-          <p class="eyebrow">CONTACT #{{ draft.sequence }} · {{ eventName(draft) }}</p>
-          <h2 id="edit-heading">Edit observation</h2>
+          <p class="eyebrow">
+            {{ 'reports.contactNumber' | t: { n: draft.sequence } }} · {{ eventName(draft) }}
+          </p>
+          <h2 id="edit-heading">{{ 'reports.editObservation' | t }}</h2>
         </div>
         <button
           type="button"
           class="close-button"
           (click)="cancelEditor()"
-          aria-label="Close without saving"
+          [attr.aria-label]="'reports.closeWithoutSaving' | t"
         >
           ×
         </button>
       </header>
-      <p class="muted">Make your correction, then save when you're ready.</p>
+      <p class="muted">{{ 'reports.editorHelp' | t }}</p>
       <div class="editor-columns">
         <div>
-          <p class="field-edit-label">Tap the field to correct the location</p>
+          <p class="field-edit-label">{{ 'reports.tapToCorrect' | t }}</p>
           <app-field
             [events]="[draft]"
             [selectedId]="draft.id"
             [interactive]="true"
             (location)="relocate($event)"
-            label="Correct the recorded ball location. Changes are saved only when you choose Save changes."
+            [label]="'reports.correctLabel' | t"
           />
           <p class="muted small">
-            Location: {{ draft.fieldX | number: '1.3-3' }}, {{ draft.fieldY | number: '1.3-3' }}
+            {{
+              'reports.locationCoords'
+                | t
+                  : {
+                      x: (draft.fieldX | number: '1.3-3' : i18n.currentLang()) ?? '',
+                      y: (draft.fieldY | number: '1.3-3' : i18n.currentLang()) ?? '',
+                    }
+            }}
           </p>
         </div>
         <div class="editor-inputs">
           <label
-            >Date and time<input
+            >{{ 'reports.dateTime' | t
+            }}<input
               type="datetime-local"
               name="eventTime"
               [(ngModel)]="editTime"
@@ -1322,7 +1406,8 @@
               required
           /></label>
           <label
-            >Hitter / Player<select name="eventPlayer" [(ngModel)]="draft.playerId">
+            >{{ 'reports.reassignHitter' | t
+            }}<select name="eventPlayer" [(ngModel)]="draft.playerId">
               @for (p of players(); track p.id) {
                 <option [value]="p.id">
                   {{ p.name }} {{ p.jerseyNumber ? '(#' + p.jerseyNumber + ')' : '' }}
@@ -1332,54 +1417,64 @@
           >
           <div class="filter-grid">
             <label
-              >Pitcher hand<select name="pitcherHand" [(ngModel)]="draft.pitcherHand">
-                <option [ngValue]="null">Unknown</option>
-                <option value="R">RHP</option>
-                <option value="L">LHP</option>
+              >{{ 'reports.filterByPitcher' | t
+              }}<select name="pitcherHand" [(ngModel)]="draft.pitcherHand">
+                <option [ngValue]="null">{{ 'reports.unknown' | t }}</option>
+                <option value="R">{{ 'practice.rhp' | t }}</option>
+                <option value="L">{{ 'practice.lhp' | t }}</option>
               </select></label
             >
             <label
-              >Batter side<select name="batterSide" [(ngModel)]="draft.batterSide">
-                <option [ngValue]="null">Unknown</option>
-                <option value="R">Right</option>
-                <option value="L">Left</option>
+              >{{ 'reports.batterSide' | t
+              }}<select name="batterSide" [(ngModel)]="draft.batterSide">
+                <option [ngValue]="null">{{ 'reports.unknown' | t }}</option>
+                <option value="R">{{ 'baseball.right' | t }}</option>
+                <option value="L">{{ 'baseball.left' | t }}</option>
               </select></label
             >
           </div>
           <label
-            >Contact type<select
-              aria-label="Contact type"
+            >{{ 'reports.filterByContact' | t
+            }}<select
+              [attr.aria-label]="'reports.filterByContact' | t"
               name="contactType"
               [(ngModel)]="draft.contactType"
             >
-              <option [ngValue]="null">Unclassified</option>
+              <option [ngValue]="null">{{ 'reports.unclassified' | t }}</option>
               @for (type of contactTypes; track type) {
                 <option [value]="type">{{ contactLabels[type] }}</option>
               }
             </select></label
           >
           <label
-            >Result<select aria-label="Result" name="result" [(ngModel)]="draft.result">
-              <option [ngValue]="null">Unclassified</option>
+            >{{ 'reports.filterByResult' | t
+            }}<select
+              [attr.aria-label]="'reports.filterByResult' | t"
+              name="result"
+              [(ngModel)]="draft.result"
+            >
+              <option [ngValue]="null">{{ 'reports.unclassified' | t }}</option>
               @for (result of results; track result) {
                 <option [value]="result">{{ resultLabels[result] }}</option>
               }
             </select></label
           >
           <label
-            >Hard hit rating<select
-              aria-label="Hard hit rating"
+            >{{ 'reports.hardHitRating' | t
+            }}<select
+              [attr.aria-label]="'reports.hardHitRating' | t"
               name="hardHit"
               [(ngModel)]="draft.hardHit"
             >
-              <option [ngValue]="null">Unclassified</option>
+              <option [ngValue]="null">{{ 'reports.unclassified' | t }}</option>
               @for (rating of hardHitRatings; track rating) {
                 <option [ngValue]="rating">{{ hardHitLabels[rating] }}</option>
               }
             </select></label
           >
           <label
-            >Observation notes<textarea
+            >{{ 'reports.observationNotes' | t
+            }}<textarea
               name="eventNotes"
               [(ngModel)]="draft.notes"
               rows="3"
@@ -1388,7 +1483,10 @@
           </label>
           @for (note of editAssociatedNotes; track note.id) {
             <label
-              >Timestamped note · {{ note.timestamp | date: 'MMM d, h:mm a' }}
+              >{{
+                'reports.timestampedNote'
+                  | t: { date: (note.timestamp | localDate: 'date.monthDayTime') }
+              }}
               <textarea
                 [name]="'linked-note-' + note.id"
                 [(ngModel)]="note.text"
@@ -1405,18 +1503,18 @@
       }
       @if (deletePending) {
         <div class="delete-confirm" role="alert">
-          <strong>Delete this recorded contact?</strong>
-          <p>This removes the observation and its event notes. It cannot be undone here.</p>
+          <strong>{{ 'reports.deleteContactConfirm' | t }}</strong>
+          <p>{{ 'reports.deleteContactText' | t }}</p>
           <div class="inline-actions">
             <button type="button" class="button secondary" (click)="deletePending = false">
-              Keep observation</button
+              {{ 'reports.keepObservation' | t }}</button
             ><button
               type="button"
               class="button danger"
               (click)="deleteEvent()"
               [disabled]="busy()"
             >
-              Delete permanently
+              {{ 'reports.deleteForever' | t }}
             </button>
           </div>
         </div>
@@ -1428,7 +1526,7 @@
           (click)="deletePending = true"
           [disabled]="busy()"
         >
-          Delete
+          {{ 'common.delete' | t }}
         </button>
         <div class="inline-actions">
           <button
@@ -1437,9 +1535,9 @@
             (click)="cancelEditor()"
             [disabled]="busy()"
           >
-            Cancel</button
+            {{ 'common.cancel' | t }}</button
           ><button type="submit" class="button primary" [disabled]="busy()">
-            {{ busy() ? 'Saving…' : 'Save changes' }}
+            {{ (busy() ? 'reports.saving' : 'reports.saveEdits') | t }}
           </button>
         </div>
       </footer>
@@ -1456,33 +1554,32 @@
       aria-labelledby="manage-player-title"
     >
       <div class="sheet-header">
-        <h2 id="manage-player-title">Manage hits for {{ currPlayer.name }}</h2>
+        <h2 id="manage-player-title">
+          {{ 'reports.manageTitle' | t: { name: currPlayer.name } }}
+        </h2>
         <button
           type="button"
           class="icon-button"
           (click)="managePlayerModalOpen.set(false)"
-          aria-label="Close dialog"
+          [attr.aria-label]="'practice.closeDialog' | t"
         >
           ✕
         </button>
       </div>
       <p class="muted">
-        This player has <strong>{{ playerHitCount(currPlayer.id) }}</strong> recorded contacts in
-        this notebook.
+        {{ 'reports.manageCount' | t: { count: playerHitCount(currPlayer.id) } }}
       </p>
 
       <div class="manage-player-sections">
         <div class="manage-section">
-          <h3>Move all hits to another player</h3>
-          <p class="muted small">
-            Reassign all contacts recorded for {{ currPlayer.name }} to someone else.
-          </p>
+          <h3>{{ 'reports.moveAllHeading' | t }}</h3>
+          <p class="muted small">{{ 'reports.moveAllText' | t: { name: currPlayer.name } }}</p>
           <div class="manage-row">
             <select
               [(ngModel)]="playerManageTargetId"
-              aria-label="Select player to receive all hits"
+              [attr.aria-label]="'reports.receivingAria' | t"
             >
-              <option value="">Choose receiving player…</option>
+              <option value="">{{ 'reports.chooseReceiving' | t }}</option>
               @for (p of otherPlayers(currPlayer.id); track p.id) {
                 <option [value]="p.id">
                   {{ p.name }} {{ p.jerseyNumber ? '(#' + p.jerseyNumber + ')' : '' }}
@@ -1495,23 +1592,24 @@
               [disabled]="!playerManageTargetId || busy() || playerHitCount(currPlayer.id) === 0"
               (click)="moveAllPlayerContacts(currPlayer.id, playerManageTargetId)"
             >
-              Move all {{ playerHitCount(currPlayer.id) }} hits
+              {{ 'reports.moveAllButton' | t: { count: playerHitCount(currPlayer.id) } }}
             </button>
           </div>
         </div>
 
         <div class="manage-section danger-section">
-          <h3>Delete all hits for {{ currPlayer.name }}</h3>
+          <h3>{{ 'reports.deleteAllHeading' | t: { name: currPlayer.name } }}</h3>
           <p class="muted small">
-            Permanently remove all {{ playerHitCount(currPlayer.id) }} contacts and linked notes for
-            this player.
+            {{ 'reports.deleteAllText' | t: { count: playerHitCount(currPlayer.id) } }}
           </p>
           @if (playerManageAction() === 'delete') {
             <div class="delete-confirm-box">
               <p>
-                <strong>Are you sure?</strong> This will permanently delete all
-                {{ playerHitCount(currPlayer.id) }} contacts for {{ currPlayer.name }}. This cannot
-                be undone.
+                <strong>{{ 'reports.areYouSure' | t }}</strong>
+                {{
+                  'reports.deleteAllConfirm'
+                    | t: { count: playerHitCount(currPlayer.id), name: currPlayer.name }
+                }}
               </p>
               <div class="manage-row">
                 <button
@@ -1520,14 +1618,14 @@
                   [disabled]="busy()"
                   (click)="deleteAllPlayerContacts(currPlayer.id)"
                 >
-                  Yes, delete all {{ playerHitCount(currPlayer.id) }} hits
+                  {{ 'reports.deleteAllYes' | t: { count: playerHitCount(currPlayer.id) } }}
                 </button>
                 <button
                   type="button"
                   class="button secondary"
                   (click)="playerManageAction.set('move')"
                 >
-                  Cancel
+                  {{ 'common.cancel' | t }}
                 </button>
               </div>
             </div>
@@ -1538,7 +1636,7 @@
               [disabled]="playerHitCount(currPlayer.id) === 0 || busy()"
               (click)="playerManageAction.set('delete')"
             >
-              Delete all {{ playerHitCount(currPlayer.id) }} hits…
+              {{ 'reports.deleteAllButton' | t: { count: playerHitCount(currPlayer.id) } }}
             </button>
           }
         </div>

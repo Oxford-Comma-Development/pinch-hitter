@@ -66,7 +66,8 @@ export interface UnbackedWorkSummary {
   unbackedSessions: number;
   unbackedEvents: number;
   unbackedPlayers: number;
-  summary: string;
+  /** No backup has ever been exported here, so the counts cover everything on the device. */
+  neverBackedUp: boolean;
 }
 
 export function loadLastBackupAt(): string | null {
@@ -116,20 +117,12 @@ export class CoachStore {
     if (!last) {
       const completedSessions = sessions.filter((s) => !!s.endedAt).length;
       const hasSubstantial = completedSessions >= 1 || events.length >= 3 || sessions.length >= 1;
-      let summary = '';
-      if (hasSubstantial) {
-        const parts: string[] = [];
-        if (sessions.length)
-          parts.push(`${sessions.length} practice${sessions.length > 1 ? 's' : ''}`);
-        if (events.length) parts.push(`${events.length} contact${events.length > 1 ? 's' : ''}`);
-        summary = `${parts.join(', ')} not yet backed up on this device`;
-      }
       return {
         hasSubstantialWork: hasSubstantial,
         unbackedSessions: sessions.length,
         unbackedEvents: events.length,
         unbackedPlayers: players.length,
-        summary,
+        neverBackedUp: true,
       };
     }
 
@@ -154,25 +147,12 @@ export class CoachStore {
       unbackedSessions >= 1 ||
       unbackedPlayers >= 2;
 
-    let summary = '';
-    if (hasSubstantialWork) {
-      const parts: string[] = [];
-      if (unbackedSessions)
-        parts.push(`${unbackedSessions} new practice${unbackedSessions > 1 ? 's' : ''}`);
-      if (unbackedEvents)
-        parts.push(`${unbackedEvents} new contact${unbackedEvents > 1 ? 's' : ''}`);
-      if (!unbackedSessions && !unbackedEvents && unbackedPlayers) {
-        parts.push(`${unbackedPlayers} roster change${unbackedPlayers > 1 ? 's' : ''}`);
-      }
-      summary = `${parts.join(' and ')} recorded since your last backup`;
-    }
-
     return {
       hasSubstantialWork,
       unbackedSessions,
       unbackedEvents,
       unbackedPlayers,
-      summary,
+      neverBackedUp: false,
     };
   });
 

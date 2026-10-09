@@ -1,6 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { DatePipe } from '@angular/common';
 import { ModalDirective } from '../shared/modal.directive';
 import { InstallService } from '../shared/install.service';
 import { CoachStore } from '../data/coach-store';
@@ -18,12 +17,14 @@ import { eventsCsv, backupJson } from '../data/transfer';
 import { RouterLink } from '@angular/router';
 import { backupFileName, canShareFiles, downloadFile, shareFile } from '../shared/files';
 import { TranslatePipe } from '../i18n/translate.pipe';
+import { LocalDatePipe } from '../i18n/local-date.pipe';
+import { I18nService } from '../i18n/i18n.service';
 @Component({
   selector: 'app-settings',
   imports: [
     FormsModule,
     ModalDirective,
-    DatePipe,
+    LocalDatePipe,
     RouterLink,
     TranslatePipe,
     ProLicenseCardComponent,
@@ -60,7 +61,7 @@ import { TranslatePipe } from '../i18n/translate.pipe';
             <label
               >{{ 'settings.activeTeam' | t
               }}<select
-                aria-label="Active team"
+                [attr.aria-label]="'settings.activeTeam' | t"
                 [ngModel]="store.settings().activeTeamId"
                 (ngModelChange)="switchTeam($event)"
               >
@@ -90,7 +91,7 @@ import { TranslatePipe } from '../i18n/translate.pipe';
             <label
               >{{ 'settings.pitcherHand' | t
               }}<select
-                aria-label="Pitcher handedness"
+                [attr.aria-label]="'settings.pitcherHand' | t"
                 [ngModel]="store.settings().defaultPitcherHand"
                 (ngModelChange)="store.updateSettings({ defaultPitcherHand: $event })"
               >
@@ -100,7 +101,7 @@ import { TranslatePipe } from '../i18n/translate.pipe';
             ><label
               >{{ 'settings.rotation' | t
               }}<select
-                aria-label="Rotation"
+                [attr.aria-label]="'settings.rotation' | t"
                 [ngModel]="rotationChoice()"
                 (ngModelChange)="changeRotation($event)"
               >
@@ -113,7 +114,8 @@ import { TranslatePipe } from '../i18n/translate.pipe';
             >
             @if (rotationChoice() === 'custom') {
               <label
-                >Recorded contacts per turn<input
+                >{{ 'settings.contactsPerTurn' | t
+                }}<input
                   type="number"
                   min="1"
                   max="100"
@@ -138,23 +140,20 @@ import { TranslatePipe } from '../i18n/translate.pipe';
           </p>
         </section>
         <section class="card fence-card">
-          <p class="eyebrow">BALLPARK &amp; OUTFIELD FENCE</p>
-          <h2>Home field dimensions</h2>
-          <p class="muted small">
-            Set the default outfield wall distances for your home ballpark. Used in spray chart
-            analytics and warning track detection.
-          </p>
+          <p class="eyebrow">{{ 'settings.fenceEyebrow' | t }}</p>
+          <h2>{{ 'settings.fenceHeading' | t }}</h2>
+          <p class="muted small">{{ 'settings.fenceText' | t }}</p>
           <label
-            >Ballpark preset
+            >{{ 'settings.fencePreset' | t }}
             <select
-              aria-label="Ballpark outfield fence preset"
+              [attr.aria-label]="'settings.fencePresetAria' | t"
               [ngModel]="store.settings().defaultFencePreset || 'high_school'"
               (ngModelChange)="setFencePreset($event)"
             >
-              <option value="high_school">High School Varsity (315' - 390' - 315')</option>
-              <option value="college">College / Pro Standard (330' - 400' - 330')</option>
-              <option value="little_league">Little League / Youth (200' - 200' - 200')</option>
-              <option value="softball">Fastpitch Softball (220' - 220' - 220')</option>
+              <option value="high_school">{{ 'settings.fenceOption.high_school' | t }}</option>
+              <option value="college">{{ 'settings.fenceOption.college' | t }}</option>
+              <option value="little_league">{{ 'settings.fenceOption.little_league' | t }}</option>
+              <option value="softball">{{ 'settings.fenceOption.softball' | t }}</option>
             </select>
           </label>
           <div class="fence-summary-pills">
@@ -174,22 +173,22 @@ import { TranslatePipe } from '../i18n/translate.pipe';
               <span>RF</span><strong>{{ currentFencePreset.rightLineFeet }}'</strong>
             </div>
           </div>
-          <p class="muted small" style="margin-top: 12px;">
-            Custom fence wall dimensions can also be previewed and analyzed on any spray chart in
-            Reports.
-          </p>
+          <p class="muted small" style="margin-top: 12px;">{{ 'settings.fenceReportsNote' | t }}</p>
         </section>
         <section class="card visual-card">
-          <p class="eyebrow">VISUAL ACCESSIBILITY &amp; DISPLAY</p>
-          <h2>Field surface &amp; color palette</h2>
-          <p class="muted small">
-            Customize spray chart contrast and marker colors for barrier-free vision and outdoor
-            sunlight.
-          </p>
+          <p class="eyebrow">{{ 'settings.visualEyebrow' | t }}</p>
+          <h2>{{ 'settings.appearance' | t }}</h2>
+          <p class="muted small">{{ 'settings.visualText' | t }}</p>
 
           <fieldset class="setting-group" style="margin-top: 16px; border: 0; padding: 0;">
-            <legend class="eyebrow" style="margin-bottom: 8px;">COLOR PALETTE</legend>
-            <div class="visual-options" role="radiogroup" aria-label="Spray chart color palette">
+            <legend class="eyebrow" style="margin-bottom: 8px;">
+              {{ 'settings.paletteLegend' | t }}
+            </legend>
+            <div
+              class="visual-options"
+              role="radiogroup"
+              [attr.aria-label]="'settings.paletteAria' | t"
+            >
               <label
                 class="visual-option"
                 [class.selected]="(store.settings().colorPalette || 'standard') === 'standard'"
@@ -202,8 +201,8 @@ import { TranslatePipe } from '../i18n/translate.pipe';
                   (change)="store.updateSettings({ colorPalette: 'standard' })"
                 />
                 <div>
-                  <strong>Standard Classic</strong>
-                  <p class="small muted">Pastel palette: soft coral, amber, and violet tones.</p>
+                  <strong>{{ 'settings.paletteStandard' | t }}</strong>
+                  <p class="small muted">{{ 'settings.paletteStandardText' | t }}</p>
                 </div>
               </label>
 
@@ -221,11 +220,8 @@ import { TranslatePipe } from '../i18n/translate.pipe';
                   "
                 />
                 <div>
-                  <strong>Color-Blind Friendly (Okabe-Ito)</strong>
-                  <p class="small muted">
-                    Barrier-free spectrum for red-green CVD (deuteranopia, protanopia) with
-                    blue-yellow heatmaps.
-                  </p>
+                  <strong>{{ 'settings.paletteColorblind' | t }}</strong>
+                  <p class="small muted">{{ 'settings.paletteColorblindText' | t }}</p>
                 </div>
               </label>
 
@@ -243,18 +239,22 @@ import { TranslatePipe } from '../i18n/translate.pipe';
                   "
                 />
                 <div>
-                  <strong>High Contrast</strong>
-                  <p class="small muted">
-                    Maximized luminance contrast: electric yellow, cyan, and neon accents.
-                  </p>
+                  <strong>{{ 'settings.paletteHighContrast' | t }}</strong>
+                  <p class="small muted">{{ 'settings.paletteHighContrastText' | t }}</p>
                 </div>
               </label>
             </div>
           </fieldset>
 
           <fieldset class="setting-group" style="margin-top: 18px; border: 0; padding: 0;">
-            <legend class="eyebrow" style="margin-bottom: 8px;">FIELD SURFACE</legend>
-            <div class="visual-options" role="radiogroup" aria-label="Field background surface">
+            <legend class="eyebrow" style="margin-bottom: 8px;">
+              {{ 'settings.surfaceLegend' | t }}
+            </legend>
+            <div
+              class="visual-options"
+              role="radiogroup"
+              [attr.aria-label]="'settings.surfaceAria' | t"
+            >
               <label
                 class="visual-option"
                 [class.selected]="(store.settings().fieldTheme || 'classic') === 'classic'"
@@ -267,8 +267,8 @@ import { TranslatePipe } from '../i18n/translate.pipe';
                   (change)="store.updateSettings({ fieldTheme: 'classic' })"
                 />
                 <div>
-                  <strong>Classic Ballpark Green</strong>
-                  <p class="small muted">Traditional grass field with dirt infield diamond.</p>
+                  <strong>{{ 'settings.themeClassic' | t }}</strong>
+                  <p class="small muted">{{ 'settings.themeClassicText' | t }}</p>
                 </div>
               </label>
 
@@ -284,11 +284,8 @@ import { TranslatePipe } from '../i18n/translate.pipe';
                   (change)="store.updateSettings({ fieldTheme: 'high_contrast' })"
                 />
                 <div>
-                  <strong>High-Contrast Slate (Direct Sunlight)</strong>
-                  <p class="small muted">
-                    Deep slate field with bold white chalk baselines and high-visibility bases to
-                    cut outdoor glare.
-                  </p>
+                  <strong>{{ 'settings.themeSlate' | t }}</strong>
+                  <p class="small muted">{{ 'settings.themeSlateText' | t }}</p>
                 </div>
               </label>
             </div>
@@ -301,25 +298,19 @@ import { TranslatePipe } from '../i18n/translate.pipe';
                 [ngModel]="store.settings().shapeMarkers"
                 (ngModelChange)="store.updateSettings({ shapeMarkers: $event })"
               />
-              Multi-shape marker glyphs (circles, diamonds, triangles, crosses, and stars)
+              {{ 'settings.shapeMarkers' | t }}
             </label>
             <p class="small muted" style="margin-top: 4px; margin-left: 28px;">
-              Ensures contact classifications and results are distinguishable without relying on
-              color alone (WCAG 1.4.1).
+              {{ 'settings.shapeMarkersText' | t }}
             </p>
           </div>
         </section>
         <app-pro-license-card />
         <section class="card data-card">
-          <p class="eyebrow">TAKE YOUR NOTEBOOK WITH YOU</p>
-          <h2>Take your notebook with you</h2>
-          <p class="philosophy-quote">
-            “Pinch Hitter doesn't keep your data on our servers. Your notebook stays on your devices
-            and in whatever storage provider you trust.”
-          </p>
-          <p class="platform-statement muted small">
-            Works on iPhone, iPad, Android, Windows, Mac, and Chromebook. No app store required.
-          </p>
+          <p class="eyebrow">{{ 'home.takeNotebookEyebrow' | t }}</p>
+          <h2>{{ 'settings.takeNotebookHeading' | t }}</h2>
+          <p class="philosophy-quote">{{ 'home.philosophy' | t }}</p>
+          <p class="platform-statement muted small">{{ 'home.crossPlatform' | t }}</p>
 
           <div
             class="backup-status-pill"
@@ -328,67 +319,78 @@ import { TranslatePipe } from '../i18n/translate.pipe';
             @if (store.unbackedWork().hasSubstantialWork) {
               <span class="status-indicator warning" aria-hidden="true">●</span>
               <div>
-                <strong>Backup recommended:</strong> {{ store.unbackedWork().summary }}.
-                <p class="small muted">Save a copy to iCloud Drive, Google Drive, or your files.</p>
+                <strong>{{ 'settings.backupRecommended' | t }}</strong>
+                {{ i18n.unbackedSummary(store.unbackedWork()) }}.
+                <p class="small muted">{{ 'settings.backupWhere' | t }}</p>
               </div>
             } @else if (store.lastBackupAt()) {
               <span class="status-indicator up-to-date" aria-hidden="true">✓</span>
               <div>
-                <strong>Notebook backed up.</strong>
+                <strong>{{ 'settings.backedUp' | t }}</strong>
                 <p class="small muted">
-                  Last saved on this device: {{ store.lastBackupAt() | date: 'medium' }}
+                  {{
+                    'settings.lastSaved' | t: { date: (store.lastBackupAt() | localDate: 'medium') }
+                  }}
                 </p>
               </div>
             } @else {
               <span class="status-indicator" aria-hidden="true">○</span>
               <div>
-                <strong>Not yet backed up on this device.</strong>
-                <p class="small muted">Save a copy to keep your team and practices safe.</p>
+                <strong>{{ 'settings.notBackedUp' | t }}</strong>
+                <p class="small muted">{{ 'settings.notBackedUpText' | t }}</p>
               </div>
             }
           </div>
 
           <div class="data-counts">
             <span
-              ><strong>{{ store.teams().length }}</strong> teams</span
+              ><strong>{{ store.teams().length }}</strong>
+              {{ 'home.countTeams' | t: { count: store.teams().length } }}</span
             ><span
-              ><strong>{{ store.players().length }}</strong> players</span
+              ><strong>{{ store.players().length }}</strong>
+              {{ 'home.countPlayers' | t: { count: store.players().length } }}</span
             ><span
-              ><strong>{{ store.sessions().length }}</strong> practices</span
+              ><strong>{{ store.sessions().length }}</strong>
+              {{ 'home.countPractices' | t: { count: store.sessions().length } }}</span
             ><span
-              ><strong>{{ store.events().length }}</strong> contacts</span
+              ><strong>{{ store.events().length }}</strong>
+              {{ 'home.countContacts' | t: { count: store.events().length } }}</span
             >
           </div>
           <div class="row">
             @if (canShare()) {
-              <button class="primary" (click)="shareBackup()">Save or share notebook</button>
-              <button (click)="exportJson()">Download JSON backup</button>
+              <button class="primary" (click)="shareBackup()">
+                {{ 'settings.shareNotebook' | t }}
+              </button>
+              <button (click)="exportJson()">{{ 'settings.exportJson' | t }}</button>
             } @else {
-              <button class="primary" (click)="exportJson()">Download JSON backup</button>
-              <button (click)="shareBackup()">Save or share notebook</button>
+              <button class="primary" (click)="exportJson()">
+                {{ 'settings.exportJson' | t }}
+              </button>
+              <button (click)="shareBackup()">{{ 'settings.shareNotebook' | t }}</button>
             }
           </div>
           <p class="muted small share-hint">
             @if (canShare()) {
-              Opens your device share sheet. On iPhone/iPad, choose
-              <strong>Save to Files / iCloud Drive</strong> or AirDrop. On Android, choose
-              <strong>Save to Drive</strong> or Quick Share.
+              {{ 'settings.shareHintIntro' | t }}
+              <strong>{{ 'settings.shareHintIosTarget' | t }}</strong>
+              {{ 'settings.shareHintIosAlt' | t }}
+              <strong>{{ 'settings.shareHintAndroidTarget' | t }}</strong>
+              {{ 'settings.shareHintAndroidAlt' | t }}
             } @else {
-              Save a complete JSON backup to restore on another device.
+              {{ 'settings.downloadHint' | t }}
             }
           </p>
           <div class="csv-row">
             <label
-              >CSV scope<select aria-label="CSV scope" [(ngModel)]="csvScope">
-                <option value="team">Active team / season</option>
-                <option value="all">All local data</option>
+              >{{ 'settings.csvScope' | t
+              }}<select [attr.aria-label]="'settings.csvScope' | t" [(ngModel)]="csvScope">
+                <option value="team">{{ 'settings.csvScopeTeam' | t }}</option>
+                <option value="all">{{ 'settings.csvScopeAll' | t }}</option>
               </select></label
-            ><button (click)="exportCsv()">Export contacts CSV</button>
+            ><button (click)="exportCsv()">{{ 'settings.exportAllCsv' | t }}</button>
           </div>
-          <p class="muted small">
-            For spreadsheets and baseball analysis. For a player or session CSV, export from
-            Reports.
-          </p>
+          <p class="muted small">{{ 'settings.csvHint' | t }}</p>
           @if (entitlement.canAccess('enriched_csv_metrics')) {
             <p class="small pro-export-note">
               <span class="pro-tag">✦ PRO</span> {{ 'pro.csv.included' | t }}
@@ -407,98 +409,78 @@ import { TranslatePipe } from '../i18n/translate.pipe';
           }
         </section>
         <section class="card">
-          <p class="eyebrow">BRING YOUR NOTEBOOK HOME</p>
-          <h2>Open notebook on this device</h2>
-          <p class="muted">
-            Opening on another phone, iPad, or laptop? Select your Pinch Hitter JSON file from
-            iCloud Drive, Google Drive, or Files. Review its contents before merging.
-          </p>
+          <p class="eyebrow">{{ 'settings.restoreEyebrow' | t }}</p>
+          <h2>{{ 'home.openNotebookBtn' | t }}</h2>
+          <p class="muted">{{ 'settings.restoreText' | t }}</p>
           <label
-            >JSON backup<input
-              type="file"
-              accept=".json,application/json"
-              (change)="readBackup($event)"
+            >{{ 'settings.importJson' | t
+            }}<input type="file" accept=".json,application/json" (change)="readBackup($event)"
           /></label>
-          <p class="small muted">
-            Tip: On iPhone/iPad, choose your file from iCloud Drive or Files. On Android, choose
-            from Google Drive or Downloads.
-          </p>
+          <p class="small muted">{{ 'settings.restoreTip' | t }}</p>
           @if (importError()) {
             <p role="alert" class="error">{{ importError() }}</p>
           }
           @if (preview()) {
             <div class="import-box">
-              <h3>Ready to merge</h3>
+              <h3>{{ 'settings.readyToMerge' | t }}</h3>
               <p>
-                {{ preview()!.counts.teams }} teams · {{ preview()!.counts.players }} players ·
-                {{ preview()!.counts.sessions }} practices · {{ preview()!.counts.events }} contacts
-                · {{ preview()!.counts.notes }} notes
+                {{ 'backup.teams' | t: { count: preview()!.counts.teams } }} ·
+                {{ 'backup.players' | t: { count: preview()!.counts.players } }} ·
+                {{ 'backup.practices' | t: { count: preview()!.counts.sessions } }} ·
+                {{ 'backup.contacts' | t: { count: preview()!.counts.events } }} ·
+                {{ 'backup.notes' | t: { count: preview()!.counts.notes } }}
               </p>
               <p class="small muted">
-                {{ preview()!.conflicts }} existing records share an ID. The newer version of each
-                record wins. Other local records stay in your notebook.
+                {{ 'settings.conflicts' | t: { count: preview()!.conflicts } }}
               </p>
               @for (warning of preview()!.warnings; track warning) {
                 <p class="small">{{ warning }}</p>
               }
               <div class="row">
                 <button class="primary" [disabled]="busy()" (click)="applyImport()">
-                  Merge backup</button
-                ><button (click)="preview.set(null)">Cancel</button>
+                  {{ 'settings.mergeBackup' | t }}</button
+                ><button (click)="preview.set(null)">{{ 'common.cancel' | t }}</button>
               </div>
             </div>
           }
         </section>
         <section class="card">
-          <p class="eyebrow">BUILT FOR THE BALLPARK</p>
-          <h2>On this device</h2>
-          <p class="muted">
-            Once loaded, your roster, practice capture, reports, and exports work offline. Speech
-            recognition may require a connection.
-          </p>
-          <p class="small cross-platform-note">
-            Works on iPhone, iPad, Android, Windows, Mac, and Chromebook. No app store required.
-          </p>
+          <p class="eyebrow">{{ 'settings.deviceEyebrow' | t }}</p>
+          <h2>{{ 'settings.deviceHeading' | t }}</h2>
+          <p class="muted">{{ 'settings.offlineText' | t }}</p>
+          <p class="small cross-platform-note">{{ 'home.crossPlatform' | t }}</p>
           @if (installPrompt()) {
-            <button class="primary" (click)="install()">Install Pinch Hitter</button>
+            <button class="primary" (click)="install()">{{ 'settings.install' | t }}</button>
           } @else {
             <p class="small">
-              To install: use your browser’s <strong>Install app</strong> menu, or on iPhone use
-              <strong>Share → Add to Home Screen</strong>.
+              {{ 'settings.installIntro' | t }} <strong>{{ 'settings.installMenu' | t }}</strong>
+              {{ 'settings.installIos' | t }} <strong>{{ 'settings.installIosSteps' | t }}</strong
+              >.
             </p>
           }
-          <button (click)="protectStorage()">Keep data on this device</button>
+          <button (click)="protectStorage()">{{ 'settings.requestPersistence' | t }}</button>
           <p class="small muted">
-            {{
-              storageStatus() ||
-                'Ask the browser to protect your local storage. Keep a separate backup in case your device is lost or browser data is cleared.'
-            }}
+            {{ storageStatus() || ('settings.persistenceHelp' | t) }}
           </p>
           <p class="small muted">
-            Pinch Hitter · Version 1.0.0<br />No account. No analytics. No coach data sent to a
-            server.
+            {{ 'settings.version' | t }}<br />{{ 'settings.noAccount' | t }}
           </p>
           <p class="small">
-            <a routerLink="/privacy">Read our Privacy Policy →</a>
+            <a routerLink="/privacy">{{ 'settings.privacyLink' | t }}</a>
           </p>
         </section>
         <section class="card danger-card">
-          <h2>Clear this notebook</h2>
-          <p class="muted">
-            Permanently remove all teams, players, practices, contacts, and notes from this browser.
-            Download a backup first.
-          </p>
+          <h2>{{ 'settings.clearHeading' | t }}</h2>
+          <p class="muted">{{ 'settings.clearText' | t }}</p>
           <label
-            >Type DELETE to confirm<input
-              [(ngModel)]="deleteText"
-              autocomplete="off"
-              placeholder="DELETE" /></label
+            >{{ 'settings.clearConfirmLabel' | t
+            }}<input [(ngModel)]="deleteText" autocomplete="off" placeholder="DELETE" /></label
           ><button
             class="danger"
             [disabled]="deleteText !== 'DELETE' || busy()"
             (click)="clearData()"
           >
-            Delete all local data
+            {{ 'settings.clearButton' | t }}
           </button>
         </section>
       </div>
@@ -515,34 +497,44 @@ import { TranslatePipe } from '../i18n/translate.pipe';
           (keydown.escape)="teamEditor.set(false)"
         >
           <div class="sheet-header">
-            <h2 id="team-title">{{ teamId ? 'Edit team' : 'Add team' }}</h2>
-            <button (click)="teamEditor.set(false)" aria-label="Close team editor">✕</button>
+            <h2 id="team-title">
+              {{ (teamId ? 'settings.editTeam' : 'settings.addTeamTitle') | t }}
+            </h2>
+            <button
+              (click)="teamEditor.set(false)"
+              [attr.aria-label]="'settings.closeTeamEditor' | t"
+            >
+              ✕
+            </button>
           </div>
           <form class="stack" (ngSubmit)="saveTeam()">
             <label
-              >Team name<input
-                name="teamName"
-                [(ngModel)]="teamDraft.name"
-                required
-                maxlength="100"
+              >{{ 'home.teamName' | t
+              }}<input name="teamName" [(ngModel)]="teamDraft.name" required maxlength="100"
             /></label>
             <div class="form-grid">
               <label
-                >Short name<input
-                  name="shortName"
-                  [(ngModel)]="teamDraft.shortName"
-                  maxlength="20" /></label
+                >{{ 'home.shortName' | t
+                }}<input name="shortName" [(ngModel)]="teamDraft.shortName" maxlength="20" /></label
               ><label
-                >Season<input name="season" [(ngModel)]="teamDraft.season" maxlength="40"
+                >{{ 'home.season' | t
+                }}<input name="season" [(ngModel)]="teamDraft.season" maxlength="40"
               /></label>
             </div>
             <div class="logo-upload-group">
-              <span>Team logo <span class="muted small">(optional)</span></span>
+              <span
+                >{{ 'settings.teamLogo' | t }}
+                <span class="muted small">{{ 'home.optional' | t }}</span></span
+              >
               @if (teamDraft.logoUrl) {
                 <div class="logo-preview-row">
-                  <img [src]="teamDraft.logoUrl" alt="Team logo preview" class="logo-thumb" />
+                  <img
+                    [src]="teamDraft.logoUrl"
+                    [alt]="'settings.logoPreviewAlt' | t"
+                    class="logo-thumb"
+                  />
                   <button type="button" class="text-button" (click)="removeLogo()">
-                    Remove logo
+                    {{ 'settings.removeLogo' | t }}
                   </button>
                 </div>
               } @else {
@@ -551,23 +543,22 @@ import { TranslatePipe } from '../i18n/translate.pipe';
                     type="file"
                     accept="image/*"
                     (change)="onLogoSelected($event)"
-                    aria-label="Upload team logo"
+                    [attr.aria-label]="'settings.uploadLogo' | t"
                   />
                 </label>
-                <span class="small muted">Square or crest image recommended (PNG, JPG, SVG).</span>
+                <span class="small muted">{{ 'settings.logoHint' | t }}</span>
               }
             </div>
             <label
-              >Team notes<textarea
-                name="notes"
-                [(ngModel)]="teamDraft.notes"
-                maxlength="10000"
-              ></textarea>
+              >{{ 'settings.teamNotes' | t
+              }}<textarea name="notes" [(ngModel)]="teamDraft.notes" maxlength="10000"></textarea>
             </label>
             <div class="row">
               <button class="primary" [disabled]="!teamDraft.name.trim() || busy()">
-                Save team</button
-              ><button type="button" (click)="teamEditor.set(false)">Cancel</button>
+                {{ 'settings.saveTeam' | t }}</button
+              ><button type="button" (click)="teamEditor.set(false)">
+                {{ 'common.cancel' | t }}
+              </button>
             </div>
           </form>
         </section>
@@ -779,6 +770,7 @@ import { TranslatePipe } from '../i18n/translate.pipe';
 })
 export class SettingsComponent {
   readonly store = inject(CoachStore);
+  readonly i18n = inject(I18nService);
   readonly entitlement = inject(EntitlementService);
   readonly upsell = inject(ProUpsellService);
   readonly message = signal('');
@@ -826,7 +818,9 @@ export class SettingsComponent {
     if (preset in this.fencePresets) {
       const validKey = preset as keyof typeof this.fencePresets;
       await this.store.updateSettings({ defaultFencePreset: validKey });
-      this.message.set(`Default ballpark fence set to ${this.fencePresets[validKey].label}.`);
+      this.message.set(
+        this.i18n.t('settings.fenceSet', { preset: this.i18n.t('fence.' + validKey) }),
+      );
     }
   }
   async changeRotation(value: string) {
@@ -842,7 +836,7 @@ export class SettingsComponent {
   }
   async switchTeam(id: string) {
     await this.store.setActiveTeam(id);
-    this.message.set('Active team changed. Your other teams and practices are saved.');
+    this.message.set(this.i18n.t('settings.teamSwitched'));
   }
   /** Free coaches keep every team they already have; creating another one is Pro. */
   addTeam() {
@@ -876,7 +870,7 @@ export class SettingsComponent {
     const file = input.files?.[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) {
-      this.message.set('Please choose an image file (PNG, JPEG, WebP, SVG).');
+      this.message.set(this.i18n.t('settings.logoNotImage'));
       return;
     }
     const reader = new FileReader();
@@ -921,7 +915,7 @@ export class SettingsComponent {
       if (this.teamId) await this.store.updateTeam(this.teamId, input);
       else await this.store.addTeam(input);
       this.teamEditor.set(false);
-      this.message.set('Team saved.');
+      this.message.set(this.i18n.t('settings.teamSaved'));
     } finally {
       this.busy.set(false);
     }
@@ -930,18 +924,24 @@ export class SettingsComponent {
     const backup = await this.store.exportFreshBackup();
     downloadFile(backupJson(backup), this.backupName(), 'application/json');
     this.store.recordBackupExported();
-    this.message.set('JSON backup downloaded. Save it somewhere you can find on another device.');
+    this.message.set(this.i18n.t('settings.jsonDownloaded'));
   }
   backupName() {
     return backupFileName();
   }
   async shareBackup() {
     const backup = await this.store.exportFreshBackup();
-    const result = await shareFile(backupJson(backup), this.backupName(), 'application/json');
-    if (!result.includes('canceled')) {
+    const result = await shareFile(
+      backupJson(backup),
+      this.backupName(),
+      'application/json',
+      this.i18n.t('settings.shareTitle'),
+      this.i18n.t('settings.shareText'),
+    );
+    if (result !== 'canceled') {
       this.store.recordBackupExported();
     }
-    this.message.set(result);
+    this.message.set(this.i18n.t('settings.share.' + result));
   }
 
   async exportCsv() {
@@ -962,7 +962,7 @@ export class SettingsComponent {
       'baseball-contacts.csv',
       'text/csv;charset=utf-8',
     );
-    this.message.set(events.length + ' contacts exported to CSV.');
+    this.message.set(this.i18n.t('settings.csvExported', { count: events.length }));
   }
   async readBackup(event: Event) {
     const input = event.target as HTMLInputElement;
@@ -971,11 +971,13 @@ export class SettingsComponent {
     this.importError.set('');
     try {
       if (file) {
-        if (file.size > 50_000_000) throw new Error('Please choose a backup smaller than 50 MB.');
+        if (file.size > 50_000_000) throw new Error(this.i18n.t('backup.tooLarge'));
         this.preview.set(this.store.previewImport(await file.text()));
       }
     } catch (error) {
-      this.importError.set(error instanceof Error ? error.message : 'This file could not be read.');
+      this.importError.set(
+        error instanceof Error ? error.message : this.i18n.t('backup.unreadable'),
+      );
     }
     input.value = '';
   }
@@ -986,28 +988,23 @@ export class SettingsComponent {
     try {
       await this.store.importBackup(preview);
       this.preview.set(null);
-      this.message.set('Backup merged. Your notebook is ready.');
+      this.message.set(this.i18n.t('settings.merged'));
     } catch (error) {
       this.importError.set(
-        error instanceof Error ? error.message : 'Import failed. Existing data was preserved.',
+        error instanceof Error ? error.message : this.i18n.t('backup.importFailed'),
       );
     } finally {
       this.busy.set(false);
     }
   }
   async clearData() {
-    if (
-      this.deleteText !== 'DELETE' ||
-      !window.confirm(
-        'Delete all Pinch Hitter data on this device? This cannot be undone without a backup.',
-      )
-    )
+    if (this.deleteText !== 'DELETE' || !window.confirm(this.i18n.t('settings.clearConfirm')))
       return;
     this.busy.set(true);
     try {
       await this.store.clearAll();
       this.deleteText = '';
-      this.message.set('This local notebook has been cleared.');
+      this.message.set(this.i18n.t('settings.cleared'));
     } finally {
       this.busy.set(false);
     }
@@ -1015,9 +1012,7 @@ export class SettingsComponent {
   async protectStorage() {
     const kept = await navigator.storage?.persist?.();
     this.storageStatus.set(
-      kept
-        ? 'Persistent storage is enabled. Keep exporting backups for device loss.'
-        : 'Your browser manages storage automatically. Regular backups protect your notebook.',
+      this.i18n.t(kept ? 'settings.persistenceOn' : 'settings.persistenceAuto'),
     );
   }
   async install() {

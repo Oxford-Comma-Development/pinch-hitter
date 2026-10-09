@@ -78,9 +78,12 @@ test('Spanish internationalization (i18n) end-to-end coaching workflow', async (
   await assertNoOverflow(page);
 
   // 7. Finish practice and inspect Reports in Spanish
-  await page.getByRole('button', { name: 'Finish', exact: true }).click();
-  await page.getByRole('button', { name: 'Finish & review practice', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'See the whole field.' })).toBeVisible();
+  await page.getByRole('button', { name: 'Terminar', exact: true }).click();
+  await expect(page.getByRole('dialog')).toContainText('1 contacto registrado está guardado');
+  await page.getByRole('button', { name: 'Terminar y revisar la práctica', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Mira todo el terreno.' })).toBeVisible();
+  await expect(page.locator('.count-pill')).toHaveText('1 contacto');
+  await expect(page.locator('.session-facts')).toContainText(/(lun|mar|mié|jue|vie|sáb|dom) /);
   await expect(page.getByRole('link', { name: 'Reportes', exact: true })).toBeVisible();
   await assertNoOverflow(page);
 

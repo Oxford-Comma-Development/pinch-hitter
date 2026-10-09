@@ -11,10 +11,7 @@
     >
   </header>
   @if (store.error()) {
-    <div class="error-banner" role="alert">
-      {{ store.error() }} Your existing data is still on this device. Export a backup from Settings
-      if storage is full.
-    </div>
+    <div class="error-banner" role="alert">{{ store.error() }} {{ 'nav.storageError' | t }}</div>
   }
   @if (updateReady()) {
     <div class="update-banner">
@@ -31,7 +28,7 @@
       <div class="loading">{{ 'nav.loading' | t }}</div>
     }
   </main>
-  <nav class="main-nav" aria-label="Main navigation">
+  <nav class="main-nav" [attr.aria-label]="'nav.mainAria' | t">
     <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
       ><span aria-hidden="true">⌂</span>{{ 'nav.practice' | t }}</a
     ><a routerLink="/roster" routerLinkActive="active"

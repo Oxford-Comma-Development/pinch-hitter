@@ -27,27 +27,27 @@ export function downloadFile(content: string, name: string, type: string) {
   setTimeout(() => URL.revokeObjectURL(url), 30000);
 }
 
+/** How a share ended, so the caller can word the outcome in the coach's language. */
+export type ShareOutcome = 'shared' | 'canceled' | 'downloaded';
+
 export async function shareFile(
   content: string,
   name: string,
   type: string,
   title = 'Pinch Hitter Notebook',
-): Promise<string> {
+  text = 'Pinch Hitter notebook backup',
+): Promise<ShareOutcome> {
   const file = new File([content], name, { type });
   if (navigator.canShare?.({ files: [file] })) {
     try {
-      await navigator.share({
-        files: [file],
-        title,
-        text: 'Pinch Hitter notebook backup',
-      });
-      return 'Notebook saved. Your data is with you.';
+      await navigator.share({ files: [file], title, text });
+      return 'shared';
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
-        return 'Sharing canceled. Your notebook is unchanged.';
+        return 'canceled';
       }
     }
   }
   downloadFile(content, name, type);
-  return 'Notebook downloaded. Save it to iCloud Drive, Google Drive, or your files.';
+  return 'downloaded';
 }

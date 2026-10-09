@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { LocalDatePipe } from '../i18n/local-date.pipe';
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CoachTier, EntitlementService, SHIPPED_PRO_FEATURES } from '../data/entitlement.service';
@@ -10,7 +10,7 @@ import { UnlockCodeFormComponent } from './unlock-code-form.component';
 
 @Component({
   selector: 'app-pro-license-card',
-  imports: [DatePipe, TranslatePipe, KeepCodeComponent, UnlockCodeFormComponent],
+  imports: [LocalDatePipe, TranslatePipe, KeepCodeComponent, UnlockCodeFormComponent],
   template: `
     <section class="card license-card" aria-labelledby="pro-license-title">
       <p class="eyebrow">{{ 'pro.card.eyebrow' | t }}</p>
@@ -35,7 +35,7 @@ import { UnlockCodeFormComponent } from './unlock-code-form.component';
         </p>
         <p class="small muted">
           {{
-            'pro.card.activatedOn' | t: { date: (license().activatedAt | date: 'mediumDate') ?? '' }
+            'pro.card.activatedOn' | t: { date: license().activatedAt | localDate: 'mediumDate' }
           }}
           {{ 'pro.card.lifetimeNote' | t }}
         </p>

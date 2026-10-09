@@ -1,4 +1,4 @@
-import { Component, computed, input, output, signal } from '@angular/core';
+import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { BallEvent, ColorPaletteMode, FieldThemeMode, OutfieldFenceConfig } from '../data/models';
 import { ZoneCircle } from '../data/defense';
 import {
@@ -6,6 +6,8 @@ import {
   generateWarningTrackSvgPath,
   getFenceDistanceMarkers,
 } from '../data/domain';
+import { I18nService } from '../i18n/i18n.service';
+import { TranslatePipe } from '../i18n/translate.pipe';
 
 export interface FieldPoint {
   x: number;
@@ -114,6 +116,7 @@ export const SERIES_COLORS = { a: '#0072B2', b: '#E69F00' } as const;
 
 @Component({
   selector: 'app-field',
+  imports: [TranslatePipe],
   template: `
     <svg
       viewBox="0 0 1000 1000"
@@ -122,21 +125,16 @@ export const SERIES_COLORS = { a: '#0072B2', b: '#E69F00' } as const;
       [class.high-contrast-field]="theme() === 'high_contrast'"
       [attr.role]="interactive() ? 'button' : 'img'"
       [attr.tabindex]="interactive() ? 0 : null"
-      [attr.aria-label]="label()"
+      [attr.aria-label]="label() || ('field.label' | t)"
       (pointerdown)="beginTap($event)"
       (pointerup)="finishTap($event)"
       (keydown)="onKey($event)"
       (blur)="keyboardActive.set(false)"
     >
-      <title [textContent]="label()"></title>
+      <title [textContent]="label() || ('field.label' | t)"></title>
       <desc>
-        View from behind home plate. Left field is on the left, center field at the top, right field
-        on the right.
-        {{
-          interactive()
-            ? 'Tap to record a location. With a keyboard, move the crosshair with arrow keys and press Enter.'
-            : 'Select an observation in the chart or event history for details.'
-        }}
+        {{ 'field.desc' | t }}
+        {{ (interactive() ? 'field.descCapture' : 'field.descReview') | t }}
       </desc>
       <defs>
         <clipPath [id]="clipId">
@@ -488,8 +486,12 @@ export const SERIES_COLORS = { a: '#0072B2', b: '#E69F00' } as const;
               <title
                 [textContent]="
                   event.hardHit === 0
-                    ? 'Swing & miss (0)'
-                    : (event.contactType || 'Location only') + ' · ' + (event.result || 'No result')
+                    ? i18n.hardHitLabels()[0]
+                    : (event.contactType
+                        ? i18n.contactLabels()[event.contactType]
+                        : ('reports.locationOnly' | t)) +
+                      ' · ' +
+                      (event.result ? i18n.resultLabels()[event.result] : ('reports.noResult' | t))
                 "
               ></title>
             </circle>
@@ -562,7 +564,9 @@ export class FieldComponent {
   readonly theme = input<FieldThemeMode>('classic');
   readonly shapeMarkers = input(false);
   readonly fenceConfig = input<OutfieldFenceConfig | null>(null);
-  readonly label = input('Baseball spray chart');
+  protected readonly i18n = inject(I18nService);
+  /** Accessible chart name; empty falls back to a generic spray chart label. */
+  readonly label = input('');
   /**
    * Two-group overlay (Pro comparison): event id to series. Series always differ by shape as
    * well as colour (WCAG 1.4.1), whatever the shape-marker setting.
