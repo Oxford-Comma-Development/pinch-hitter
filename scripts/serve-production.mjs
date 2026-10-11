@@ -25,7 +25,20 @@ createServer(async (req, res) => {
       return;
     }
     try {
-      if (!(await stat(file)).isFile()) file = resolve(root, 'index.html');
+      // Static pages such as guides/<slug>/ are folders with their own index.html, as on
+      // GitHub Pages. Any other folder falls back to the Angular shell.
+      if ((await stat(file)).isDirectory()) {
+        const folderIndex = resolve(file, 'index.html');
+        const isPage = await stat(folderIndex).then(
+          (s) => s.isFile(),
+          () => false,
+        );
+        if (isPage && !path.endsWith('/') && path !== '') {
+          res.writeHead(301, { Location: req.url.replace(/(?=\?|$)/, '/') }).end();
+          return;
+        }
+        file = isPage ? folderIndex : resolve(root, 'index.html');
+      }
     } catch {
       if (extname(path)) {
         res.writeHead(404).end();

@@ -40,5 +40,6 @@ describe('PrivacyComponent', () => {
 
     expect(links.some((l) => l.routerLink === '/settings')).toBe(true);
     expect(links.some((l) => l.routerLink === '/')).toBe(true);
+    expect(links.some((l) => l.routerLink === 'guides/')).toBe(true);
   });
 });
